@@ -25,9 +25,9 @@ export function ComplexSearch({ onSelect }: ComplexSearchProps) {
 
   return (
     <div className="fade-enter">
-      <h3 className="text-xl font-semibold text-white mb-2">Выберите жилой комплекс</h3>
-      <p className="text-[#7A8299] mb-4 text-sm">
-        Найдите ваш ЖК в базе из 25+ комплексов Алматы
+      <h3 className="text-lg font-semibold text-white mb-1">Выберите жилой комплекс</h3>
+      <p className="text-[#7A8299] mb-4 text-[13px]">
+        25+ комплексов Алматы
       </p>
 
       <Input
@@ -41,12 +41,12 @@ export function ComplexSearch({ onSelect }: ComplexSearchProps) {
         }
       />
 
-      <div className="mt-4 max-h-[380px] overflow-y-auto pr-1">
+      <div className="mt-4 max-h-[380px] overflow-y-auto pr-1 space-y-1">
         {filtered.map((complex) => (
           <div
             key={complex.name}
             onClick={() => onSelect(complex)}
-            className="flex items-center justify-between py-4 px-4 cursor-pointer transition-all duration-200 hover:bg-[rgba(255,255,255,0.03)] border-b border-[rgba(255,255,255,0.04)]"
+            className="flex items-center justify-between py-3.5 px-4 cursor-pointer transition-all duration-200 hover:bg-[rgba(200,164,78,0.04)] rounded-xl border border-transparent hover:border-[rgba(200,164,78,0.08)]"
           >
             <div>
               <div className="font-medium text-white">{complex.name}</div>

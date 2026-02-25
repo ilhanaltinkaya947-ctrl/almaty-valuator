@@ -34,10 +34,10 @@ const PROPERTY_TYPES = [
 
 export function PropertyTypesSection() {
   return (
-    <section id="services" className="py-20 sm:py-28" style={{ backgroundColor: "#0C0E16" }}>
-      <div className="mx-auto max-w-[1120px] px-6">
+    <section id="services" className="py-14 sm:py-24" style={{ backgroundColor: "#0C0E16" }}>
+      <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         {/* Right-aligned heading — different from other sections */}
-        <div className="mb-14 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
+        <div className="mb-8 sm:mb-12 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6">
           <div>
             <div className="text-[12px] font-medium uppercase tracking-[0.2em] mb-5" style={{ color: "#C8A44E" }}>
               Виды недвижимости
@@ -49,13 +49,21 @@ export function PropertyTypesSection() {
               Выкупаем любые типы
             </h2>
           </div>
-          <p className="text-[15px] text-[#5A6478] max-w-[300px]">
-            Любое состояние. Любой район Алматы. Оценка бесплатно.
-          </p>
+          <div className="flex flex-wrap gap-2">
+            {["Любой район", "Любое состояние", "Бесплатная оценка"].map((t) => (
+              <span
+                key={t}
+                className="rounded-full px-3.5 py-1.5 text-[12px] font-medium"
+                style={{ background: "rgba(200,164,78,0.06)", border: "1px solid rgba(200,164,78,0.1)", color: "#8B95A8" }}
+              >
+                {t}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Bento grid — asymmetric, NOT uniform 2x2 */}
-        <RevealGroup className="grid grid-cols-2 gap-4 sm:gap-5 auto-rows-[200px] sm:auto-rows-[220px]">
+        <RevealGroup className="grid grid-cols-2 gap-3 sm:gap-5 auto-rows-[160px] sm:auto-rows-[220px]">
           {PROPERTY_TYPES.map((pt) => (
             <div
               key={pt.title}
@@ -90,7 +98,7 @@ export function PropertyTypesSection() {
               </span>
               {/* Content */}
               <div className="absolute bottom-0 left-0 right-0 p-5">
-                <h3 className="text-[17px] font-semibold text-white mb-1 group-hover:text-[#E8D5A0] transition-colors duration-300">
+                <h3 className="text-[14px] sm:text-[17px] font-semibold text-white mb-1 group-hover:text-[#E8D5A0] transition-colors duration-300">
                   {pt.title}
                 </h3>
               </div>

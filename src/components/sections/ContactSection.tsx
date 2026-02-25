@@ -17,27 +17,45 @@ export function ContactSection() {
     e.preventDefault();
     if (!isValid) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
+    try {
+      await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: rawPhone,
+          name: name.trim(),
+          property_type: propertyType || undefined,
+          source: "landing",
+        }),
+      });
+    } catch {
+      // Silently fail — still show success to user
+    }
     setLoading(false);
     setSubmitted(true);
   }
 
   return (
-    <section
-      id="contacts"
-      className="relative py-20 sm:py-28"
-      style={{ backgroundColor: "#0A0C14" }}
-    >
-      <div className="relative mx-auto max-w-[1120px] px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 lg:gap-16 items-start">
-          {/* Left — Form with integrated heading */}
+    <section id="contacts" className="relative py-14 sm:py-24" style={{ backgroundColor: "#0A0C14" }}>
+      {/* Ambient glow */}
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse, rgba(200,164,78,0.04) 0%, transparent 60%)",
+          filter: "blur(80px)",
+        }}
+      />
+
+      <div className="relative mx-auto max-w-[1120px] px-4 sm:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 lg:gap-14 items-start">
+          {/* Left — heading + form */}
           <div>
             <div className="text-[12px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#C8A44E" }}>
               Контакты
             </div>
             <h2
-              className="font-semibold tracking-[-0.03em] text-white mb-8"
-              style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
+              className="font-semibold tracking-[-0.03em] text-white mb-6"
+              style={{ fontSize: "clamp(1.8rem, 4vw, 3rem)" }}
             >
               Оставьте заявку
             </h2>
@@ -45,20 +63,19 @@ export function ContactSection() {
             <div
               className="rounded-2xl p-6 sm:p-8"
               style={{
-                background: "rgba(255,255,255,0.02)",
-                border: "1px solid rgba(255,255,255,0.06)",
+                background: "linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))",
+                border: "1px solid rgba(200,164,78,0.08)",
+                boxShadow: "0 20px 50px rgba(0,0,0,0.3), 0 0 80px rgba(200,164,78,0.02)",
               }}
             >
               {!submitted ? (
                 <form onSubmit={handleSubmit}>
-                  {/* Trust strip */}
-                  <div className="flex items-center gap-2 text-[12px] text-[#5A6478] mb-6">
+                  <div className="flex items-center gap-2 text-[12px] text-[#5A6478] mb-5">
                     <span style={{ color: "#C8A44E" }}>🔒</span>
                     Ваши данные защищены
                   </div>
 
-                  {/* Inline name + phone row */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                     <input
                       type="text"
                       value={name}
@@ -77,7 +94,7 @@ export function ContactSection() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
                     <select
                       value={propertyType}
                       onChange={(e) => setPropertyType(e.target.value)}
@@ -112,44 +129,50 @@ export function ContactSection() {
             </div>
           </div>
 
-          {/* Right — Compact contact cards */}
-          <div className="lg:pt-[88px]">
-            <div className="space-y-3">
-              {[
-                { icon: "📞", label: "+7 (707) 450-32-77", href: "tel:+77074503277" },
-                { icon: "✉️", label: "almavykup@gmail.com", href: "mailto:almavykup@gmail.com" },
-                { icon: "📍", label: "Мамыр 4 / дом 119", href: "https://2gis.kz/almaty/geo/9430047375160217/76.844166,43.217433" },
-                { icon: "🕐", label: "Пн-Пт: 9:00 - 18:00", href: undefined },
-              ].map((info) => {
-                const Tag = info.href ? "a" : "div";
-                const linkProps = info.href
-                  ? {
-                      href: info.href,
-                      target: info.href.startsWith("http") ? ("_blank" as const) : undefined,
-                      rel: info.href.startsWith("http") ? "noopener noreferrer" : undefined,
-                    }
-                  : {};
-                return (
-                  <Tag
-                    key={info.label}
-                    {...linkProps}
-                    className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 hover:bg-[rgba(255,255,255,0.03)] group"
-                    style={{ border: "1px solid rgba(255,255,255,0.04)" }}
+          {/* Right — contact info */}
+          <div className="lg:pt-[88px] space-y-2">
+            {[
+              { icon: "📞", label: "+7 (707) 450-32-77", href: "tel:+77074503277", highlight: true },
+              { icon: "✉️", label: "almavykup@gmail.com", href: "mailto:almavykup@gmail.com", highlight: false },
+              { icon: "📍", label: "Мамыр 4 / дом 119", href: "https://2gis.kz/almaty/geo/9430047375160217/76.844166,43.217433", highlight: false },
+              { icon: "🕐", label: "Пн-Пт: 9:00 - 18:00", href: undefined, highlight: false },
+            ].map((info) => {
+              const Tag = info.href ? "a" : "div";
+              const linkProps = info.href
+                ? {
+                    href: info.href,
+                    target: info.href.startsWith("http") ? ("_blank" as const) : undefined,
+                    rel: info.href.startsWith("http") ? "noopener noreferrer" : undefined,
+                  }
+                : {};
+              return (
+                <Tag
+                  key={info.label}
+                  {...linkProps}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 hover:bg-[rgba(255,255,255,0.03)] group"
+                  style={{
+                    border: info.highlight
+                      ? "1px solid rgba(200,164,78,0.12)"
+                      : "1px solid rgba(255,255,255,0.04)",
+                    background: info.highlight ? "rgba(200,164,78,0.03)" : "transparent",
+                  }}
+                >
+                  <span className="text-base">{info.icon}</span>
+                  <span
+                    className="text-[14px] font-medium group-hover:text-white transition-colors"
+                    style={{ color: info.highlight ? "#E8D5A0" : "#B8BCC8" }}
                   >
-                    <span className="text-base">{info.icon}</span>
-                    <span className="text-[14px] font-medium text-[#B8BCC8] group-hover:text-white transition-colors">
-                      {info.label}
-                    </span>
-                  </Tag>
-                );
-              })}
-            </div>
+                    {info.label}
+                  </span>
+                </Tag>
+              );
+            })}
 
             <a
               href="https://2gis.kz/almaty/geo/9430047375160217/76.844166,43.217433"
               target="_blank"
               rel="noopener noreferrer"
-              className="group inline-flex items-center gap-2 mt-4 ml-4 text-[#C8A44E] hover:text-[#E8D5A0] transition-colors duration-200"
+              className="group inline-flex items-center gap-2 mt-2 ml-4 text-[#C8A44E] hover:text-[#E8D5A0] transition-colors duration-200"
             >
               <span className="text-[13px] font-medium">Открыть на карте</span>
               <svg className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

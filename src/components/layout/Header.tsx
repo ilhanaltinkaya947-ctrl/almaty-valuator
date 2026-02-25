@@ -30,14 +30,23 @@ export function Header() {
       }`}
       style={{ transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)" }}
     >
-      <div className="mx-auto max-w-[1120px] px-6">
-        <div className="flex items-center justify-between h-[72px] lg:h-[72px] max-lg:h-[64px]">
+      <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
+        <div className="flex items-center justify-between h-[56px] sm:h-[64px] lg:h-[72px]">
           {/* Logo */}
           <a
             href="#"
-            className="text-lg font-semibold tracking-tight text-white transition-colors"
+            className="flex items-center gap-2 transition-opacity hover:opacity-90"
           >
-            Алмавыкуп
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-icon.svg"
+              alt=""
+              className="h-7 w-7 sm:h-8 sm:w-8"
+            />
+            <span className="text-[15px] font-semibold tracking-tight">
+              <span style={{ color: "#D4B970" }}>Алма</span>
+              <span className="text-white">выкуп</span>
+            </span>
           </a>
 
           {/* Desktop nav */}
@@ -70,10 +79,10 @@ export function Header() {
           </div>
 
           {/* Mobile hamburger */}
-          <div className="flex lg:hidden items-center gap-3">
+          <div className="flex lg:hidden items-center gap-1">
             <a
               href="tel:+77074503277"
-              className="text-[#7A8299] hover:text-[#C8A44E] transition-colors"
+              className="p-2.5 text-[#7A8299] hover:text-[#C8A44E] transition-colors"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
@@ -81,7 +90,7 @@ export function Header() {
             </a>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="text-[#7A8299] hover:text-white transition-colors cursor-pointer"
+              className="p-2.5 text-[#7A8299] hover:text-white transition-colors cursor-pointer"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 {menuOpen ? (
@@ -97,8 +106,8 @@ export function Header() {
 
       {/* Mobile fullscreen overlay */}
       {menuOpen && (
-        <div className="lg:hidden fixed inset-0 top-[64px] bg-[rgba(8,9,14,0.95)] backdrop-blur-xl z-40">
-          <nav className="flex flex-col items-center justify-center h-full gap-8">
+        <div className="lg:hidden fixed inset-0 top-[56px] sm:top-[64px] bg-[rgba(8,9,14,0.97)] backdrop-blur-xl z-40">
+          <nav className="flex flex-col items-center justify-center h-full gap-6">
             {NAV_LINKS.map((link, i) => (
               <a
                 key={link.href}

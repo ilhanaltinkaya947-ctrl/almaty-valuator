@@ -26,14 +26,14 @@ export function Accordion({ items, defaultOpen }: AccordionProps) {
             onClick={() => setOpenIndex(openIndex === i ? null : i)}
             className="w-full flex items-center justify-between py-6 text-left cursor-pointer group"
           >
-            <span className={`font-medium text-[16px] pr-4 transition-colors duration-200 ${
-              openIndex === i ? "text-white" : "text-[#E8EAF0] group-hover:text-[#C8A44E]"
+            <span className={`font-medium text-[15px] pr-4 transition-colors duration-200 ${
+              openIndex === i ? "text-[#E8D5A0]" : "text-[#E8EAF0] group-hover:text-[#C8A44E]"
             }`}>
               {item.question}
             </span>
             <svg
-              className={`h-5 w-5 shrink-0 text-[#5A6478] transition-transform duration-300 ${
-                openIndex === i ? "rotate-180" : ""
+              className={`h-4 w-4 shrink-0 transition-all duration-300 ${
+                openIndex === i ? "rotate-180 text-[#C8A44E]" : "text-[#5A6478]"
               }`}
               fill="none"
               viewBox="0 0 24 24"

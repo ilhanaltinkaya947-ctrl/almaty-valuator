@@ -63,11 +63,11 @@ export function HeroSection() {
 
       {/* Main content */}
       <div className="relative flex-1 flex items-center">
-        <div className="mx-auto max-w-[1120px] px-6 w-full py-32 sm:py-40">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-16 items-center">
+        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 w-full py-20 sm:py-32">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-10 lg:gap-16 items-center">
             <div className="max-w-[640px]">
               <div
-                className="hero-animate-1 inline-flex items-center gap-2.5 rounded-full px-4 py-1.5 mb-8"
+                className="hero-animate-1 inline-flex items-center gap-2 rounded-full px-3 sm:px-4 py-1.5 mb-6"
                 style={{ background: "rgba(200,164,78,0.08)", border: "1px solid rgba(200,164,78,0.15)" }}
               >
                 <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "#C8A44E" }} />
@@ -77,8 +77,8 @@ export function HeroSection() {
               </div>
 
               <h1
-                className="hero-animate-2 font-semibold leading-[1.06] tracking-[-0.03em] text-white mb-7"
-                style={{ fontSize: "clamp(2.5rem, 5.5vw, 4.5rem)" }}
+                className="hero-animate-2 font-semibold leading-[1.06] tracking-[-0.03em] text-white mb-5"
+                style={{ fontSize: "clamp(2.2rem, 5.5vw, 4.5rem)" }}
               >
                 Продайте вашу
                 <br />
@@ -88,14 +88,14 @@ export function HeroSection() {
                 <span className="text-gold-gradient">и выгодно</span>
               </h1>
 
-              <p className="hero-animate-3 text-[17px] mb-12" style={{ color: "#7A8299" }}>
+              <p className="hero-animate-3 text-[14px] sm:text-[16px] mb-8" style={{ color: "#5A6478" }}>
                 Любое состояние · Оплата в день сделки
               </p>
 
-              <div className="hero-animate-4 flex flex-col sm:flex-row gap-4">
+              <div className="hero-animate-4 flex flex-col sm:flex-row gap-3">
                 <a
                   href="#calculator"
-                  className="group inline-flex items-center justify-center gap-2 rounded-full px-10 py-4.5 text-[16px] font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(200,164,78,0.35)]"
+                  className="gold-btn group inline-flex items-center justify-center gap-2 rounded-full px-8 sm:px-10 py-4 text-[15px] sm:text-[16px] font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(200,164,78,0.35)]"
                   style={{ backgroundColor: "#C8A44E", color: "#08090E", boxShadow: "0 8px 32px rgba(200,164,78,0.25)" }}
                 >
                   Узнать стоимость
@@ -105,7 +105,7 @@ export function HeroSection() {
                 </a>
                 <a
                   href="tel:+77074503277"
-                  className="inline-flex items-center justify-center gap-2 rounded-full px-10 py-4.5 text-[16px] font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[rgba(255,255,255,0.05)]"
+                  className="inline-flex items-center justify-center gap-2 rounded-full px-8 sm:px-10 py-4 text-[15px] sm:text-[16px] font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-[rgba(255,255,255,0.05)]"
                   style={{ border: "1px solid rgba(255,255,255,0.12)" }}
                 >
                   <svg className="h-4 w-4" style={{ color: "#C8A44E" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -116,7 +116,7 @@ export function HeroSection() {
               </div>
 
               {/* Trust badges */}
-              <div className="hero-animate-4 flex flex-wrap gap-3 mt-8">
+              <div className="hero-animate-4 flex flex-wrap gap-1.5 sm:gap-2 mt-5">
                 {[
                   { icon: "✓", text: "500+ сделок" },
                   { icon: "🔒", text: "Безопасно" },
@@ -124,10 +124,10 @@ export function HeroSection() {
                 ].map((b) => (
                   <span
                     key={b.text}
-                    className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-medium"
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium"
                     style={{
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: "rgba(200,164,78,0.05)",
+                      border: "1px solid rgba(200,164,78,0.1)",
                       color: "#8B95A8",
                     }}
                   >
@@ -159,7 +159,7 @@ export function HeroSection() {
 
       {/* Marquee strip at bottom */}
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.04)", backgroundColor: "rgba(10,12,20,0.8)" }}>
-        <div className="overflow-hidden py-4">
+        <div className="overflow-hidden py-3">
           <div className="animate-marquee whitespace-nowrap flex">
             {[0, 1].map((idx) => (
               <span key={idx} className="text-[12px] font-medium tracking-[0.2em] uppercase" style={{ color: "#3A4258" }}>

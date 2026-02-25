@@ -53,10 +53,20 @@ export function ParameterForm({
         Назад к выбору ЖК
       </button>
 
-      <h3 className="text-xl font-semibold text-white mb-1">Параметры квартиры</h3>
-      <p className="text-[#7A8299] mb-6 text-sm">
-        {complex.name} &middot; {complex.district}
-      </p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-0.5">Параметры квартиры</h3>
+          <p className="text-[#7A8299] text-[13px]">
+            {complex.name} &middot; {complex.district}
+          </p>
+        </div>
+        <span
+          className="rounded-full px-3 py-1 text-[11px] font-mono font-medium"
+          style={{ background: "rgba(200,164,78,0.08)", color: "#C8A44E" }}
+        >
+          &times;{complex.coefficient.toFixed(2)}
+        </span>
+      </div>
 
       {/* Area slider */}
       <div className="mb-6">
@@ -89,12 +99,12 @@ export function ParameterForm({
         <span className="text-xs font-medium text-[#5A6478] uppercase tracking-[0.15em] block mb-3">
           Вид из окна
         </span>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
           {VIEW_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setView(opt.value)}
-              className={`rounded-xl p-4 text-center transition-all duration-300 cursor-pointer ${
+              className={`rounded-xl p-3 sm:p-4 text-center transition-all duration-300 cursor-pointer ${
                 view === opt.value
                   ? "border-[#C8A44E] text-white"
                   : "border-[rgba(255,255,255,0.06)] text-[#7A8299] hover:border-[rgba(255,255,255,0.12)]"
@@ -117,11 +127,11 @@ export function ParameterForm({
       </div>
 
       {/* Condition — left gold accent on selected */}
-      <div className="mb-8">
-        <span className="text-xs font-medium text-[#5A6478] uppercase tracking-[0.15em] block mb-3">
+      <div className="mb-6 sm:mb-8">
+        <span className="text-xs font-medium text-[#5A6478] uppercase tracking-[0.15em] block mb-2 sm:mb-3">
           Состояние
         </span>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5 sm:gap-2">
           {CONDITION_OPTIONS.map((opt) => (
             <button
               key={opt.value}

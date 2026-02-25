@@ -1,83 +1,81 @@
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
 const LEGAL_ITEMS = [
-  "Проверка документов",
-  "Подготовка договора",
-  "Защита сделки",
-  "Нотариальное сопровождение",
+  { icon: "📄", label: "Проверка документов" },
+  { icon: "📝", label: "Подготовка договора" },
+  { icon: "🛡️", label: "Защита сделки" },
+  { icon: "🏛️", label: "Нотариальное сопровождение" },
 ];
 
 export function LegalSection() {
   return (
-    <section className="py-20 sm:py-28 relative overflow-hidden" style={{ backgroundColor: "#08090E" }}>
-      {/* Background decorative shield watermark */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none opacity-[0.02]">
-        <svg width="600" height="600" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={0.3}>
-          <path d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-        </svg>
-      </div>
+    <section className="py-14 sm:py-24 relative" style={{ backgroundColor: "#08090E" }}>
+      <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
+        {/* Full-width card */}
+        <div
+          className="rounded-3xl overflow-hidden relative"
+          style={{
+            background: "linear-gradient(145deg, rgba(200,164,78,0.05), rgba(200,164,78,0.01))",
+            border: "1px solid rgba(200,164,78,0.1)",
+          }}
+        >
+          {/* Gold accent line at top */}
+          <div
+            className="h-px w-full"
+            style={{ background: "linear-gradient(to right, transparent, rgba(200,164,78,0.4), transparent)" }}
+          />
 
-      <div className="relative mx-auto max-w-[1120px] px-6">
-        {/* Asymmetric layout — left heading, right content */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-10 lg:gap-20 items-center">
-          {/* Left — big statement */}
-          <div>
-            <SectionLabel>Юридическая защита</SectionLabel>
-            <h2
-              className="font-semibold tracking-[-0.03em] text-white mb-6"
-              style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
-            >
-              Полное сопровождение
-              <br />
-              <span className="text-gold-gradient">на всех этапах</span>
-            </h2>
-            {/* Trust seal */}
-            <div
-              className="inline-flex items-center gap-2.5 rounded-full px-5 py-2.5"
-              style={{
-                background: "rgba(200,164,78,0.06)",
-                border: "1px solid rgba(200,164,78,0.12)",
-              }}
-            >
-              <svg className="h-4 w-4 text-[#C8A44E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-              </svg>
-              <span className="text-[13px] font-medium" style={{ color: "#C8A44E" }}>Гарантия безопасности сделки</span>
-            </div>
-          </div>
+          <div className="p-5 sm:p-10 lg:p-14">
+            {/* Two-column layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-8 lg:gap-14 items-center">
+              {/* Left — heading + seal */}
+              <div>
+                <SectionLabel>Юридическая защита</SectionLabel>
+                <h2
+                  className="font-semibold tracking-[-0.03em] text-white mb-6"
+                  style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)" }}
+                >
+                  Полное сопровождение
+                  <br />
+                  <span className="text-gold-gradient">на всех этапах</span>
+                </h2>
 
-          {/* Right — stacked items with connecting line */}
-          <div className="relative pl-6 sm:pl-8">
-            {/* Vertical gold line */}
-            <div
-              className="absolute left-0 top-0 bottom-0 w-px"
-              style={{ background: "linear-gradient(to bottom, rgba(200,164,78,0.3), rgba(200,164,78,0.05))" }}
-            />
-
-            <div className="space-y-6">
-              {LEGAL_ITEMS.map((item, i) => (
-                <div key={item} className="group flex items-center gap-4 cursor-default">
-                  {/* Dot on the line */}
-                  <div
-                    className="absolute left-0 -translate-x-1/2 h-2.5 w-2.5 rounded-full transition-all duration-300 group-hover:scale-150 group-hover:shadow-[0_0_12px_rgba(200,164,78,0.5)]"
-                    style={{
-                      backgroundColor: "#C8A44E",
-                      top: `${i * 25 + 3}%`,
-                    }}
-                  />
-                  <div
-                    className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110"
-                    style={{ backgroundColor: "rgba(200,164,78,0.06)" }}
-                  >
-                    <svg className="h-4.5 w-4.5 text-[#C8A44E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span className="text-[16px] font-semibold text-white group-hover:text-[#E8D5A0] transition-colors duration-300">
-                    {item}
+                <div
+                  className="inline-flex items-center gap-2 rounded-full px-5 py-2.5"
+                  style={{
+                    background: "rgba(200,164,78,0.06)",
+                    border: "1px solid rgba(200,164,78,0.12)",
+                  }}
+                >
+                  <svg className="h-4 w-4 text-[#C8A44E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                  </svg>
+                  <span className="text-[13px] font-medium" style={{ color: "#C8A44E" }}>
+                    Гарантия безопасности сделки
                   </span>
                 </div>
-              ))}
+              </div>
+
+              {/* Right — 2×2 grid of services */}
+              <div className="grid grid-cols-2 gap-3">
+                {LEGAL_ITEMS.map((item, i) => (
+                  <div
+                    key={item.label}
+                    className="group rounded-xl p-4 sm:p-5 transition-all duration-300 hover:bg-[rgba(200,164,78,0.04)] hover:-translate-y-0.5"
+                    style={{
+                      background: i === 0 ? "rgba(200,164,78,0.03)" : "rgba(255,255,255,0.02)",
+                      border: i === 0 ? "1px solid rgba(200,164,78,0.1)" : "1px solid rgba(255,255,255,0.04)",
+                    }}
+                  >
+                    <span className="text-xl block mb-2.5 transition-transform duration-300 group-hover:scale-110">
+                      {item.icon}
+                    </span>
+                    <span className="text-[13px] sm:text-[14px] font-semibold text-white group-hover:text-[#E8D5A0] transition-colors duration-300 leading-snug block">
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

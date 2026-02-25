@@ -28,20 +28,36 @@ export function ResultCard({ result, complexName, onBack }: ResultCardProps) {
 
       {/* Price result */}
       <div
-        className="rounded-2xl glass-card p-6 mb-6"
-        style={{ borderColor: "rgba(200,164,78,0.2)" }}
+        className="relative rounded-2xl p-6 mb-6 overflow-hidden"
+        style={{
+          background: "linear-gradient(145deg, rgba(200,164,78,0.06), rgba(200,164,78,0.01))",
+          border: "1px solid rgba(200,164,78,0.15)",
+          boxShadow: "0 0 60px rgba(200,164,78,0.04)",
+        }}
       >
-        <div className="text-xs text-[#5A6478] uppercase tracking-[0.15em] font-medium mb-1">
-          Рыночная стоимость
-        </div>
-        <div className="font-bold text-[#C8A44E] font-mono mb-1" style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}>
-          <AnimatedCounter
-            value={result.totalPrice}
-            formatter={(v) => formatPrice(Math.round(v))}
-          />
-        </div>
-        <div className="text-sm text-[#4A8FD4]">
-          {complexName} &middot; {formatPrice(result.pricePerSqm)}/м&sup2;
+        {/* Decorative glow */}
+        <div
+          className="absolute top-0 right-0 w-[200px] h-[200px] pointer-events-none"
+          style={{
+            background: "radial-gradient(circle, rgba(200,164,78,0.08) 0%, transparent 70%)",
+            filter: "blur(40px)",
+          }}
+        />
+        <div className="relative">
+          <div className="text-[11px] text-[#8B95A8] uppercase tracking-[0.15em] font-medium mb-2">
+            Рыночная стоимость
+          </div>
+          <div className="font-bold text-[#C8A44E] font-mono mb-2" style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}>
+            <AnimatedCounter
+              value={result.totalPrice}
+              formatter={(v) => formatPrice(Math.round(v))}
+            />
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-[#4A8FD4]">{complexName}</span>
+            <span className="text-[#3A4258]">&middot;</span>
+            <span className="text-[#7A8299] font-mono">{formatPrice(result.pricePerSqm)}/м&sup2;</span>
+          </div>
         </div>
       </div>
 

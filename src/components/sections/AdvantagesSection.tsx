@@ -2,15 +2,15 @@
 
 import { useEffect, useRef } from "react";
 
-const ROW_1 = [
-  "🤝 Без посредников",
-  "💳 Оплата сразу",
-  "🏚️ Любое состояние",
-  "⚖️ Юр. поддержка",
-  "📋 Помощь с долгами",
-  "🔓 Проблемные объекты",
-  "🔒 Конфиденциально",
-  "🆓 Бесплатная оценка",
+const ITEMS = [
+  { icon: "🤝", label: "Без посредников", sub: "Прямой выкуп" },
+  { icon: "💳", label: "Оплата сразу", sub: "В день сделки" },
+  { icon: "🏚️", label: "Любое состояние", sub: "Даже проблемные" },
+  { icon: "⚖️", label: "Юр. поддержка", sub: "Полная защита" },
+  { icon: "📋", label: "Помощь с долгами", sub: "Берем на себя" },
+  { icon: "🔓", label: "Проблемные объекты", sub: "Решаем вопросы" },
+  { icon: "🔒", label: "Конфиденциально", sub: "100% приватность" },
+  { icon: "🆓", label: "Бесплатная оценка", sub: "Без обязательств" },
 ];
 
 export function AdvantagesSection() {
@@ -22,62 +22,75 @@ export function AdvantagesSection() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          el.classList.add("visible");
+          el.querySelectorAll(".adv-item").forEach((item, i) => {
+            setTimeout(() => item.classList.add("visible"), i * 80);
+          });
           observer.unobserve(el);
         }
       },
-      { threshold: 0.15 }
+      { threshold: 0.1 }
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
   return (
-    <section className="py-16 sm:py-20 overflow-hidden" style={{ backgroundColor: "#0C0E16" }}>
-      <div className="mx-auto max-w-[1120px] px-6 mb-10">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <div className="text-[12px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#C8A44E" }}>
-              Преимущества
-            </div>
-            <h2
-              className="font-semibold tracking-[-0.03em] text-white"
-              style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
+    <section className="py-14 sm:py-24" style={{ backgroundColor: "#0C0E16" }}>
+      <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="text-[12px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#C8A44E" }}>
+            Преимущества
+          </div>
+          <h2
+            className="font-semibold tracking-[-0.03em] text-white"
+            style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
+          >
+            Почему выбирают нас
+          </h2>
+        </div>
+
+        {/* 4×2 grid with real visual weight */}
+        <div ref={ref} className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+          {ITEMS.map((item, i) => (
+            <div
+              key={item.label}
+              className="adv-item group rounded-xl sm:rounded-2xl p-4 sm:p-6 cursor-default transition-all duration-500"
+              style={{
+                background: i === 0 || i === 7
+                  ? "linear-gradient(145deg, rgba(200,164,78,0.07), rgba(200,164,78,0.02))"
+                  : "rgba(255,255,255,0.02)",
+                border: i === 0 || i === 7
+                  ? "1px solid rgba(200,164,78,0.15)"
+                  : "1px solid rgba(255,255,255,0.04)",
+                boxShadow: i === 0 || i === 7
+                  ? "0 0 40px rgba(200,164,78,0.03)"
+                  : "none",
+                opacity: 0,
+                transform: "translateY(20px)",
+              }}
             >
-              Почему выбирают нас
-            </h2>
-          </div>
-          <span className="text-[13px] text-[#3A4258] font-medium">8 причин →</span>
-        </div>
-      </div>
-
-      {/* Scrolling pill ticker — infinite marquee */}
-      <div ref={ref} className="reveal">
-        <div className="relative">
-          {/* Fade edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-32 z-10 pointer-events-none"
-            style={{ background: "linear-gradient(to right, #0C0E16, transparent)" }} />
-          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-32 z-10 pointer-events-none"
-            style={{ background: "linear-gradient(to left, #0C0E16, transparent)" }} />
-
-          <div className="overflow-hidden">
-            <div className="flex gap-4 animate-marquee whitespace-nowrap">
-              {[...ROW_1, ...ROW_1].map((item, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center shrink-0 rounded-full px-5 py-3 text-[14px] font-medium text-white transition-colors duration-300 hover:bg-[rgba(200,164,78,0.06)] cursor-default"
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                  }}
-                >
-                  {item}
-                </span>
-              ))}
+              <span className="text-xl sm:text-2xl block mb-2 sm:mb-3 transition-transform duration-300 group-hover:scale-110">
+                {item.icon}
+              </span>
+              <div className="text-[12px] sm:text-[14px] font-semibold text-white mb-0.5 group-hover:text-[#E8D5A0] transition-colors duration-300 leading-snug">
+                {item.label}
+              </div>
+              <div className="text-[10px] sm:text-[11px] text-[#5A6478]">{item.sub}</div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
+
+      <style>{`
+        .adv-item.visible {
+          opacity: 1 !important;
+          transform: translateY(0) !important;
+        }
+        .adv-item:hover {
+          border-color: rgba(200,164,78,0.1) !important;
+          background: rgba(200,164,78,0.04) !important;
+        }
+      `}</style>
     </section>
   );
 }
