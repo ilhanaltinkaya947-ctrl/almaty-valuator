@@ -44,6 +44,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Notify admin via Telegram (fire-and-forget)
+    if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_ADMIN_CHAT_ID) {
+      import("@/lib/telegram").then(({ notifyNewLead }) =>
+        notifyNewLead({
+          name: data.name,
+          phone: data.phone,
+          property_type: data.property_type,
+          estimated_price: data.estimated_price,
+          source: data.source,
+        }).catch((err) => console.error("Telegram notify error:", err))
+      );
+    }
+
     return NextResponse.json({ lead }, { status: 201 });
   } catch (err) {
     if (err instanceof z.ZodError) {

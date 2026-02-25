@@ -79,9 +79,19 @@ export async function POST(req: NextRequest) {
         break;
     }
 
-    // TODO: Send via WhatsApp Business API when configured
-    // For now, log and return the message payload for n8n to handle delivery
-    console.log(`[trigger-message] ${data.message_type} → ${lead.phone}: ${message}`);
+    // Send via WhatsApp if configured, otherwise log for n8n to handle
+    let delivery: "sent" | "pending" = "pending";
+    if (process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID) {
+      try {
+        const { sendText: waSendText } = await import("@/lib/whatsapp");
+        await waSendText({ to: lead.phone, text: message });
+        delivery = "sent";
+      } catch (waErr) {
+        console.error("[trigger-message] WhatsApp send failed:", waErr);
+      }
+    } else {
+      console.log(`[trigger-message] ${data.message_type} → ${lead.phone}: ${message}`);
+    }
 
     // Update lead status if it was "new"
     if (lead.status === "new") {
@@ -97,7 +107,7 @@ export async function POST(req: NextRequest) {
       phone: lead.phone,
       message_type: data.message_type,
       message,
-      delivery: "pending",
+      delivery,
     });
   } catch (err) {
     if (err instanceof z.ZodError) {
