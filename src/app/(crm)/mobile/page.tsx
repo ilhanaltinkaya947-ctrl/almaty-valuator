@@ -40,12 +40,6 @@ interface TelegramWebApp {
   };
 }
 
-declare global {
-  interface Window {
-    Telegram?: { WebApp: TelegramWebApp };
-  }
-}
-
 const STATUS_OPTIONS = [
   { value: "all", label: "Все" },
   { value: "new", label: "Новые", color: "#C8A44E" },
@@ -56,6 +50,11 @@ const STATUS_OPTIONS = [
   { value: "closed_lost", label: "Архив", color: "#5A6478" },
 ];
 
+interface SettingRow {
+  key: string;
+  value_numeric: number;
+}
+
 export default function MobileCRM() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,10 +62,13 @@ export default function MobileCRM() {
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [telegramUser, setTelegramUser] = useState<string | null>(null);
+  const [buybackDiscount, setBuybackDiscount] = useState(0.7);
+
+  const getTg = () => (window as unknown as { Telegram?: { WebApp: TelegramWebApp } }).Telegram?.WebApp;
 
   useEffect(() => {
     // Init Telegram WebApp
-    const tg = window.Telegram?.WebApp;
+    const tg = getTg();
     if (tg) {
       tg.ready();
       tg.expand();
@@ -81,15 +83,25 @@ export default function MobileCRM() {
     setLoading(true);
     setError(null);
     try {
-      const initData = window.Telegram?.WebApp?.initData ?? "";
-      const res = await fetch("/api/crm/leads", {
-        headers: {
-          "x-telegram-init-data": initData,
-        },
-      });
-      if (!res.ok) throw new Error("Failed to fetch leads");
-      const data = await res.json();
+      const initData = getTg()?.initData ?? "";
+      const headers = { "x-telegram-init-data": initData };
+
+      const [leadsRes, settingsRes] = await Promise.all([
+        fetch("/api/crm/leads", { headers }),
+        fetch("/api/crm/settings", { headers }),
+      ]);
+
+      if (!leadsRes.ok) throw new Error("Failed to fetch leads");
+      const data = await leadsRes.json();
       setLeads(data.leads ?? []);
+
+      if (settingsRes.ok) {
+        const settingsData = await settingsRes.json();
+        const bbSetting = (settingsData.settings as SettingRow[])?.find(
+          (s: SettingRow) => s.key === "buyback_discount"
+        );
+        if (bbSetting) setBuybackDiscount(Number(bbSetting.value_numeric));
+      }
     } catch {
       setError("Ошибка загрузки данных");
     } finally {
@@ -102,7 +114,7 @@ export default function MobileCRM() {
   }, [fetchLeads]);
 
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
-    const initData = window.Telegram?.WebApp?.initData ?? "";
+    const initData = getTg()?.initData ?? "";
     try {
       const res = await fetch("/api/crm/leads", {
         method: "PATCH",
@@ -123,7 +135,7 @@ export default function MobileCRM() {
   };
 
   const setOfferPrice = async (leadId: string, price: number) => {
-    const initData = window.Telegram?.WebApp?.initData ?? "";
+    const initData = getTg()?.initData ?? "";
     try {
       const res = await fetch("/api/crm/leads", {
         method: "PATCH",
@@ -291,6 +303,7 @@ export default function MobileCRM() {
             <LeadCard
               key={lead.id}
               lead={lead}
+              buybackDiscount={buybackDiscount}
               onStatusChange={updateLeadStatus}
               onSetPrice={setOfferPrice}
               formatPrice={formatPrice}
@@ -305,12 +318,14 @@ export default function MobileCRM() {
 
 function LeadCard({
   lead,
+  buybackDiscount,
   onStatusChange,
   onSetPrice,
   formatPrice,
   formatDate,
 }: {
   lead: Lead;
+  buybackDiscount: number;
   onStatusChange: (id: string, status: string) => void;
   onSetPrice: (id: string, price: number) => void;
   formatPrice: (p: number | null) => string;
@@ -318,6 +333,12 @@ function LeadCard({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [priceInput, setPriceInput] = useState("");
+
+  // Derive 3 prices for auto-calc leads
+  const offerPrice = lead.estimated_price;
+  const marketPrice = offerPrice && buybackDiscount > 0 ? Math.round(offerPrice / buybackDiscount) : null;
+  const limitPrice = marketPrice ? Math.round(marketPrice * 0.80) : null;
+  const margin = marketPrice && offerPrice ? Math.round((1 - offerPrice / marketPrice) * 100) : null;
 
   const statusColor: Record<string, string> = {
     new: "#C8A44E",
@@ -377,6 +398,33 @@ function LeadCard({
 
       {expanded && (
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #1E2A3A" }}>
+          {/* 3-price display for auto-calc leads */}
+          {!lead.needs_manual_review && offerPrice && (
+            <div style={{ display: "flex", gap: 12, marginBottom: 10, fontSize: 12 }}>
+              <div>
+                <div style={{ color: "#5A6478", fontSize: 10 }}>Рынок</div>
+                <div style={{ color: "#8B95A8", fontWeight: 600 }}>{formatPrice(marketPrice)}</div>
+              </div>
+              <div>
+                <div style={{ color: "#5A6478", fontSize: 10 }}>Оферта</div>
+                <div style={{ color: "#C8A44E", fontWeight: 700 }}>{formatPrice(offerPrice)}</div>
+              </div>
+              <div>
+                <div style={{ color: "#5A6478", fontSize: 10 }}>Лимит</div>
+                <div style={{ color: "#E74C3C", fontWeight: 600 }}>{formatPrice(limitPrice)}</div>
+              </div>
+              {margin !== null && (
+                <div style={{
+                  marginLeft: "auto", alignSelf: "center",
+                  fontSize: 11, fontWeight: 700, color: "#25D366",
+                  background: "#25D36620", padding: "2px 8px", borderRadius: 8,
+                }}>
+                  {margin}%
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Offer price display / edit for manual review leads */}
           {lead.needs_manual_review && (
             <div style={{ marginBottom: 10 }}>
@@ -417,7 +465,7 @@ function LeadCard({
           {/* Action buttons */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             <a
-              href={`https://wa.me/${lead.phone.replace(/\D/g, "")}?text=${encodeURIComponent("Здравствуйте! Я менеджер из Алмавыкуп.")}`}
+              href={`https://wa.me/${lead.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Здравствуйте${lead.name ? `, ${lead.name}` : ""}! Я менеджер из Алмавыкуп.${offerPrice ? ` Наше предложение: ${new Intl.NumberFormat("ru-RU").format(offerPrice)} ₸.` : ""}`)}`}
               target="_blank"
               rel="noopener noreferrer"
               style={{

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { evaluationInputSchema } from "@/lib/validation";
 import { evaluatePrice } from "@/lib/smart-value";
+import { getSystemSettings } from "@/lib/settings";
 
 export async function POST(request: Request) {
   try {
@@ -14,7 +15,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = evaluatePrice(parsed.data);
+    const settings = await getSystemSettings();
+    const result = evaluatePrice(parsed.data, settings.baseRate, settings.buybackDiscount);
     return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 });

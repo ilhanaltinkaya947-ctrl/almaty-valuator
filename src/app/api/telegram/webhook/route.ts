@@ -391,8 +391,9 @@ async function handleSetBase(chatId: string, agent: AgentRow, args: string[]) {
 
   const supabase = createAdminClient();
   await supabase
-    .from("config")
-    .upsert({ key: "base_rate", value: value }, { onConflict: "key" });
+    .from("system_settings")
+    .update({ value_numeric: value })
+    .eq("key", "base_rate");
 
   await sendMessage(chatId, [
     "✅ <b>Базовая ставка обновлена</b>",

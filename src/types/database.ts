@@ -198,6 +198,28 @@ export type Database = {
         };
         Relationships: [];
       };
+      system_settings: {
+        Row: {
+          id: string;
+          key: string;
+          value_numeric: number;
+          description: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          key: string;
+          value_numeric: number;
+          description?: string | null;
+        };
+        Update: {
+          id?: string;
+          key?: string;
+          value_numeric?: number;
+          description?: string | null;
+        };
+        Relationships: [];
+      };
       authorized_agents: {
         Row: {
           id: string;

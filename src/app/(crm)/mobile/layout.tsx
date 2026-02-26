@@ -1,11 +1,4 @@
-import type { Metadata, Viewport } from "next";
-import Script from "next/script";
-
-export const metadata: Metadata = {
-  title: "Алмавыкуп CRM",
-  description: "Управление заявками",
-  robots: "noindex, nofollow",
-};
+import type { Viewport } from "next";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -14,11 +7,6 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default function CRMLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
-      {children}
-    </>
-  );
+export default function MobileLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }

@@ -75,6 +75,7 @@ export function getConditionCoefficient(condition: ConditionType): number {
 export function evaluatePrice(
   input: EvaluationInput,
   baseRate: number = DEFAULT_BASE_RATE,
+  buybackCoefficient: number = BUYBACK_BREAKDOWN.buybackCoefficient,
 ): EvaluationResult {
   const propertyType = input.propertyType ?? "apartment";
 
@@ -88,13 +89,14 @@ export function evaluatePrice(
   }
 
   // Branch A: auto calculation for apartments & townhouses
-  return evaluateAuto(input, baseRate);
+  return evaluateAuto(input, baseRate, buybackCoefficient);
 }
 
 /** Auto calculation for apartments and townhouses */
 export function evaluateAuto(
   input: EvaluationInput,
   baseRate: number = DEFAULT_BASE_RATE,
+  buybackCoefficient: number = BUYBACK_BREAKDOWN.buybackCoefficient,
 ): AutoEvaluationResult {
   const kComplex = input.complexCoefficient;
   const kFloor = getFloorCoefficient(input.floor, input.totalFloors);
@@ -117,12 +119,21 @@ export function evaluateAuto(
   );
   const marketPricePerSqm = Math.round(marketPrice / input.area);
 
-  // Offer price (buyback: -30% from market)
-  const totalPrice = Math.round(marketPrice * BUYBACK_BREAKDOWN.buybackCoefficient);
+  // Offer price (buyback: market * buybackCoefficient)
+  const totalPrice = Math.round(marketPrice * buybackCoefficient);
   const pricePerSqm = Math.round(totalPrice / input.area);
 
   // Negotiation limit (-20% from market, the max we agree to pay)
   const negotiationLimit = Math.round(marketPrice * NEGOTIATION_LIMIT_COEFFICIENT);
+
+  // Build dynamic breakdown from the passed coefficient
+  const remainder = 1 - buybackCoefficient;
+  const dynamicBreakdown: BuybackBreakdown = {
+    targetMargin: remainder * 0.5,        // ~half of remainder
+    negotiationReserve: remainder * 0.333, // ~third of remainder
+    operationalCosts: remainder * 0.167,   // ~sixth of remainder
+    buybackCoefficient,
+  };
 
   return {
     needsManualReview: false,
@@ -131,7 +142,7 @@ export function evaluateAuto(
     marketPrice,
     marketPricePerSqm,
     negotiationLimit,
-    buybackBreakdown: BUYBACK_BREAKDOWN,
+    buybackBreakdown: dynamicBreakdown,
     params,
   };
 }
