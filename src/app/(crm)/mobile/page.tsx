@@ -10,6 +10,8 @@ interface Lead {
   source: string;
   property_type: string | null;
   estimated_price: number | null;
+  offer_price: number | null;
+  needs_manual_review: boolean;
   created_at: string;
   contacted_at: string | null;
   complex_name?: string | null;
@@ -47,6 +49,7 @@ declare global {
 const STATUS_OPTIONS = [
   { value: "all", label: "Все" },
   { value: "new", label: "Новые", color: "#C8A44E" },
+  { value: "pending_review", label: "На оценку", color: "#E74C3C" },
   { value: "contacted", label: "На связи", color: "#4A8FD4" },
   { value: "in_progress", label: "В работе", color: "#E8A838" },
   { value: "closed_won", label: "Закрыто ✓", color: "#25D366" },
@@ -112,6 +115,31 @@ export default function MobileCRM() {
       if (res.ok) {
         setLeads((prev) =>
           prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l)),
+        );
+      }
+    } catch {
+      // Silently fail
+    }
+  };
+
+  const setOfferPrice = async (leadId: string, price: number) => {
+    const initData = window.Telegram?.WebApp?.initData ?? "";
+    try {
+      const res = await fetch("/api/crm/leads", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-telegram-init-data": initData,
+        },
+        body: JSON.stringify({ lead_id: leadId, offer_price: price }),
+      });
+      if (res.ok) {
+        setLeads((prev) =>
+          prev.map((l) =>
+            l.id === leadId
+              ? { ...l, offer_price: price, status: l.status === "pending_review" ? "contacted" : l.status }
+              : l
+          ),
         );
       }
     } catch {
@@ -264,6 +292,7 @@ export default function MobileCRM() {
               key={lead.id}
               lead={lead}
               onStatusChange={updateLeadStatus}
+              onSetPrice={setOfferPrice}
               formatPrice={formatPrice}
               formatDate={formatDate}
             />
@@ -277,18 +306,22 @@ export default function MobileCRM() {
 function LeadCard({
   lead,
   onStatusChange,
+  onSetPrice,
   formatPrice,
   formatDate,
 }: {
   lead: Lead;
   onStatusChange: (id: string, status: string) => void;
+  onSetPrice: (id: string, price: number) => void;
   formatPrice: (p: number | null) => string;
   formatDate: (d: string) => string;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [priceInput, setPriceInput] = useState("");
 
   const statusColor: Record<string, string> = {
     new: "#C8A44E",
+    pending_review: "#E74C3C",
     contacted: "#4A8FD4",
     in_progress: "#E8A838",
     closed_won: "#25D366",
@@ -297,6 +330,7 @@ function LeadCard({
 
   const statusLabel: Record<string, string> = {
     new: "Новый",
+    pending_review: "На оценку",
     contacted: "На связи",
     in_progress: "В работе",
     closed_won: "Закрыт ✓",
@@ -343,6 +377,43 @@ function LeadCard({
 
       {expanded && (
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #1E2A3A" }}>
+          {/* Offer price display / edit for manual review leads */}
+          {lead.needs_manual_review && (
+            <div style={{ marginBottom: 10 }}>
+              {lead.offer_price ? (
+                <div style={{ fontSize: 13, color: "#25D366", fontWeight: 600 }}>
+                  Оферта: {formatPrice(lead.offer_price)}
+                </div>
+              ) : (
+                <div style={{ display: "flex", gap: 6 }}>
+                  <input
+                    type="number"
+                    placeholder="Цена выкупа"
+                    value={priceInput}
+                    onChange={(e) => setPriceInput(e.target.value)}
+                    style={{
+                      flex: 1, padding: "6px 10px", borderRadius: 6,
+                      background: "#0A0D14", border: "1px solid #E74C3C",
+                      color: "#F1F3F7", fontSize: 13, outline: "none",
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      const p = parseInt(priceInput);
+                      if (p > 0) { onSetPrice(lead.id, p); setPriceInput(""); }
+                    }}
+                    style={{
+                      padding: "6px 12px", borderRadius: 6, background: "#E74C3C",
+                      color: "#fff", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
+                    }}
+                  >
+                    Назначить
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Action buttons */}
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             <a
@@ -365,7 +436,7 @@ function LeadCard({
             >
               Позвонить
             </a>
-            {lead.status === "new" && (
+            {(lead.status === "new" || lead.status === "pending_review") && (
               <button
                 onClick={() => onStatusChange(lead.id, "contacted")}
                 style={{
@@ -376,7 +447,7 @@ function LeadCard({
                 Взять
               </button>
             )}
-            {(lead.status === "contacted" || lead.status === "new") && (
+            {(lead.status === "contacted" || lead.status === "new" || lead.status === "pending_review") && (
               <button
                 onClick={() => onStatusChange(lead.id, "in_progress")}
                 style={{

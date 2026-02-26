@@ -9,6 +9,7 @@ export const evaluationInputSchema = z.object({
   view: z.enum(["mountain", "park", "city", "industrial"]),
   condition: z.enum(["designer", "euro", "good", "average", "rough"]),
   complexCoefficient: z.number().min(0.5).max(3.0),
+  propertyType: z.enum(["apartment", "townhouse", "house", "commercial", "land"]).optional(),
 });
 
 export const phoneSchema = z

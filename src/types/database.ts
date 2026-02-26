@@ -8,6 +8,7 @@ export type HousingClass =
 
 export type LeadStatus =
   | "new"
+  | "pending_review"
   | "contacted"
   | "in_progress"
   | "closed_won"
@@ -82,6 +83,8 @@ export type Database = {
           area_sqm: number | null;
           floor: number | null;
           estimated_price: number | null;
+          offer_price: number | null;
+          needs_manual_review: boolean;
           status: LeadStatus;
           source: LeadSource;
           broker_id: string | null;
@@ -98,6 +101,8 @@ export type Database = {
           area_sqm?: number | null;
           floor?: number | null;
           estimated_price?: number | null;
+          offer_price?: number | null;
+          needs_manual_review?: boolean;
           status?: LeadStatus;
           source?: LeadSource;
           broker_id?: string | null;
@@ -112,6 +117,8 @@ export type Database = {
           area_sqm?: number | null;
           floor?: number | null;
           estimated_price?: number | null;
+          offer_price?: number | null;
+          needs_manual_review?: boolean;
           status?: LeadStatus;
           source?: LeadSource;
           broker_id?: string | null;

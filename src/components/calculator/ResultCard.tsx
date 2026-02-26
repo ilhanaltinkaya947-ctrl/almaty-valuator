@@ -1,6 +1,6 @@
 "use client";
 
-import type { EvaluationResult } from "@/types/evaluation";
+import type { AutoEvaluationResult } from "@/types/evaluation";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { FactorChips } from "@/components/calculator/FactorChips";
 import { BenchmarkTeaser } from "@/components/calculator/BenchmarkTeaser";
@@ -8,7 +8,7 @@ import { LeadCaptureForm } from "@/components/calculator/LeadCaptureForm";
 import { formatPrice } from "@/lib/utils";
 
 interface ResultCardProps {
-  result: EvaluationResult;
+  result: AutoEvaluationResult;
   complexName: string;
   onBack: () => void;
 }

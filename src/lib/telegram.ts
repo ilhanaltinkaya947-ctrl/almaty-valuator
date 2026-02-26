@@ -166,27 +166,53 @@ export async function notifyLeadInteractive(lead: {
   complex_name?: string | null;
   estimated_price?: number | null;
   source?: string | null;
+  needs_manual_review?: boolean;
 }) {
+  const isManual = lead.needs_manual_review === true;
   const price = lead.estimated_price
     ? new Intl.NumberFormat("ru-RU").format(lead.estimated_price) + " ₸"
     : "—";
 
   const maskedPhone = lead.phone.replace(/(\+7\d{3})\d{4}(\d{2})(\d{2})/, "$1 *** $2 $3");
 
-  const text = [
-    "📢 <b>Новый лид!</b>",
-    "",
-    `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
-    `🏢 <b>ЖК:</b> ${lead.complex_name ?? "—"}`,
-    `💰 <b>Оценка:</b> ${price}`,
-    `📞 <b>Телефон:</b> ${maskedPhone}`,
-    `🏠 <b>Тип:</b> ${lead.property_type ?? "—"}`,
-    `📍 <b>Источник:</b> ${lead.source ?? "website"}`,
-    "",
-    "⬇️ <i>Выберите действие:</i>",
-  ].join("\n");
+  const PROPERTY_TYPE_LABELS: Record<string, string> = {
+    apartment: "Квартира",
+    townhouse: "Таунхаус",
+    house: "Дом",
+    commercial: "Коммерция",
+    land: "Участок",
+  };
 
-  const keyboard = buildLeadKeyboard(lead.id, lead.phone);
+  const typeLabel = PROPERTY_TYPE_LABELS[lead.property_type ?? ""] ?? lead.property_type ?? "—";
+
+  const text = isManual
+    ? [
+        "🚨 <b>Сложный объект — требуется ручной расчёт!</b>",
+        "",
+        `🏠 <b>Тип:</b> ${typeLabel}`,
+        `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
+        `📞 <b>Телефон:</b> ${maskedPhone}`,
+        `📍 <b>Источник:</b> ${lead.source ?? "website"}`,
+        "",
+        "⚠️ <i>Автоматический расчёт невозможен.</i>",
+        "<i>Требуется экспертная оценка и ручной ввод цены.</i>",
+      ].join("\n")
+    : [
+        "📢 <b>Новый лид!</b>",
+        "",
+        `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
+        `🏢 <b>ЖК:</b> ${lead.complex_name ?? "—"}`,
+        `💰 <b>Оценка:</b> ${price}`,
+        `📞 <b>Телефон:</b> ${maskedPhone}`,
+        `🏠 <b>Тип:</b> ${typeLabel}`,
+        `📍 <b>Источник:</b> ${lead.source ?? "website"}`,
+        "",
+        "⬇️ <i>Выберите действие:</i>",
+      ].join("\n");
+
+  const keyboard = isManual
+    ? buildManualReviewKeyboard(lead.id, lead.phone)
+    : buildLeadKeyboard(lead.id, lead.phone);
 
   // Send to all active agents
   const supabase = createAdminClient();
@@ -213,7 +239,23 @@ export async function notifyLeadInteractive(lead: {
   return results;
 }
 
-// ── Backward-compatible notifyNewLead (now uses interactive cards) ──
+/** Keyboard for manual review leads */
+export function buildManualReviewKeyboard(leadId: string, phone: string): InlineKeyboard {
+  const waPhone = phone.replace(/\D/g, "");
+  const waText = encodeURIComponent("Здравствуйте! Я эксперт из Алмавыкуп. Хочу обсудить ваш объект недвижимости.");
+  return [
+    [
+      { text: "✅ Взять на оценку", callback_data: `lead:claim:${leadId}` },
+      { text: "💬 WhatsApp", url: `https://wa.me/${waPhone}?text=${waText}` },
+    ],
+    [
+      { text: "💰 Назначить цену", callback_data: `lead:setprice:${leadId}` },
+      { text: "📦 Архив", callback_data: `lead:lost:${leadId}` },
+    ],
+  ];
+}
+
+// ── notifyNewLead (dispatches to interactive or plain) ──
 
 export async function notifyNewLead(lead: {
   id?: string;
@@ -223,6 +265,7 @@ export async function notifyNewLead(lead: {
   complex_name?: string | null;
   estimated_price?: number | null;
   source?: string | null;
+  needs_manual_review?: boolean;
 }) {
   // If we have a lead ID, send interactive card
   if (lead.id) {
@@ -234,6 +277,7 @@ export async function notifyNewLead(lead: {
       complex_name: lead.complex_name,
       estimated_price: lead.estimated_price,
       source: lead.source,
+      needs_manual_review: lead.needs_manual_review,
     });
   }
 

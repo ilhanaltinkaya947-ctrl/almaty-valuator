@@ -44,6 +44,7 @@ interface TelegramUpdate {
 
 const STATUS_LABELS: Record<string, string> = {
   new: "🆕 Новый",
+  pending_review: "🚨 Ожидает оценки",
   contacted: "📞 На связи",
   in_progress: "🔄 В работе",
   closed_won: "🏆 Закрыт (выиграно)",
@@ -116,6 +117,12 @@ async function handleMessage(msg: TelegramMessage) {
     case "/crm":
       await handleCrm(chatId);
       break;
+    case "/price":
+      await handleSetPrice(chatId, agent, args);
+      break;
+    case "/pending":
+      await handlePendingReview(chatId);
+      break;
     default:
       await sendMessage(chatId, "Неизвестная команда. Введите /start для списка команд.");
   }
@@ -158,6 +165,22 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
   const lead = rawLead as LeadRow | null;
   if (!lead) {
     await answerCallback(query.id, "Лид не найден");
+    return;
+  }
+
+  // Special case: setprice prompts broker to send /price command
+  if (action === "setprice") {
+    await answerCallback(query.id);
+    if (chatId) {
+      await sendMessage(chatId, [
+        `💰 <b>Назначение цены для лида ${lead.name ?? lead.phone}</b>`,
+        "",
+        `Отправьте команду:`,
+        `<code>/price ${leadId} [сумма]</code>`,
+        "",
+        `Пример: <code>/price ${leadId} 25000000</code>`,
+      ].join("\n"));
+    }
     return;
   }
 
@@ -256,7 +279,9 @@ async function handleStart(chatId: string, agent: AgentRow) {
     "<b>Команды:</b>",
     "/stats — Сводка за сегодня",
     "/leads — Последние 5 заявок",
+    "/pending — Заявки на ручной расчёт",
     "/search [ЖК] — Поиск жилого комплекса",
+    "/price [id] [сумма] — Назначить цену",
     `/crm — Открыть CRM`,
     adminCommands,
   ].join("\n"), {
@@ -493,4 +518,124 @@ async function handleCrm(chatId: string) {
       { text: "📊 Открыть CRM", url: `${appUrl}/mobile` },
     ]],
   });
+}
+
+// ── Manual Review Commands ──
+
+async function handlePendingReview(chatId: string) {
+  const supabase = createAdminClient();
+
+  const { data: rawLeads } = await supabase
+    .from("leads")
+    .select("*")
+    .eq("needs_manual_review", true)
+    .in("status", ["pending_review", "new", "contacted"])
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  const leads = (rawLeads ?? []) as LeadRow[];
+
+  if (leads.length === 0) {
+    await sendMessage(chatId, "✅ Нет заявок, ожидающих ручного расчёта.");
+    return;
+  }
+
+  const PROPERTY_TYPE_LABELS: Record<string, string> = {
+    house: "🏠 Дом",
+    commercial: "🏗 Коммерция",
+    land: "🌍 Участок",
+  };
+
+  const lines = leads.map((l, i) => {
+    const typeLabel = PROPERTY_TYPE_LABELS[l.property_type ?? ""] ?? l.property_type ?? "—";
+    const offerStr = l.offer_price
+      ? `✅ ${new Intl.NumberFormat("ru-RU").format(l.offer_price)} ₸`
+      : "⏳ Не назначена";
+    const date = new Date(l.created_at).toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return [
+      `<b>${i + 1}. ${l.name ?? "—"}</b> — ${typeLabel}`,
+      `   📞 ${l.phone}`,
+      `   💰 Оферта: ${offerStr}`,
+      `   📅 ${date}`,
+      `   <code>/price ${l.id} [сумма]</code>`,
+    ].join("\n");
+  });
+
+  await sendMessage(chatId, [
+    "🚨 <b>Заявки на ручной расчёт</b>",
+    "",
+    ...lines,
+  ].join("\n"));
+}
+
+async function handleSetPrice(chatId: string, agent: AgentRow, args: string[]) {
+  if (args.length < 2) {
+    await sendMessage(chatId, "Использование: /price [lead_id] [сумма]\nПример: /price abc123 25000000");
+    return;
+  }
+
+  const leadId = args[0];
+  const price = parseInt(args[1]);
+
+  if (isNaN(price) || price < 1000000 || price > 10000000000) {
+    await sendMessage(chatId, "❌ Цена должна быть числом от 1 000 000 до 10 000 000 000 тг");
+    return;
+  }
+
+  const supabase = createAdminClient();
+
+  const { data: rawLead } = await supabase
+    .from("leads")
+    .select("*")
+    .eq("id", leadId)
+    .single();
+
+  const lead = rawLead as LeadRow | null;
+  if (!lead) {
+    await sendMessage(chatId, "❌ Лид не найден. Проверьте ID.");
+    return;
+  }
+
+  // Update offer_price and move to contacted if pending_review
+  const updateData: Record<string, unknown> = {
+    offer_price: price,
+  };
+  if (lead.status === "pending_review" || lead.status === "new") {
+    updateData.status = "contacted";
+    updateData.contacted_at = new Date().toISOString();
+  }
+
+  await supabase.from("leads").update(updateData).eq("id", leadId);
+
+  const formattedPrice = new Intl.NumberFormat("ru-RU").format(price);
+
+  await sendMessage(chatId, [
+    "✅ <b>Цена назначена!</b>",
+    "",
+    `👤 <b>Клиент:</b> ${lead.name ?? "—"}`,
+    `📞 <b>Телефон:</b> ${lead.phone}`,
+    `🏠 <b>Тип:</b> ${lead.property_type ?? "—"}`,
+    `💰 <b>Оферта:</b> ${formattedPrice} ₸`,
+    "",
+    `👷 Назначил: ${agent.name}`,
+  ].join("\n"));
+
+  // Send WhatsApp notification to client if configured
+  if (process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID) {
+    try {
+      const { sendText: waSendText } = await import("@/lib/whatsapp");
+      await waSendText({
+        to: lead.phone,
+        text: `Здравствуйте${lead.name ? `, ${lead.name}` : ""}! Мы провели экспертную оценку вашего объекта. Наше предложение по срочному выкупу: ${formattedPrice} тенге. Для обсуждения деталей свяжитесь с вашим менеджером.`,
+      });
+      await sendMessage(chatId, "📩 Клиенту отправлено уведомление в WhatsApp.");
+    } catch {
+      await sendMessage(chatId, "⚠️ Не удалось отправить WhatsApp. Свяжитесь с клиентом вручную.");
+    }
+  }
 }

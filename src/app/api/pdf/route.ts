@@ -3,7 +3,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { z } from "zod";
 import { ReportDocument } from "@/components/pdf/ReportDocument";
 import { COMPLEXES, CLASS_LABELS } from "@/data/complexes";
-import { evaluatePrice } from "@/lib/smart-value";
+import { evaluateAuto } from "@/lib/smart-value";
 import type { ReportData, BenchmarkComplex } from "@/components/pdf/types";
 import type { ViewType, ConditionType } from "@/types/evaluation";
 
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Evaluate price
-    const result = evaluatePrice({
+    const result = evaluateAuto({
       complexName: complex.name,
       area: input.area,
       floor: input.floor,

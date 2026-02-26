@@ -12,6 +12,9 @@ const createLeadSchema = z.object({
   estimated_price: z.number().int().positive().optional(),
   source: z.enum(["landing", "telegram", "direct", "manual"]).default("landing"),
   property_type: z.string().optional(),
+  needs_manual_review: z.boolean().optional(),
+  status: z.enum(["new", "pending_review"]).optional(),
+  notes: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -32,6 +35,9 @@ export async function POST(req: NextRequest) {
         estimated_price: data.estimated_price ?? null,
         source: data.source,
         property_type: data.property_type ?? null,
+        needs_manual_review: data.needs_manual_review ?? false,
+        status: data.status ?? "new",
+        notes: data.notes ?? null,
       })
       .select()
       .single();
@@ -55,6 +61,7 @@ export async function POST(req: NextRequest) {
           property_type: data.property_type,
           estimated_price: data.estimated_price,
           source: data.source,
+          needs_manual_review: data.needs_manual_review,
         }).catch((err) => console.error("Telegram notify error:", err))
       );
     }

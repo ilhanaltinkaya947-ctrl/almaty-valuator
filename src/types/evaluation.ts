@@ -2,6 +2,18 @@ export type ViewType = "mountain" | "park" | "city" | "industrial";
 
 export type ConditionType = "designer" | "euro" | "good" | "average" | "rough";
 
+export type PropertyType = "apartment" | "townhouse" | "house" | "commercial" | "land";
+
+/** Types that support auto calculation */
+export const AUTO_CALC_TYPES: PropertyType[] = ["apartment", "townhouse"];
+
+/** Types that require manual expert review */
+export const MANUAL_REVIEW_TYPES: PropertyType[] = ["house", "commercial", "land"];
+
+export function isAutoCalcType(type: PropertyType): boolean {
+  return AUTO_CALC_TYPES.includes(type);
+}
+
 export interface EvaluationInput {
   complexName: string;
   area: number;
@@ -11,6 +23,7 @@ export interface EvaluationInput {
   view: ViewType;
   condition: ConditionType;
   complexCoefficient: number;
+  propertyType?: PropertyType;
 }
 
 export interface CalculationParams {
@@ -24,13 +37,16 @@ export interface CalculationParams {
 
 /** Buyback discount structure (internal) */
 export interface BuybackBreakdown {
-  targetMargin: number;      // 0.15  (15%)
+  targetMargin: number;       // 0.15  (15%)
   negotiationReserve: number; // 0.10  (10%)
   operationalCosts: number;   // 0.05  (5%)
   buybackCoefficient: number; // 0.70  (total -30%)
 }
 
-export interface EvaluationResult {
+/** Result for auto-calculable properties (apartments, townhouses) */
+export interface AutoEvaluationResult {
+  needsManualReview: false;
+
   // Public — shown on landing
   totalPrice: number;      // offerPrice (buyback = market × 0.70)
   pricePerSqm: number;     // offerPrice / area
@@ -43,3 +59,12 @@ export interface EvaluationResult {
 
   params: CalculationParams;
 }
+
+/** Result for properties requiring expert review (houses, commercial, land) */
+export interface ManualReviewResult {
+  needsManualReview: true;
+  propertyType: PropertyType;
+  message: string;
+}
+
+export type EvaluationResult = AutoEvaluationResult | ManualReviewResult;
