@@ -15,6 +15,8 @@ export type LeadStatus =
 
 export type LeadSource = "landing" | "telegram" | "direct" | "manual";
 
+export type AgentRole = "admin" | "broker";
+
 export type Database = {
   public: {
     Tables: {
@@ -186,6 +188,32 @@ export type Database = {
         Update: {
           key?: string;
           value?: unknown;
+        };
+        Relationships: [];
+      };
+      authorized_agents: {
+        Row: {
+          id: string;
+          telegram_id: number;
+          name: string;
+          role: AgentRole;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          telegram_id: number;
+          name: string;
+          role?: AgentRole;
+          is_active?: boolean;
+        };
+        Update: {
+          id?: string;
+          telegram_id?: number;
+          name?: string;
+          role?: AgentRole;
+          is_active?: boolean;
         };
         Relationships: [];
       };

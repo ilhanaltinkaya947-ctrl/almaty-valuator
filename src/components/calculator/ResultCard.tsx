@@ -45,7 +45,7 @@ export function ResultCard({ result, complexName, onBack }: ResultCardProps) {
         />
         <div className="relative">
           <div className="text-[11px] text-[#8B95A8] uppercase tracking-[0.15em] font-medium mb-2">
-            Рыночная стоимость
+            Цена срочного выкупа
           </div>
           <div className="font-bold text-[#C8A44E] font-mono mb-2" style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}>
             <AnimatedCounter
@@ -57,6 +57,12 @@ export function ResultCard({ result, complexName, onBack }: ResultCardProps) {
             <span className="text-[#4A8FD4]">{complexName}</span>
             <span className="text-[#3A4258]">&middot;</span>
             <span className="text-[#7A8299] font-mono">{formatPrice(result.pricePerSqm)}/м&sup2;</span>
+          </div>
+          <div className="mt-3 flex items-center gap-2 text-xs text-[#5A6478]">
+            <svg className="h-3.5 w-3.5 text-[#25D366]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Выкуп за 24 часа · Без комиссий · Оплата сразу
           </div>
         </div>
       </div>

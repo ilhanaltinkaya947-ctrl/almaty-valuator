@@ -44,10 +44,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Notify admin via Telegram (fire-and-forget)
+    // Notify agents via Telegram with interactive lead card (fire-and-forget)
     if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_ADMIN_CHAT_ID) {
+      const leadRecord = lead as Record<string, unknown>;
       import("@/lib/telegram").then(({ notifyNewLead }) =>
         notifyNewLead({
+          id: leadRecord.id as string,
           name: data.name,
           phone: data.phone,
           property_type: data.property_type,

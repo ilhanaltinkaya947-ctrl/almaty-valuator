@@ -1,57 +1,72 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendMessage } from "@/lib/telegram";
+import {
+  sendMessage,
+  editMessage,
+  answerCallback,
+  getAgent,
+  isAdmin,
+  type InlineKeyboard,
+} from "@/lib/telegram";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/types/database";
 
 type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
+type AgentRow = Database["public"]["Tables"]["authorized_agents"]["Row"];
+
+// ── Telegram Update Types ──
+
+interface TelegramUser {
+  id: number;
+  first_name: string;
+  username?: string;
+}
+
+interface TelegramMessage {
+  message_id: number;
+  chat: { id: number };
+  text?: string;
+  from?: TelegramUser;
+}
+
+interface TelegramCallbackQuery {
+  id: string;
+  from: TelegramUser;
+  message?: TelegramMessage;
+  data?: string;
+}
 
 interface TelegramUpdate {
-  message?: {
-    chat: { id: number };
-    text?: string;
-    from?: { id: number; first_name: string };
-  };
+  message?: TelegramMessage;
+  callback_query?: TelegramCallbackQuery;
 }
+
+// ── Status Labels ──
+
+const STATUS_LABELS: Record<string, string> = {
+  new: "🆕 Новый",
+  contacted: "📞 На связи",
+  in_progress: "🔄 В работе",
+  closed_won: "🏆 Закрыт (выиграно)",
+  closed_lost: "📦 Архив",
+};
 
 /**
  * POST /api/telegram/webhook
- * Receives Telegram bot updates.
- * Supports: /start, /stats, /leads
+ * Handles messages + callback queries from inline buttons.
  */
 export async function POST(req: NextRequest) {
   try {
     const update: TelegramUpdate = await req.json();
-    const msg = update.message;
 
-    if (!msg?.text) {
+    // Handle callback queries (inline button presses)
+    if (update.callback_query) {
+      await handleCallbackQuery(update.callback_query);
       return NextResponse.json({ ok: true });
     }
 
-    const chatId = String(msg.chat.id);
-    const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
-
-    // Only respond to admin
-    if (chatId !== adminChatId) {
-      await sendMessage(chatId, "⛔ Доступ ограничен. Этот бот только для администраторов Алмавыкуп.");
-      return NextResponse.json({ ok: true });
-    }
-
-    const command = msg.text.trim().toLowerCase();
-
-    if (command === "/start") {
-      await sendMessage(chatId, [
-        "👋 <b>Алмавыкуп Бот</b>",
-        "",
-        "Доступные команды:",
-        "/stats — Сводка за сегодня",
-        "/leads — Последние 5 заявок",
-      ].join("\n"));
-    } else if (command === "/stats") {
-      await handleStats(chatId);
-    } else if (command === "/leads") {
-      await handleLeads(chatId);
-    } else {
-      await sendMessage(chatId, "Неизвестная команда. Используйте /stats или /leads");
+    // Handle text messages / commands
+    if (update.message?.text && update.message.from) {
+      await handleMessage(update.message);
     }
 
     return NextResponse.json({ ok: true });
@@ -59,6 +74,196 @@ export async function POST(req: NextRequest) {
     console.error("Telegram webhook error:", err);
     return NextResponse.json({ ok: true });
   }
+}
+
+// ── Message Handler ──
+
+async function handleMessage(msg: TelegramMessage) {
+  const chatId = String(msg.chat.id);
+  const telegramId = msg.from!.id;
+  const text = msg.text!.trim();
+
+  // Check agent authorization
+  const agent = await getAgent(telegramId);
+  if (!agent) {
+    await sendMessage(chatId, "⛔ Доступ ограничен. Обратитесь к администратору для получения доступа.");
+    return;
+  }
+
+  // Parse command and args
+  const [command, ...args] = text.split(/\s+/);
+  const cmd = command.toLowerCase();
+
+  switch (cmd) {
+    case "/start":
+      await handleStart(chatId, agent);
+      break;
+    case "/stats":
+      await handleStats(chatId);
+      break;
+    case "/leads":
+      await handleLeads(chatId);
+      break;
+    case "/set_base":
+      await handleSetBase(chatId, agent, args);
+      break;
+    case "/edit_complex":
+      await handleEditComplex(chatId, agent, args);
+      break;
+    case "/search":
+      await handleSearch(chatId, args);
+      break;
+    case "/crm":
+      await handleCrm(chatId);
+      break;
+    default:
+      await sendMessage(chatId, "Неизвестная команда. Введите /start для списка команд.");
+  }
+}
+
+// ── Callback Query Handler (Inline Buttons) ──
+
+async function handleCallbackQuery(query: TelegramCallbackQuery) {
+  const telegramId = query.from.id;
+  const data = query.data ?? "";
+  const chatId = query.message?.chat.id;
+  const messageId = query.message?.message_id;
+
+  // Check authorization
+  const agent = await getAgent(telegramId);
+  if (!agent) {
+    await answerCallback(query.id, "⛔ Нет доступа");
+    return;
+  }
+
+  // Parse: lead:action:leadId
+  const parts = data.split(":");
+  if (parts[0] !== "lead" || parts.length < 3) {
+    await answerCallback(query.id, "Неизвестное действие");
+    return;
+  }
+
+  const action = parts[1];
+  const leadId = parts[2];
+
+  const supabase = createAdminClient();
+
+  // Fetch lead
+  const { data: rawLead } = await supabase
+    .from("leads")
+    .select("*")
+    .eq("id", leadId)
+    .single();
+
+  const lead = rawLead as LeadRow | null;
+  if (!lead) {
+    await answerCallback(query.id, "Лид не найден");
+    return;
+  }
+
+  let newStatus: string;
+  let notification: string;
+
+  switch (action) {
+    case "claim":
+      newStatus = "contacted";
+      notification = `✅ ${agent.name} взял в работу`;
+      break;
+    case "progress":
+      newStatus = "in_progress";
+      notification = `🔄 ${agent.name} перевёл в работу`;
+      break;
+    case "won":
+      newStatus = "closed_won";
+      notification = `🏆 ${agent.name} закрыл (выиграно)`;
+      break;
+    case "lost":
+      newStatus = "closed_lost";
+      notification = `📦 ${agent.name} отправил в архив`;
+      break;
+    default:
+      await answerCallback(query.id, "Неизвестное действие");
+      return;
+  }
+
+  // Update lead in DB
+  const updateData: Record<string, unknown> = {
+    status: newStatus,
+  };
+  if (action === "claim") {
+    updateData.contacted_at = new Date().toISOString();
+  }
+
+  await supabase.from("leads").update(updateData).eq("id", leadId);
+
+  // Update the message to reflect new status
+  if (chatId && messageId) {
+    const price = lead.estimated_price
+      ? new Intl.NumberFormat("ru-RU").format(lead.estimated_price) + " ₸"
+      : "—";
+
+    const updatedText = [
+      `📢 <b>Лид</b> — ${STATUS_LABELS[newStatus] ?? newStatus}`,
+      "",
+      `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
+      `🏢 <b>ЖК:</b> ${lead.complex_id ?? "—"}`,
+      `💰 <b>Оценка:</b> ${price}`,
+      `📞 <b>Телефон:</b> ${lead.phone}`,
+      "",
+      `👷 <b>Ответственный:</b> ${agent.name}`,
+      `🕐 ${new Date().toLocaleString("ru-RU", { timeZone: "Asia/Almaty" })}`,
+    ].join("\n");
+
+    // Keep WhatsApp button, update status buttons
+    const waPhone = lead.phone.replace(/\D/g, "");
+    const waText = encodeURIComponent("Здравствуйте! Я ваш менеджер из Алмавыкуп.");
+    const keyboard: InlineKeyboard = [
+      [{ text: "💬 WhatsApp", url: `https://wa.me/${waPhone}?text=${waText}` }],
+    ];
+
+    // If not archived/closed, keep action buttons
+    if (newStatus !== "closed_won" && newStatus !== "closed_lost") {
+      keyboard.push([
+        { text: "📋 В работу", callback_data: `lead:progress:${leadId}` },
+        { text: "🏆 Закрыть", callback_data: `lead:won:${leadId}` },
+        { text: "📦 Архив", callback_data: `lead:lost:${leadId}` },
+      ]);
+    }
+
+    await editMessage(chatId, messageId, updatedText, keyboard).catch(() => {});
+  }
+
+  await answerCallback(query.id, notification);
+}
+
+// ── Command Handlers ──
+
+async function handleStart(chatId: string, agent: AgentRow) {
+  const adminCommands = isAdmin(agent)
+    ? [
+        "",
+        "<b>Админ:</b>",
+        "/set_base [число] — Изменить базовую ставку",
+        "/edit_complex [ЖК] [коэфф] — Изменить коэффициент ЖК",
+      ].join("\n")
+    : "";
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://almavykup.kz";
+
+  await sendMessage(chatId, [
+    `👋 Привет, <b>${agent.name}</b>! (${agent.role})`,
+    "",
+    "<b>Команды:</b>",
+    "/stats — Сводка за сегодня",
+    "/leads — Последние 5 заявок",
+    "/search [ЖК] — Поиск жилого комплекса",
+    `/crm — Открыть CRM`,
+    adminCommands,
+  ].join("\n"), {
+    replyMarkup: [[
+      { text: "📊 Открыть CRM", url: `${appUrl}/mobile` },
+    ]],
+  });
 }
 
 async function handleStats(chatId: string) {
@@ -70,7 +275,7 @@ async function handleStats(chatId: string) {
   const leads = (allLeads ?? []) as LeadRow[];
 
   const newToday = leads.filter(
-    (l) => new Date(l.created_at) >= today
+    (l) => new Date(l.created_at) >= today,
   ).length;
 
   const byStatus = {
@@ -83,7 +288,7 @@ async function handleStats(chatId: string) {
 
   const totalValue = leads.reduce(
     (sum, l) => sum + (l.estimated_price ?? 0),
-    0
+    0,
   );
 
   const text = [
@@ -130,10 +335,11 @@ async function handleLeads(chatId: string) {
     const price = l.estimated_price
       ? new Intl.NumberFormat("ru-RU").format(l.estimated_price) + " ₸"
       : "—";
+    const statusLabel = STATUS_LABELS[l.status] ?? l.status;
     return [
       `<b>${i + 1}. ${l.name ?? "—"}</b>`,
       `   📞 ${l.phone} | 💰 ${price}`,
-      `   📅 ${date} | 📌 ${l.status}`,
+      `   📅 ${date} | ${statusLabel}`,
     ].join("\n");
   });
 
@@ -142,4 +348,149 @@ async function handleLeads(chatId: string) {
     "",
     ...lines,
   ].join("\n"));
+}
+
+// ── Admin Commands ──
+
+async function handleSetBase(chatId: string, agent: AgentRow, args: string[]) {
+  if (!isAdmin(agent)) {
+    await sendMessage(chatId, "⛔ Эта команда доступна только администраторам.");
+    return;
+  }
+
+  const value = parseInt(args[0]);
+  if (!value || value < 100000 || value > 5000000) {
+    await sendMessage(chatId, "Использование: /set_base [число]\nПример: /set_base 805000\n\nДиапазон: 100 000 — 5 000 000 тг/м²");
+    return;
+  }
+
+  const supabase = createAdminClient();
+  await supabase
+    .from("config")
+    .upsert({ key: "base_rate", value: value }, { onConflict: "key" });
+
+  await sendMessage(chatId, [
+    "✅ <b>Базовая ставка обновлена</b>",
+    "",
+    `Новое значение: <b>${new Intl.NumberFormat("ru-RU").format(value)} ₸/м²</b>`,
+    "",
+    `Изменил: ${agent.name}`,
+    `Время: ${new Date().toLocaleString("ru-RU", { timeZone: "Asia/Almaty" })}`,
+  ].join("\n"));
+}
+
+async function handleEditComplex(chatId: string, agent: AgentRow, args: string[]) {
+  if (!isAdmin(agent)) {
+    await sendMessage(chatId, "⛔ Эта команда доступна только администраторам.");
+    return;
+  }
+
+  if (args.length < 2) {
+    await sendMessage(chatId, "Использование: /edit_complex [название ЖК] [коэффициент]\nПример: /edit_complex Esentai City 2.30\n\nДиапазон коэффициента: 0.50 — 3.00");
+    return;
+  }
+
+  const coeff = parseFloat(args[args.length - 1]);
+  const complexName = args.slice(0, -1).join(" ");
+
+  if (isNaN(coeff) || coeff < 0.5 || coeff > 3.0) {
+    await sendMessage(chatId, "❌ Коэффициент должен быть числом от 0.50 до 3.00");
+    return;
+  }
+
+  const supabase = createAdminClient();
+
+  // Fuzzy match complex name
+  const { data: complexes } = await supabase
+    .from("complexes")
+    .select("id, name, coefficient")
+    .ilike("name", `%${complexName}%`)
+    .limit(1);
+
+  const matches = (complexes ?? []) as { id: string; name: string; coefficient: number }[];
+
+  if (matches.length === 0) {
+    await sendMessage(chatId, `❌ ЖК «${complexName}» не найден. Используйте /search для поиска.`);
+    return;
+  }
+
+  const complex = matches[0];
+  const oldCoeff = complex.coefficient;
+
+  await supabase
+    .from("complexes")
+    .update({ coefficient: coeff })
+    .eq("id", complex.id);
+
+  await sendMessage(chatId, [
+    "✅ <b>Коэффициент обновлён</b>",
+    "",
+    `🏢 <b>ЖК:</b> ${complex.name}`,
+    `📉 Было: ${oldCoeff}`,
+    `📈 Стало: <b>${coeff}</b>`,
+    "",
+    `Изменил: ${agent.name}`,
+  ].join("\n"));
+}
+
+async function handleSearch(chatId: string, args: string[]) {
+  if (args.length === 0) {
+    await sendMessage(chatId, "Использование: /search [название ЖК]\nПример: /search Esentai");
+    return;
+  }
+
+  const query = args.join(" ");
+  const supabase = createAdminClient();
+
+  const { data: complexes } = await supabase
+    .from("complexes")
+    .select("*")
+    .ilike("name", `%${query}%`)
+    .limit(5);
+
+  type ComplexRow = Database["public"]["Tables"]["complexes"]["Row"];
+  const results = (complexes ?? []) as ComplexRow[];
+
+  if (results.length === 0) {
+    await sendMessage(chatId, `🔍 По запросу «${query}» ничего не найдено.`);
+    return;
+  }
+
+  const CLASS_LABELS: Record<string, string> = {
+    elite: "Elite",
+    business_plus: "Business+",
+    business: "Business",
+    comfort_plus: "Comfort+",
+    comfort: "Comfort",
+    standard: "Standard",
+  };
+
+  const lines = results.map((c) => {
+    const avgPrice = c.avg_price_sqm
+      ? new Intl.NumberFormat("ru-RU").format(c.avg_price_sqm) + " ₸/м²"
+      : "—";
+    return [
+      `🏢 <b>${c.name}</b>`,
+      `   📍 ${c.district} | ${CLASS_LABELS[c.class] ?? c.class}`,
+      `   📊 Коэфф: <b>${c.coefficient}</b> | 💰 ${avgPrice}`,
+      `   🏗 ${c.year_built ?? "—"} г. | ${c.total_floors ?? "—"} эт.`,
+      `   📈 Ликвидность: ${c.liquidity_index ? (c.liquidity_index * 100).toFixed(0) + "%" : "—"}`,
+    ].join("\n");
+  });
+
+  await sendMessage(chatId, [
+    `🔍 <b>Результаты поиска: «${query}»</b>`,
+    "",
+    ...lines,
+  ].join("\n"));
+}
+
+async function handleCrm(chatId: string) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://almavykup.kz";
+
+  await sendMessage(chatId, "📊 Откройте CRM для работы с лидами:", {
+    replyMarkup: [[
+      { text: "📊 Открыть CRM", url: `${appUrl}/mobile` },
+    ]],
+  });
 }

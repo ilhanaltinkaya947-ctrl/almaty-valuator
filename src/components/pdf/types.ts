@@ -17,9 +17,13 @@ export interface ReportData {
   viewLabel: string;
   conditionLabel: string;
 
-  // Price
-  totalPrice: number;
-  pricePerSqm: number;
+  // Price — buyback model
+  totalPrice: number;        // offer price (buyback, -30%)
+  pricePerSqm: number;      // offer per sqm
+  marketPrice: number;       // full market value
+  marketPricePerSqm: number;
+
+  // Coefficients
   baseRate: number;
   kComplex: number;
   kFloor: number;

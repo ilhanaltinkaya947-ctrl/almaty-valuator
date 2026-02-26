@@ -1,3 +1,8 @@
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { Database } from "@/types/database";
+
+type AgentRow = Database["public"]["Tables"]["authorized_agents"]["Row"];
+
 const TELEGRAM_API = "https://api.telegram.org";
 
 function getConfig() {
@@ -9,7 +14,7 @@ function getConfig() {
   return { token, adminChatId };
 }
 
-async function callApi(method: string, body: Record<string, unknown>) {
+export async function callApi(method: string, body: Record<string, unknown>) {
   const { token } = getConfig();
 
   const res = await fetch(`${TELEGRAM_API}/bot${token}/${method}`, {
@@ -25,12 +30,62 @@ async function callApi(method: string, body: Record<string, unknown>) {
   return data.result;
 }
 
-/** Send a text message with optional Markdown */
-export async function sendMessage(chatId: string, text: string, parseMode: "MarkdownV2" | "HTML" = "HTML") {
-  return callApi("sendMessage", {
+// ── Inline Keyboard Types ──
+
+export interface InlineButton {
+  text: string;
+  callback_data?: string;
+  url?: string;
+}
+
+export type InlineKeyboard = InlineButton[][];
+
+// ── Core Messaging ──
+
+/** Send a text message with optional inline keyboard */
+export async function sendMessage(
+  chatId: string | number,
+  text: string,
+  options?: {
+    parseMode?: "MarkdownV2" | "HTML";
+    replyMarkup?: InlineKeyboard;
+  },
+) {
+  const body: Record<string, unknown> = {
     chat_id: chatId,
     text,
-    parse_mode: parseMode,
+    parse_mode: options?.parseMode ?? "HTML",
+  };
+  if (options?.replyMarkup) {
+    body.reply_markup = { inline_keyboard: options.replyMarkup };
+  }
+  return callApi("sendMessage", body);
+}
+
+/** Edit an existing message's text + keyboard */
+export async function editMessage(
+  chatId: string | number,
+  messageId: number,
+  text: string,
+  replyMarkup?: InlineKeyboard,
+) {
+  const body: Record<string, unknown> = {
+    chat_id: chatId,
+    message_id: messageId,
+    text,
+    parse_mode: "HTML",
+  };
+  if (replyMarkup) {
+    body.reply_markup = { inline_keyboard: replyMarkup };
+  }
+  return callApi("editMessageText", body);
+}
+
+/** Answer a callback query (dismiss the loading spinner on button press) */
+export async function answerCallback(callbackQueryId: string, text?: string) {
+  return callApi("answerCallbackQuery", {
+    callback_query_id: callbackQueryId,
+    text,
   });
 }
 
@@ -62,8 +117,49 @@ export async function sendDocumentToAdmin(buffer: ArrayBufferLike, filename: str
   return data.result;
 }
 
-/** Notify admin about a new lead */
-export async function notifyNewLead(lead: {
+// ── Agent Authorization ──
+
+/** Check if a Telegram user is authorized. Returns agent row or null. */
+export async function getAgent(telegramId: number): Promise<AgentRow | null> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from("authorized_agents")
+    .select("*")
+    .eq("telegram_id", telegramId)
+    .eq("is_active", true)
+    .single();
+  return (data as AgentRow | null) ?? null;
+}
+
+/** Check if agent has admin role */
+export function isAdmin(agent: AgentRow): boolean {
+  return agent.role === "admin";
+}
+
+// ── Interactive Lead Cards ──
+
+/** Build inline keyboard for a lead card */
+export function buildLeadKeyboard(leadId: string, phone: string): InlineKeyboard {
+  const waPhone = phone.replace(/\D/g, "");
+  const waText = encodeURIComponent("Здравствуйте! Я ваш менеджер из Алмавыкуп. Готов помочь с оценкой вашей недвижимости.");
+  return [
+    [
+      { text: "✅ Взять в работу", callback_data: `lead:claim:${leadId}` },
+      { text: "💬 WhatsApp", url: `https://wa.me/${waPhone}?text=${waText}` },
+    ],
+    [
+      { text: "📋 В работу", callback_data: `lead:progress:${leadId}` },
+      { text: "🏆 Закрыть (выиграно)", callback_data: `lead:won:${leadId}` },
+    ],
+    [
+      { text: "📦 Архив", callback_data: `lead:lost:${leadId}` },
+    ],
+  ];
+}
+
+/** Send an interactive lead notification to all authorized agents */
+export async function notifyLeadInteractive(lead: {
+  id: string;
   name?: string | null;
   phone: string;
   property_type?: string | null;
@@ -71,6 +167,77 @@ export async function notifyNewLead(lead: {
   estimated_price?: number | null;
   source?: string | null;
 }) {
+  const price = lead.estimated_price
+    ? new Intl.NumberFormat("ru-RU").format(lead.estimated_price) + " ₸"
+    : "—";
+
+  const maskedPhone = lead.phone.replace(/(\+7\d{3})\d{4}(\d{2})(\d{2})/, "$1 *** $2 $3");
+
+  const text = [
+    "📢 <b>Новый лид!</b>",
+    "",
+    `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
+    `🏢 <b>ЖК:</b> ${lead.complex_name ?? "—"}`,
+    `💰 <b>Оценка:</b> ${price}`,
+    `📞 <b>Телефон:</b> ${maskedPhone}`,
+    `🏠 <b>Тип:</b> ${lead.property_type ?? "—"}`,
+    `📍 <b>Источник:</b> ${lead.source ?? "website"}`,
+    "",
+    "⬇️ <i>Выберите действие:</i>",
+  ].join("\n");
+
+  const keyboard = buildLeadKeyboard(lead.id, lead.phone);
+
+  // Send to all active agents
+  const supabase = createAdminClient();
+  const { data: agents } = await supabase
+    .from("authorized_agents")
+    .select("telegram_id")
+    .eq("is_active", true);
+
+  const targets = (agents ?? []) as { telegram_id: number }[];
+
+  // Also send to admin chat as fallback
+  const { adminChatId } = getConfig();
+  const allChatIds = new Set<string>([adminChatId]);
+  for (const a of targets) {
+    allChatIds.add(String(a.telegram_id));
+  }
+
+  const results = await Promise.allSettled(
+    [...allChatIds].map((chatId) =>
+      sendMessage(chatId, text, { replyMarkup: keyboard })
+    ),
+  );
+
+  return results;
+}
+
+// ── Backward-compatible notifyNewLead (now uses interactive cards) ──
+
+export async function notifyNewLead(lead: {
+  id?: string;
+  name?: string | null;
+  phone: string;
+  property_type?: string | null;
+  complex_name?: string | null;
+  estimated_price?: number | null;
+  source?: string | null;
+}) {
+  // If we have a lead ID, send interactive card
+  if (lead.id) {
+    return notifyLeadInteractive({
+      id: lead.id,
+      name: lead.name,
+      phone: lead.phone,
+      property_type: lead.property_type,
+      complex_name: lead.complex_name,
+      estimated_price: lead.estimated_price,
+      source: lead.source,
+    });
+  }
+
+  // Fallback: plain text notification
   const price = lead.estimated_price
     ? new Intl.NumberFormat("ru-RU").format(lead.estimated_price) + " ₸"
     : "—";

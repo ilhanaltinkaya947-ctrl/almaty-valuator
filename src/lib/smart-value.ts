@@ -2,11 +2,25 @@ import type {
   EvaluationInput,
   EvaluationResult,
   CalculationParams,
+  BuybackBreakdown,
   ViewType,
   ConditionType,
 } from "@/types/evaluation";
 
-const DEFAULT_BASE_RATE = 738_300;
+// ── Constants ──
+
+const DEFAULT_BASE_RATE = 805_000;
+
+const BUYBACK_BREAKDOWN: BuybackBreakdown = {
+  targetMargin: 0.15,        // 15% agency profit
+  negotiationReserve: 0.10,  // 10% room to negotiate up
+  operationalCosts: 0.05,    // 5% operational costs
+  buybackCoefficient: 0.70,  // total: 1 - (15+10+5)% = 70% of market
+};
+
+const NEGOTIATION_LIMIT_COEFFICIENT = 0.80; // max we pay (-20% from market)
+
+// ── Coefficient Functions ──
 
 export function getFloorCoefficient(
   floor: number,
@@ -48,6 +62,8 @@ export function getConditionCoefficient(condition: ConditionType): number {
   return CONDITION_COEFFICIENTS[condition];
 }
 
+// ── Main Evaluation ──
+
 export function evaluatePrice(
   input: EvaluationInput,
   baseRate: number = DEFAULT_BASE_RATE,
@@ -67,10 +83,26 @@ export function evaluatePrice(
     kCondition,
   };
 
-  const totalPrice = Math.round(
+  // Market price (100%)
+  const marketPrice = Math.round(
     input.area * baseRate * kComplex * kFloor * kYear * kView * kCondition,
   );
+  const marketPricePerSqm = Math.round(marketPrice / input.area);
+
+  // Offer price (buyback: -30% from market)
+  const totalPrice = Math.round(marketPrice * BUYBACK_BREAKDOWN.buybackCoefficient);
   const pricePerSqm = Math.round(totalPrice / input.area);
 
-  return { totalPrice, pricePerSqm, params };
+  // Negotiation limit (-20% from market, the max we agree to pay)
+  const negotiationLimit = Math.round(marketPrice * NEGOTIATION_LIMIT_COEFFICIENT);
+
+  return {
+    totalPrice,
+    pricePerSqm,
+    marketPrice,
+    marketPricePerSqm,
+    negotiationLimit,
+    buybackBreakdown: BUYBACK_BREAKDOWN,
+    params,
+  };
 }

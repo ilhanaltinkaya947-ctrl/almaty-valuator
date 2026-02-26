@@ -79,6 +79,8 @@ export async function POST(req: NextRequest) {
       conditionLabel: CONDITION_LABELS[input.condition],
       totalPrice: result.totalPrice,
       pricePerSqm: result.pricePerSqm,
+      marketPrice: result.marketPrice,
+      marketPricePerSqm: result.marketPricePerSqm,
       baseRate: result.params.baseRate,
       kComplex: result.params.kComplex,
       kFloor: result.params.kFloor,
