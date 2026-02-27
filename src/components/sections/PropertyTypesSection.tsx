@@ -34,16 +34,16 @@ const PROPERTY_TYPES = [
 
 export function PropertyTypesSection() {
   return (
-    <section id="services" className="py-14 sm:py-24" style={{ backgroundColor: "#0C0E16" }}>
+    <section id="services" className="py-14 sm:py-24" style={{ backgroundColor: "#FFFFFF" }}>
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         {/* Right-aligned heading — different from other sections */}
         <div className="mb-8 sm:mb-12 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6">
           <div>
-            <div className="text-[12px] font-medium uppercase tracking-[0.2em] mb-5" style={{ color: "#C8A44E" }}>
+            <div className="text-[12px] font-medium uppercase tracking-[0.2em] mb-5" style={{ color: "#3A8D7B" }}>
               Виды недвижимости
             </div>
             <h2
-              className="font-semibold tracking-[-0.03em] text-white"
+              className="font-semibold tracking-[-0.03em] text-[#1A2332]"
               style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
             >
               Выкупаем любые типы
@@ -54,7 +54,7 @@ export function PropertyTypesSection() {
               <span
                 key={t}
                 className="rounded-full px-3.5 py-1.5 text-[12px] font-medium"
-                style={{ background: "rgba(200,164,78,0.06)", border: "1px solid rgba(200,164,78,0.1)", color: "#8B95A8" }}
+                style={{ background: "rgba(58,141,123,0.06)", border: "1px solid rgba(58,141,123,0.1)", color: "#6B7280" }}
               >
                 {t}
               </span>
@@ -68,7 +68,7 @@ export function PropertyTypesSection() {
             <div
               key={pt.title}
               className={`reveal-child reveal bento-card group rounded-2xl overflow-hidden relative ${pt.span}`}
-              style={{ border: "1px solid rgba(255,255,255,0.06)" }}
+              style={{ border: "1px solid rgba(0,0,0,0.06)" }}
             >
               <Image
                 src={pt.image}
@@ -88,9 +88,9 @@ export function PropertyTypesSection() {
               <span
                 className="absolute top-3 left-3 rounded-full px-2.5 py-1 text-[11px] font-medium"
                 style={{
-                  background: "rgba(200,164,78,0.12)",
-                  color: "#E8D5A0",
-                  border: "1px solid rgba(200,164,78,0.2)",
+                  background: "rgba(58,141,123,0.12)",
+                  color: "#FFFFFF",
+                  border: "1px solid rgba(58,141,123,0.2)",
                   backdropFilter: "blur(8px)",
                 }}
               >
@@ -98,7 +98,7 @@ export function PropertyTypesSection() {
               </span>
               {/* Content */}
               <div className="absolute bottom-0 left-0 right-0 p-5">
-                <h3 className="text-[14px] sm:text-[17px] font-semibold text-white mb-1 group-hover:text-[#E8D5A0] transition-colors duration-300">
+                <h3 className="text-[14px] sm:text-[17px] font-semibold text-white mb-1 group-hover:text-[#66BB6A] transition-colors duration-300">
                   {pt.title}
                 </h3>
               </div>

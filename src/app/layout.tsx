@@ -48,10 +48,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" style={{ backgroundColor: "#08090E" }} suppressHydrationWarning>
+    <html lang="ru" style={{ backgroundColor: "#F0F9F6" }} suppressHydrationWarning>
       <body
         className={`${inter.variable} ${jetbrains.variable} font-sans antialiased`}
-        style={{ backgroundColor: "#08090E", color: "#E8EAF0" }}
+        style={{ backgroundColor: "#F0F9F6", color: "#1A2332" }}
       >
         {children}
       </body>

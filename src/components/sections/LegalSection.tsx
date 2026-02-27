@@ -9,20 +9,20 @@ const LEGAL_ITEMS = [
 
 export function LegalSection() {
   return (
-    <section className="py-14 sm:py-24 relative" style={{ backgroundColor: "#08090E" }}>
+    <section className="py-14 sm:py-24 relative" style={{ backgroundColor: "#F0F9F6" }}>
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         {/* Full-width card */}
         <div
           className="rounded-3xl overflow-hidden relative"
           style={{
-            background: "linear-gradient(145deg, rgba(200,164,78,0.05), rgba(200,164,78,0.01))",
-            border: "1px solid rgba(200,164,78,0.1)",
+            background: "linear-gradient(145deg, rgba(58,141,123,0.05), rgba(58,141,123,0.01))",
+            border: "1px solid rgba(58,141,123,0.1)",
           }}
         >
-          {/* Gold accent line at top */}
+          {/* Green accent line at top */}
           <div
             className="h-px w-full"
-            style={{ background: "linear-gradient(to right, transparent, rgba(200,164,78,0.4), transparent)" }}
+            style={{ background: "linear-gradient(to right, transparent, rgba(58,141,123,0.4), transparent)" }}
           />
 
           <div className="p-5 sm:p-10 lg:p-14">
@@ -32,7 +32,7 @@ export function LegalSection() {
               <div>
                 <SectionLabel>Юридическая защита</SectionLabel>
                 <h2
-                  className="font-semibold tracking-[-0.03em] text-white mb-6"
+                  className="font-semibold tracking-[-0.03em] text-[#1A2332] mb-6"
                   style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)" }}
                 >
                   Полное сопровождение
@@ -43,14 +43,14 @@ export function LegalSection() {
                 <div
                   className="inline-flex items-center gap-2 rounded-full px-5 py-2.5"
                   style={{
-                    background: "rgba(200,164,78,0.06)",
-                    border: "1px solid rgba(200,164,78,0.12)",
+                    background: "rgba(58,141,123,0.06)",
+                    border: "1px solid rgba(58,141,123,0.12)",
                   }}
                 >
-                  <svg className="h-4 w-4 text-[#C8A44E]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="h-4 w-4 text-[#3A8D7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                   </svg>
-                  <span className="text-[13px] font-medium" style={{ color: "#C8A44E" }}>
+                  <span className="text-[13px] font-medium" style={{ color: "#3A8D7B" }}>
                     Гарантия безопасности сделки
                   </span>
                 </div>
@@ -61,16 +61,16 @@ export function LegalSection() {
                 {LEGAL_ITEMS.map((item, i) => (
                   <div
                     key={item.label}
-                    className="group rounded-xl p-4 sm:p-5 transition-all duration-300 hover:bg-[rgba(200,164,78,0.04)] hover:-translate-y-0.5"
+                    className="group rounded-xl p-4 sm:p-5 transition-all duration-300 hover:bg-[rgba(58,141,123,0.04)] hover:-translate-y-0.5"
                     style={{
-                      background: i === 0 ? "rgba(200,164,78,0.03)" : "rgba(255,255,255,0.02)",
-                      border: i === 0 ? "1px solid rgba(200,164,78,0.1)" : "1px solid rgba(255,255,255,0.04)",
+                      background: i === 0 ? "rgba(58,141,123,0.03)" : "#FFFFFF",
+                      border: i === 0 ? "1px solid rgba(58,141,123,0.1)" : "1px solid rgba(0,0,0,0.06)",
                     }}
                   >
                     <span className="text-xl block mb-2.5 transition-transform duration-300 group-hover:scale-110">
                       {item.icon}
                     </span>
-                    <span className="text-[13px] sm:text-[14px] font-semibold text-white group-hover:text-[#E8D5A0] transition-colors duration-300 leading-snug block">
+                    <span className="text-[13px] sm:text-[14px] font-semibold text-[#1A2332] group-hover:text-[#3A8D7B] transition-colors duration-300 leading-snug block">
                       {item.label}
                     </span>
                   </div>

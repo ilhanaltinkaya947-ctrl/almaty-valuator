@@ -11,14 +11,14 @@ export function Footer() {
   return (
     <footer
       style={{
-        backgroundColor: "#06070B",
-        borderTop: "1px solid rgba(255,255,255,0.04)",
+        backgroundColor: "#F0F9F6",
+        borderTop: "1px solid rgba(0,0,0,0.04)",
       }}
     >
-      {/* Gold accent line */}
+      {/* Green accent line */}
       <div
         className="h-px mx-auto max-w-[600px]"
-        style={{ background: "linear-gradient(to right, transparent, rgba(200,164,78,0.12), transparent)" }}
+        style={{ background: "linear-gradient(to right, transparent, rgba(58,141,123,0.12), transparent)" }}
       />
 
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6 py-10 sm:py-14">
@@ -33,14 +33,14 @@ export function Footer() {
                 className="h-9 sm:h-10 w-auto"
               />
             </div>
-            <p className="text-[13px] text-[#5A6478] leading-relaxed">
+            <p className="text-[13px] text-[#9CA3AF] leading-relaxed">
               Срочный выкуп недвижимости в Алматы
             </p>
           </div>
 
           {/* Navigation */}
           <div>
-            <div className="text-[11px] text-[#5A6478] mb-4 uppercase tracking-[0.2em] font-medium">
+            <div className="text-[11px] text-[#9CA3AF] mb-4 uppercase tracking-[0.2em] font-medium">
               Навигация
             </div>
             <nav className="grid grid-cols-2 gap-x-6 gap-y-2">
@@ -48,7 +48,7 @@ export function Footer() {
                 <a
                   key={link.href}
                   href={link.href}
-                  className="text-[13px] text-[#4A5168] hover:text-[#C8A44E] transition-colors duration-200"
+                  className="text-[13px] text-[#6B7280] hover:text-[#3A8D7B] transition-colors duration-200"
                 >
                   {link.label}
                 </a>
@@ -58,31 +58,31 @@ export function Footer() {
 
           {/* Contacts */}
           <div>
-            <div className="text-[11px] text-[#5A6478] mb-4 uppercase tracking-[0.2em] font-medium">
+            <div className="text-[11px] text-[#9CA3AF] mb-4 uppercase tracking-[0.2em] font-medium">
               Контакты
             </div>
             <div className="flex flex-col gap-2.5 text-[13px]">
               <a
                 href="tel:+77074503277"
-                className="text-[#E8D5A0] hover:text-[#C8A44E] transition-colors duration-200 font-medium"
+                className="text-[#3A8D7B] hover:text-[#2D6B5F] transition-colors duration-200 font-medium"
               >
                 +7 (707) 450-32-77
               </a>
               <a
                 href="mailto:almavykup@gmail.com"
-                className="text-[#4A5168] hover:text-white transition-colors duration-200"
+                className="text-[#6B7280] hover:text-[#1A2332] transition-colors duration-200"
               >
                 almavykup@gmail.com
               </a>
-              <span className="text-[#4A5168]">г. Алматы, Мамыр 4 / дом 119</span>
-              <span className="text-[#4A5168]">Пн-Пт: 9:00 - 18:00</span>
+              <span className="text-[#6B7280]">г. Алматы, Мамыр 4 / дом 119</span>
+              <span className="text-[#6B7280]">Пн-Пт: 9:00 - 18:00</span>
             </div>
           </div>
         </div>
 
         {/* Bottom row */}
-        <div className="mt-10 pt-6 border-t border-[rgba(255,255,255,0.04)] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-[12px] text-[#3A4258]">
+        <div className="mt-10 pt-6 border-t border-[rgba(0,0,0,0.04)] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <span className="text-[12px] text-[#9CA3AF]">
             &copy; 2026 Алмавыкуп. Все права защищены.
           </span>
           <div className="flex items-center gap-4">
@@ -101,7 +101,7 @@ export function Footer() {
               href="https://2gis.kz/almaty/geo/9430047375160217/76.844166,43.217433"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-[13px] text-[#4A5168] hover:text-white transition-colors duration-200"
+              className="inline-flex items-center gap-1.5 text-[13px] text-[#6B7280] hover:text-[#1A2332] transition-colors duration-200"
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />

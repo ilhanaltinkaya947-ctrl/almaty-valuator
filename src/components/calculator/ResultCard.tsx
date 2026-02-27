@@ -26,7 +26,7 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
     <div className="fade-enter">
       <button
         onClick={onBack}
-        className="text-[#7A8299] hover:text-white transition-colors duration-200 mb-4 text-sm flex items-center gap-1 cursor-pointer"
+        className="text-[#6B7280] hover:text-[#1A2332] transition-colors duration-200 mb-4 text-sm flex items-center gap-1 cursor-pointer"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -38,24 +38,24 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
       <div
         className="relative rounded-2xl p-6 mb-6 overflow-hidden"
         style={{
-          background: "linear-gradient(145deg, rgba(200,164,78,0.06), rgba(200,164,78,0.01))",
-          border: "1px solid rgba(200,164,78,0.15)",
-          boxShadow: "0 0 60px rgba(200,164,78,0.04)",
+          background: "linear-gradient(145deg, rgba(58,141,123,0.06), rgba(58,141,123,0.01))",
+          border: "1px solid rgba(58,141,123,0.15)",
+          boxShadow: "0 0 60px rgba(58,141,123,0.04)",
         }}
       >
         {/* Decorative glow */}
         <div
           className="absolute top-0 right-0 w-[200px] h-[200px] pointer-events-none"
           style={{
-            background: "radial-gradient(circle, rgba(200,164,78,0.08) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(58,141,123,0.08) 0%, transparent 70%)",
             filter: "blur(40px)",
           }}
         />
         <div className="relative">
-          <div className="text-[11px] text-[#8B95A8] uppercase tracking-[0.15em] font-medium mb-2">
+          <div className="text-[11px] text-[#6B7280] uppercase tracking-[0.15em] font-medium mb-2">
             Цена срочного выкупа
           </div>
-          <div className="font-bold text-[#C8A44E] font-mono mb-2" style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}>
+          <div className="font-bold text-[#3A8D7B] font-mono mb-2" style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}>
             <AnimatedCounter
               value={result.totalPrice}
               formatter={(v) => formatPrice(Math.round(v))}
@@ -63,10 +63,10 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
           </div>
           <div className="flex items-center gap-2 text-sm">
             <span className="text-[#4A8FD4]">{complexName}</span>
-            <span className="text-[#3A4258]">&middot;</span>
-            <span className="text-[#7A8299] font-mono">{formatPrice(result.pricePerSqm)}/м&sup2;</span>
+            <span className="text-[#9CA3AF]">&middot;</span>
+            <span className="text-[#6B7280] font-mono">{formatPrice(result.pricePerSqm)}/м&sup2;</span>
           </div>
-          <div className="mt-3 flex items-center gap-2 text-xs text-[#5A6478]">
+          <div className="mt-3 flex items-center gap-2 text-xs text-[#9CA3AF]">
             <svg className="h-3.5 w-3.5 text-[#25D366]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
@@ -77,7 +77,7 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
 
       {/* Factor chips */}
       <div className="mb-6">
-        <div className="text-xs font-medium text-[#5A6478] uppercase tracking-[0.15em] mb-3">
+        <div className="text-xs font-medium text-[#9CA3AF] uppercase tracking-[0.15em] mb-3">
           Коэффициенты оценки
         </div>
         <FactorChips params={result.params} />
@@ -103,17 +103,17 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
       {!negotiateMode && (
         <button
           onClick={() => setNegotiateMode(true)}
-          className="w-full mt-3 rounded-2xl px-6 py-4 text-sm font-medium transition-all duration-300 cursor-pointer text-[#C8A44E] hover:text-white"
+          className="w-full mt-3 rounded-2xl px-6 py-4 text-sm font-medium transition-all duration-300 cursor-pointer text-[#3A8D7B] hover:text-[#1A2332]"
           style={{
-            border: "1px solid rgba(200,164,78,0.25)",
-            background: "rgba(200,164,78,0.04)",
+            border: "1px solid rgba(58,141,123,0.25)",
+            background: "rgba(58,141,123,0.04)",
           }}
         >
           Обсудить цену
         </button>
       )}
 
-      <p className="text-xs text-[#5A6478] text-center mt-4">
+      <p className="text-xs text-[#9CA3AF] text-center mt-4">
         Сумма является ориентировочной. Точная цена фиксируется после осмотра.
       </p>
     </div>

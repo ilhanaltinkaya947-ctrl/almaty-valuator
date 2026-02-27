@@ -25,8 +25,8 @@ export function ComplexSearch({ onSelect }: ComplexSearchProps) {
 
   return (
     <div className="fade-enter">
-      <h3 className="text-lg font-semibold text-white mb-1">Выберите жилой комплекс</h3>
-      <p className="text-[#7A8299] mb-4 text-[13px]">
+      <h3 className="text-lg font-semibold text-[#1A2332] mb-1">Выберите жилой комплекс</h3>
+      <p className="text-[#6B7280] mb-4 text-[13px]">
         25+ комплексов Алматы
       </p>
 
@@ -46,11 +46,11 @@ export function ComplexSearch({ onSelect }: ComplexSearchProps) {
           <div
             key={complex.name}
             onClick={() => onSelect(complex)}
-            className="flex items-center justify-between py-3.5 px-4 cursor-pointer transition-all duration-200 hover:bg-[rgba(200,164,78,0.04)] rounded-xl border border-transparent hover:border-[rgba(200,164,78,0.08)]"
+            className="flex items-center justify-between py-3.5 px-4 cursor-pointer transition-all duration-200 hover:bg-[rgba(58,141,123,0.04)] rounded-xl border border-transparent hover:border-[rgba(58,141,123,0.08)]"
           >
             <div>
-              <div className="font-medium text-white">{complex.name}</div>
-              <div className="text-sm text-[#5A6478]">
+              <div className="font-medium text-[#1A2332]">{complex.name}</div>
+              <div className="text-sm text-[#9CA3AF]">
                 {complex.district} &middot; {complex.developer}
               </div>
             </div>
@@ -64,14 +64,14 @@ export function ComplexSearch({ onSelect }: ComplexSearchProps) {
               >
                 {CLASS_LABELS[complex.class]}
               </span>
-              <span className="text-[#7A8299] font-mono font-bold text-sm">
+              <span className="text-[#6B7280] font-mono font-bold text-sm">
                 &times;{complex.coefficient.toFixed(2)}
               </span>
             </div>
           </div>
         ))}
         {filtered.length === 0 && (
-          <p className="text-[#5A6478] text-center py-8">Ничего не найдено</p>
+          <p className="text-[#9CA3AF] text-center py-8">Ничего не найдено</p>
         )}
       </div>
     </div>

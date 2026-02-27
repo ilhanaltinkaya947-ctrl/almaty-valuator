@@ -17,9 +17,9 @@ export function FactorChips({ params }: FactorChipsProps) {
   // Zone path: show zone + series chips instead of single ЖК chip
   if (params.kZone != null && params.kSeries != null) {
     chips.push({ key: "kZone",   label: "Район", color: "#4A8FD4", value: params.kZone });
-    chips.push({ key: "kSeries", label: "Серия",  color: "#C8A44E", value: params.kSeries });
+    chips.push({ key: "kSeries", label: "Серия",  color: "#3A8D7B", value: params.kSeries });
   } else {
-    chips.push({ key: "kComplex", label: "ЖК", color: "#C8A44E", value: params.kComplex });
+    chips.push({ key: "kComplex", label: "ЖК", color: "#3A8D7B", value: params.kComplex });
   }
 
   chips.push({ key: "kYear",     label: "Год",      color: "#7BC67E", value: params.kYear });
@@ -42,7 +42,7 @@ export function FactorChips({ params }: FactorChipsProps) {
               className="h-1.5 w-1.5 rounded-full"
               style={{ backgroundColor: color }}
             />
-            <span className="text-[#7A8299]">{label}</span>
+            <span className="text-[#6B7280]">{label}</span>
             <span className="font-mono font-bold" style={{ color }}>
               &times;{value.toFixed(2)}
             </span>

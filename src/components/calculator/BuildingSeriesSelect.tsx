@@ -20,7 +20,7 @@ export function BuildingSeriesSelect({
     <div className="fade-enter">
       <button
         onClick={onBack}
-        className="text-[#7A8299] hover:text-white transition-colors duration-200 mb-4 text-sm flex items-center gap-1 cursor-pointer"
+        className="text-[#6B7280] hover:text-[#1A2332] transition-colors duration-200 mb-4 text-sm flex items-center gap-1 cursor-pointer"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -28,8 +28,8 @@ export function BuildingSeriesSelect({
         Назад к выбору района
       </button>
 
-      <h3 className="text-lg font-semibold text-white mb-1">Серия дома</h3>
-      <p className="text-sm text-[#7A8299] mb-5">
+      <h3 className="text-lg font-semibold text-[#1A2332] mb-1">Серия дома</h3>
+      <p className="text-sm text-[#6B7280] mb-5">
         Выберите тип здания, в котором расположена квартира
       </p>
 
@@ -45,14 +45,14 @@ export function BuildingSeriesSelect({
               key={s.series}
               onClick={() => onSelect(s)}
               className={`relative rounded-xl p-3.5 sm:p-4 text-left transition-all duration-300 cursor-pointer ${
-                isSelected ? "text-white" : "text-[#7A8299] hover:text-white"
+                isSelected ? "text-[#1A2332]" : "text-[#6B7280] hover:text-[#1A2332]"
               }`}
               style={{
                 background: isSelected
-                  ? "rgba(200,164,78,0.06)"
-                  : "rgba(255,255,255,0.02)",
-                border: `1px solid ${isSelected ? "rgba(200,164,78,0.3)" : "rgba(255,255,255,0.06)"}`,
-                boxShadow: isSelected ? "0 0 20px rgba(200,164,78,0.08)" : "none",
+                  ? "rgba(58,141,123,0.06)"
+                  : "#FFFFFF",
+                border: `1px solid ${isSelected ? "rgba(58,141,123,0.3)" : "rgba(0,0,0,0.06)"}`,
+                boxShadow: isSelected ? "0 0 20px rgba(58,141,123,0.08)" : "none",
               }}
             >
               {/* Modifier badge */}
@@ -67,8 +67,8 @@ export function BuildingSeriesSelect({
               </span>
 
               <div className="text-sm font-semibold mb-1 pr-10">{s.labelRu}</div>
-              <div className="text-[11px] text-[#5A6478] leading-snug">{s.descriptionRu}</div>
-              <div className="text-[10px] text-[#3A4258] mt-1.5 font-mono">
+              <div className="text-[11px] text-[#9CA3AF] leading-snug">{s.descriptionRu}</div>
+              <div className="text-[10px] text-[#9CA3AF] mt-1.5 font-mono">
                 {s.yearMin}–{s.yearMax} · до {s.floorMax} эт.
               </div>
             </button>

@@ -17,11 +17,11 @@ export function Button({
 
   const variants = {
     primary:
-      "bg-[#C8A44E] text-[#08090E] hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(200,164,78,0.3)] active:translate-y-0",
+      "bg-gradient-to-r from-[#66BB6A] to-[#26A69A] text-white hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(58,141,123,0.3)] active:translate-y-0",
     outline:
-      "bg-transparent border border-[rgba(255,255,255,0.15)] text-white hover:border-[rgba(255,255,255,0.3)] hover:-translate-y-0.5",
+      "bg-transparent border border-[rgba(0,0,0,0.15)] text-[#1A2332] hover:border-[rgba(0,0,0,0.3)] hover:-translate-y-0.5",
     ghost:
-      "bg-transparent text-[#C8A44E] hover:text-[#E8D5A0] px-0 py-0",
+      "bg-transparent text-[#3A8D7B] hover:text-[#2D6B5F] px-0 py-0",
   };
 
   return (

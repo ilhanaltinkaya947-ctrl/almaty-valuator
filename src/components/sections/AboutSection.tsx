@@ -23,13 +23,13 @@ export function AboutSection() {
   }, []);
 
   return (
-    <section id="about" className="py-14 sm:py-24" style={{ backgroundColor: "#0C0E16" }}>
+    <section id="about" className="py-14 sm:py-24" style={{ backgroundColor: "#FFFFFF" }}>
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         <div ref={ref} className="reveal">
           {/* Full-width image hero card */}
           <div
             className="relative rounded-3xl overflow-hidden mb-6"
-            style={{ border: "1px solid rgba(255,255,255,0.06)" }}
+            style={{ border: "1px solid rgba(0,0,0,0.06)" }}
           >
             <div className="relative h-[240px] sm:h-[400px]">
               <Image
@@ -52,7 +52,7 @@ export function AboutSection() {
             {/* Content over image */}
             <div className="absolute inset-0 flex flex-col justify-between p-5 sm:p-12">
               <div>
-                <div className="text-[11px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#C8A44E" }}>
+                <div className="text-[11px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#66BB6A" }}>
                   О компании
                 </div>
                 <h2
@@ -77,7 +77,7 @@ export function AboutSection() {
                     className="rounded-xl px-4 py-3"
                     style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)" }}
                   >
-                    <div className="font-mono font-bold leading-none" style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)", color: "#C8A44E" }}>
+                    <div className="font-mono font-bold leading-none" style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)", color: "#66BB6A" }}>
                       {s.num}
                     </div>
                     <div className="text-[11px] text-[#8B95A8] mt-1">{s.label}</div>
@@ -97,13 +97,13 @@ export function AboutSection() {
             ].map((b) => (
               <div
                 key={b.label}
-                className="group rounded-xl sm:rounded-2xl p-3 sm:p-5 flex items-center gap-2.5 sm:gap-3 cursor-default transition-all duration-300 hover:bg-[rgba(200,164,78,0.04)]"
-                style={{ border: "1px solid rgba(255,255,255,0.04)" }}
+                className="group rounded-xl sm:rounded-2xl p-3 sm:p-5 flex items-center gap-2.5 sm:gap-3 cursor-default transition-all duration-300 hover:bg-[rgba(58,141,123,0.04)]"
+                style={{ border: "1px solid rgba(0,0,0,0.06)", background: "#FFFFFF" }}
               >
                 <span className="text-lg sm:text-xl shrink-0 transition-transform duration-300 group-hover:scale-110">{b.icon}</span>
                 <div>
-                  <div className="text-[13px] sm:text-[14px] font-semibold text-white">{b.label}</div>
-                  <div className="text-[10px] sm:text-[11px] text-[#5A6478]">{b.sub}</div>
+                  <div className="text-[13px] sm:text-[14px] font-semibold text-[#1A2332]">{b.label}</div>
+                  <div className="text-[10px] sm:text-[11px] text-[#9CA3AF]">{b.sub}</div>
                 </div>
               </div>
             ))}

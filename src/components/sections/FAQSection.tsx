@@ -30,30 +30,30 @@ const FAQ_ITEMS = [
 
 export function FAQSection() {
   return (
-    <section id="faq" className="py-14 sm:py-24" style={{ backgroundColor: "#0C0E16" }}>
+    <section id="faq" className="py-14 sm:py-24" style={{ backgroundColor: "#FFFFFF" }}>
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 lg:gap-14 items-start">
           {/* Left — sticky heading + CTA */}
           <div className="lg:sticky lg:top-28">
             <SectionLabel>Вопросы и ответы</SectionLabel>
             <h2
-              className="font-semibold tracking-[-0.03em] text-white mb-6"
+              className="font-semibold tracking-[-0.03em] text-[#1A2332] mb-6"
               style={{ fontSize: "clamp(2rem, 4vw, 2.6rem)" }}
             >
               Частые
               <br />
               <span className="text-gold-gradient">вопросы</span>
             </h2>
-            <p className="text-[14px] text-[#5A6478] mb-8">
+            <p className="text-[14px] text-[#6B7280] mb-8">
               Не нашли ответ? Свяжитесь с нами.
             </p>
             <a
               href="tel:+77074503277"
               className="inline-flex items-center gap-2.5 rounded-full px-5 py-2.5 text-[13px] font-semibold transition-all duration-300 hover:-translate-y-0.5"
               style={{
-                background: "rgba(200,164,78,0.08)",
-                border: "1px solid rgba(200,164,78,0.15)",
-                color: "#C8A44E",
+                background: "rgba(58,141,123,0.08)",
+                border: "1px solid rgba(58,141,123,0.15)",
+                color: "#3A8D7B",
               }}
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -67,8 +67,9 @@ export function FAQSection() {
           <div
             className="rounded-2xl px-6 sm:px-8"
             style={{
-              background: "rgba(255,255,255,0.015)",
-              border: "1px solid rgba(255,255,255,0.04)",
+              background: "#FFFFFF",
+              border: "1px solid rgba(0,0,0,0.06)",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
             }}
           >
             <Accordion items={FAQ_ITEMS} defaultOpen={0} />

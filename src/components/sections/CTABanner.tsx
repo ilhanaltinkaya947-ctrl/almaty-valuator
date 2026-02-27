@@ -1,21 +1,21 @@
 export function CTABanner() {
   return (
-    <section className="relative overflow-hidden" style={{ backgroundColor: "#0A0C14" }}>
-      {/* Gold gradient band */}
+    <section className="relative overflow-hidden" style={{ backgroundColor: "#F0F9F6" }}>
+      {/* Green gradient band */}
       <div
         className="relative py-10 sm:py-16"
         style={{
           background:
-            "linear-gradient(135deg, rgba(200,164,78,0.08) 0%, rgba(200,164,78,0.02) 50%, rgba(200,164,78,0.06) 100%)",
-          borderTop: "1px solid rgba(200,164,78,0.1)",
-          borderBottom: "1px solid rgba(200,164,78,0.1)",
+            "linear-gradient(135deg, rgba(58,141,123,0.08) 0%, rgba(58,141,123,0.02) 50%, rgba(58,141,123,0.06) 100%)",
+          borderTop: "1px solid rgba(58,141,123,0.1)",
+          borderBottom: "1px solid rgba(58,141,123,0.1)",
         }}
       >
         {/* Decorative glow */}
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[200px] pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse, rgba(200,164,78,0.06) 0%, transparent 60%)",
+            background: "radial-gradient(ellipse, rgba(58,141,123,0.06) 0%, transparent 60%)",
             filter: "blur(60px)",
           }}
         />
@@ -24,7 +24,7 @@ export function CTABanner() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
               <h2
-                className="font-semibold tracking-[-0.03em] text-white mb-2"
+                className="font-semibold tracking-[-0.03em] text-[#1A2332] mb-2"
                 style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.5rem)" }}
               >
                 Готовы продать?
@@ -38,9 +38,9 @@ export function CTABanner() {
                   <span
                     key={t.text}
                     className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium"
-                    style={{ background: "rgba(200,164,78,0.06)", color: "#8B95A8" }}
+                    style={{ background: "rgba(58,141,123,0.06)", color: "#6B7280" }}
                   >
-                    <span style={{ color: "#C8A44E" }}>{t.icon}</span>
+                    <span style={{ color: "#3A8D7B" }}>{t.icon}</span>
                     {t.text}
                   </span>
                 ))}
@@ -50,11 +50,10 @@ export function CTABanner() {
             <div className="flex flex-col sm:flex-row gap-3 shrink-0">
               <a
                 href="#calculator"
-                className="gold-btn group inline-flex items-center justify-center gap-2 rounded-full px-6 sm:px-8 py-3.5 text-[14px] sm:text-[15px] font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(200,164,78,0.35)]"
+                className="gold-btn group inline-flex items-center justify-center gap-2 rounded-full px-6 sm:px-8 py-3.5 text-[14px] sm:text-[15px] font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(58,141,123,0.35)]"
                 style={{
-                  backgroundColor: "#C8A44E",
-                  color: "#08090E",
-                  boxShadow: "0 8px 32px rgba(200,164,78,0.25)",
+                  background: "linear-gradient(to right, #66BB6A, #26A69A)",
+                  boxShadow: "0 8px 32px rgba(58,141,123,0.25)",
                 }}
               >
                 Рассчитать

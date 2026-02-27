@@ -36,12 +36,12 @@ export function ContactSection() {
   }
 
   return (
-    <section id="contacts" className="relative py-14 sm:py-24" style={{ backgroundColor: "#0A0C14" }}>
+    <section id="contacts" className="relative py-14 sm:py-24" style={{ backgroundColor: "#F0F9F6" }}>
       {/* Ambient glow */}
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] pointer-events-none"
         style={{
-          background: "radial-gradient(ellipse, rgba(200,164,78,0.04) 0%, transparent 60%)",
+          background: "radial-gradient(ellipse, rgba(58,141,123,0.04) 0%, transparent 60%)",
           filter: "blur(80px)",
         }}
       />
@@ -50,11 +50,11 @@ export function ContactSection() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 lg:gap-14 items-start">
           {/* Left — heading + form */}
           <div>
-            <div className="text-[12px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#C8A44E" }}>
+            <div className="text-[12px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#3A8D7B" }}>
               Контакты
             </div>
             <h2
-              className="font-semibold tracking-[-0.03em] text-white mb-6"
+              className="font-semibold tracking-[-0.03em] text-[#1A2332] mb-6"
               style={{ fontSize: "clamp(1.8rem, 4vw, 3rem)" }}
             >
               Оставьте заявку
@@ -63,15 +63,15 @@ export function ContactSection() {
             <div
               className="rounded-2xl p-6 sm:p-8"
               style={{
-                background: "linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))",
-                border: "1px solid rgba(200,164,78,0.08)",
-                boxShadow: "0 20px 50px rgba(0,0,0,0.3), 0 0 80px rgba(200,164,78,0.02)",
+                background: "#FFFFFF",
+                border: "1px solid rgba(58,141,123,0.08)",
+                boxShadow: "0 20px 50px rgba(0,0,0,0.04), 0 0 80px rgba(58,141,123,0.02)",
               }}
             >
               {!submitted ? (
                 <form onSubmit={handleSubmit}>
-                  <div className="flex items-center gap-2 text-[12px] text-[#5A6478] mb-5">
-                    <span style={{ color: "#C8A44E" }}>🔒</span>
+                  <div className="flex items-center gap-2 text-[12px] text-[#9CA3AF] mb-5">
+                    <span style={{ color: "#3A8D7B" }}>🔒</span>
                     Ваши данные защищены
                   </div>
 
@@ -82,7 +82,7 @@ export function ContactSection() {
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Имя"
                       required
-                      className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#08090E] px-4 py-3.5 text-[15px] text-white placeholder:text-[#3A4258] focus:border-[rgba(200,164,78,0.4)] focus:shadow-[0_0_0_3px_rgba(200,164,78,0.1)] focus:outline-none transition-all duration-200"
+                      className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-4 py-3.5 text-[15px] text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200"
                     />
                     <input
                       type="tel"
@@ -90,7 +90,7 @@ export function ContactSection() {
                       onChange={(e) => setPhone(formatPhone(e.target.value))}
                       placeholder="+7 (___) ___-__-__"
                       required
-                      className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#08090E] px-4 py-3.5 text-[15px] text-white placeholder:text-[#3A4258] focus:border-[rgba(200,164,78,0.4)] focus:shadow-[0_0_0_3px_rgba(200,164,78,0.1)] focus:outline-none transition-all duration-200 font-mono"
+                      className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-4 py-3.5 text-[15px] text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200 font-mono"
                     />
                   </div>
 
@@ -98,18 +98,18 @@ export function ContactSection() {
                     <select
                       value={propertyType}
                       onChange={(e) => setPropertyType(e.target.value)}
-                      className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#08090E] px-4 py-3.5 text-[15px] text-white focus:border-[rgba(200,164,78,0.4)] focus:shadow-[0_0_0_3px_rgba(200,164,78,0.1)] focus:outline-none transition-all duration-200"
+                      className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-4 py-3.5 text-[15px] text-[#1A2332] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200"
                     >
-                      <option value="" className="bg-[#08090E]">Тип недвижимости</option>
-                      <option value="apartment" className="bg-[#08090E]">Квартира</option>
-                      <option value="house" className="bg-[#08090E]">Дом или коттедж</option>
-                      <option value="commercial" className="bg-[#08090E]">Коммерция</option>
-                      <option value="land" className="bg-[#08090E]">Земельный участок</option>
+                      <option value="">Тип недвижимости</option>
+                      <option value="apartment">Квартира</option>
+                      <option value="house">Дом или коттедж</option>
+                      <option value="commercial">Коммерция</option>
+                      <option value="land">Земельный участок</option>
                     </select>
                     <button
                       type="submit"
                       disabled={!isValid || loading}
-                      className="rounded-xl bg-[#C8A44E] px-8 py-3.5 font-semibold text-[#0C0E16] text-[15px] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(200,164,78,0.3)] disabled:opacity-50 disabled:pointer-events-none cursor-pointer whitespace-nowrap"
+                      className="rounded-xl bg-gradient-to-r from-[#66BB6A] to-[#26A69A] px-8 py-3.5 font-semibold text-white text-[15px] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(58,141,123,0.3)] disabled:opacity-50 disabled:pointer-events-none cursor-pointer whitespace-nowrap"
                     >
                       {loading ? "..." : "Отправить →"}
                     </button>
@@ -122,8 +122,8 @@ export function ContactSection() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-1">Заявка отправлена!</h3>
-                  <p className="text-[14px] text-[#7A8299]">Свяжемся в течение 15 минут</p>
+                  <h3 className="text-lg font-semibold text-[#1A2332] mb-1">Заявка отправлена!</h3>
+                  <p className="text-[14px] text-[#6B7280]">Свяжемся в течение 15 минут</p>
                 </div>
               )}
             </div>
@@ -149,18 +149,18 @@ export function ContactSection() {
                 <Tag
                   key={info.label}
                   {...linkProps}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 hover:bg-[rgba(255,255,255,0.03)] group"
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 hover:bg-[rgba(58,141,123,0.03)] group"
                   style={{
                     border: info.highlight
-                      ? "1px solid rgba(200,164,78,0.12)"
-                      : "1px solid rgba(255,255,255,0.04)",
-                    background: info.highlight ? "rgba(200,164,78,0.03)" : "transparent",
+                      ? "1px solid rgba(58,141,123,0.12)"
+                      : "1px solid rgba(0,0,0,0.06)",
+                    background: info.highlight ? "rgba(58,141,123,0.03)" : "#FFFFFF",
                   }}
                 >
                   <span className="text-base">{info.icon}</span>
                   <span
-                    className="text-[14px] font-medium group-hover:text-white transition-colors"
-                    style={{ color: info.highlight ? "#E8D5A0" : "#B8BCC8" }}
+                    className="text-[14px] font-medium group-hover:text-[#1A2332] transition-colors"
+                    style={{ color: info.highlight ? "#3A8D7B" : "#6B7280" }}
                   >
                     {info.label}
                   </span>
@@ -172,7 +172,7 @@ export function ContactSection() {
               href="https://2gis.kz/almaty/geo/9430047375160217/76.844166,43.217433"
               target="_blank"
               rel="noopener noreferrer"
-              className="group inline-flex items-center gap-2 mt-2 ml-4 text-[#C8A44E] hover:text-[#E8D5A0] transition-colors duration-200"
+              className="group inline-flex items-center gap-2 mt-2 ml-4 text-[#3A8D7B] hover:text-[#2D6B5F] transition-colors duration-200"
             >
               <span className="text-[13px] font-medium">Открыть на карте</span>
               <svg className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
