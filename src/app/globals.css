@@ -19,6 +19,7 @@ html {
   scroll-behavior: smooth;
   background-color: #08090E !important;
   color-scheme: dark;
+  overflow-x: hidden;
 }
 
 body {

@@ -94,7 +94,7 @@ export function ParameterForm({
             const v = Number(e.target.value);
             if (v >= 1950 && v <= 2026) setYearBuilt(v);
           }}
-          className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#08090E] px-5 py-3 text-white text-center font-mono focus:border-[rgba(200,164,78,0.4)] focus:shadow-[0_0_0_3px_rgba(200,164,78,0.1)] focus:outline-none transition-all duration-200"
+          className="w-full rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#08090E] px-5 py-3 text-white text-center font-mono text-base focus:border-[rgba(200,164,78,0.4)] focus:shadow-[0_0_0_3px_rgba(200,164,78,0.1)] focus:outline-none transition-all duration-200"
         />
       </div>
 

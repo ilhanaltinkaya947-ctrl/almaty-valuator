@@ -114,7 +114,7 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
       )}
 
       <p className="text-xs text-[#5A6478] text-center mt-4">
-        Сумма ориентировочная, утверждается экспертом на месте
+        Сумма является ориентировочной. Точная цена фиксируется после осмотра.
       </p>
     </div>
   );
