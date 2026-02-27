@@ -136,7 +136,7 @@ export function LeadCaptureForm({
             : "Получить бесплатную оценку"}
       </button>
 
-      <p className="text-xs text-[#9CA3AF] text-center mt-3">
+      <p className="text-[13px] text-[#9CA3AF] text-center mt-3">
         Бесплатно &bull; Без обязательств &bull; Ответ за 15 минут
       </p>
     </div>

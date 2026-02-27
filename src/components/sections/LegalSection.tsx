@@ -50,7 +50,7 @@ export function LegalSection() {
                   <svg className="h-4 w-4 text-[#3A8D7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                   </svg>
-                  <span className="text-[13px] font-medium" style={{ color: "#3A8D7B" }}>
+                  <span className="text-sm font-medium" style={{ color: "#3A8D7B" }}>
                     Гарантия безопасности сделки
                   </span>
                 </div>
@@ -70,7 +70,7 @@ export function LegalSection() {
                     <span className="text-xl block mb-2.5 transition-transform duration-300 group-hover:scale-110">
                       {item.icon}
                     </span>
-                    <span className="text-[13px] sm:text-[14px] font-semibold text-[#1A2332] group-hover:text-[#3A8D7B] transition-colors duration-300 leading-snug block">
+                    <span className="text-sm sm:text-[15px] font-semibold text-[#1A2332] group-hover:text-[#3A8D7B] transition-colors duration-300 leading-snug block">
                       {item.label}
                     </span>
                   </div>

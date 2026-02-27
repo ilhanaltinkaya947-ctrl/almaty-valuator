@@ -68,21 +68,34 @@ export function ParameterForm({
 
       {/* Area slider */}
       <div className="mb-6">
-        <div className="flex justify-between mb-2">
-          <span className="text-xs font-medium text-[#9CA3AF] uppercase tracking-[0.15em]">Площадь</span>
-          <span className="text-sm font-bold text-[#3A8D7B] font-mono">{area} м&sup2;</span>
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em]">Площадь</span>
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              min={20}
+              max={300}
+              value={area}
+              onChange={(e) => {
+                const v = Number(e.target.value);
+                if (v >= 20 && v <= 300) setArea(v);
+              }}
+              className="w-16 rounded-lg border border-[rgba(0,0,0,0.08)] bg-white px-2 py-1 text-sm font-bold text-[#3A8D7B] font-mono text-center focus:border-[rgba(58,141,123,0.4)] focus:outline-none transition-all duration-200"
+            />
+            <span className="text-sm text-[#9CA3AF]">м²</span>
+          </div>
         </div>
         <input type="range" min={20} max={300} value={area} onChange={(e) => setArea(Number(e.target.value))} className="w-full" />
         <div className="flex justify-between text-xs text-[#9CA3AF] mt-1">
-          <span>20 м&sup2;</span>
-          <span>300 м&sup2;</span>
+          <span>20 м²</span>
+          <span>300 м²</span>
         </div>
       </div>
 
       {/* Year built input */}
       <div className="mb-6">
         <div className="flex justify-between mb-2">
-          <span className="text-xs font-medium text-[#9CA3AF] uppercase tracking-[0.15em]">Год постройки</span>
+          <span className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em]">Год постройки</span>
           <span className="text-sm font-bold text-[#3A8D7B] font-mono">{yearBuilt}</span>
         </div>
         <input
@@ -96,11 +109,14 @@ export function ParameterForm({
           }}
           className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3 text-[#1A2332] text-center font-mono text-base focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200"
         />
+        <p className="text-[12px] text-[#9CA3AF] mt-1.5">
+          Год ЖК: {complex.yearBuilt}
+        </p>
       </div>
 
       {/* Wall material — 3 button selector */}
       <div className="mb-6">
-        <span className="text-xs font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-3">
+        <span className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-3">
           Материал стен
         </span>
         <div className="grid grid-cols-3 gap-2">
@@ -131,7 +147,7 @@ export function ParameterForm({
 
       {/* Condition — 2-option toggle */}
       <div className="mb-6">
-        <span className="text-xs font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-3">
+        <span className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-3">
           Состояние
         </span>
         <div className="grid grid-cols-2 gap-2">

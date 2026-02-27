@@ -57,7 +57,7 @@ export function BuildingSeriesSelect({
             >
               {/* Modifier badge */}
               <span
-                className="absolute top-2.5 right-2.5 text-[10px] font-mono font-bold rounded-full px-2 py-0.5"
+                className="absolute top-2.5 right-2.5 text-[11px] font-mono font-bold rounded-full px-2 py-0.5"
                 style={{
                   background: s.modifier >= 1 ? "rgba(123,198,126,0.12)" : "rgba(231,76,60,0.12)",
                   color: s.modifier >= 1 ? "#7BC67E" : "#E74C3C",
@@ -67,8 +67,8 @@ export function BuildingSeriesSelect({
               </span>
 
               <div className="text-sm font-semibold mb-1 pr-10">{s.labelRu}</div>
-              <div className="text-[11px] text-[#9CA3AF] leading-snug">{s.descriptionRu}</div>
-              <div className="text-[10px] text-[#9CA3AF] mt-1.5 font-mono">
+              <div className="text-[12px] text-[#9CA3AF] leading-snug">{s.descriptionRu}</div>
+              <div className="text-[11px] text-[#9CA3AF] mt-1.5 font-mono">
                 {s.yearMin}–{s.yearMax} · до {s.floorMax} эт.
               </div>
             </button>

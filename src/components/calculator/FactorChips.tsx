@@ -32,7 +32,7 @@ export function FactorChips({ params }: FactorChipsProps) {
         return (
           <div
             key={key}
-            className="flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium"
+            className="flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-medium"
             style={{
               background: `${color}14`,
               border: `1px solid ${color}30`,

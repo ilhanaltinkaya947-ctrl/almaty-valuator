@@ -199,7 +199,7 @@ export function Calculator() {
           <button
             key={pt.value}
             onClick={() => handlePropertyTypeChange(pt.value)}
-            className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 cursor-pointer ${
+            className={`rounded-full px-5 py-3 text-sm font-medium transition-all duration-300 cursor-pointer ${
               propertyType === pt.value
                 ? "bg-gradient-to-r from-[#66BB6A] to-[#26A69A] text-white"
                 : "bg-transparent border border-[rgba(0,0,0,0.08)] text-[#6B7280] hover:border-[rgba(0,0,0,0.15)] hover:text-[#1A2332]"
@@ -215,23 +215,23 @@ export function Calculator() {
         <div className="flex gap-2 mb-8">
           <button
             onClick={() => handleModeChange("complex")}
-            className={`rounded-full px-4 py-2 text-xs font-medium transition-all duration-300 cursor-pointer ${
+            className={`rounded-full px-5 py-2.5 text-[13px] font-medium transition-all duration-300 cursor-pointer inline-flex items-center gap-1.5 ${
               calcMode === "complex"
                 ? "bg-[rgba(58,141,123,0.12)] text-[#3A8D7B] border border-[rgba(58,141,123,0.3)]"
                 : "bg-transparent border border-[rgba(0,0,0,0.06)] text-[#9CA3AF] hover:text-[#6B7280]"
             }`}
           >
-            Жилой комплекс
+            🏢 По ЖК
           </button>
           <button
             onClick={() => handleModeChange("zone")}
-            className={`rounded-full px-4 py-2 text-xs font-medium transition-all duration-300 cursor-pointer ${
+            className={`rounded-full px-5 py-2.5 text-[13px] font-medium transition-all duration-300 cursor-pointer inline-flex items-center gap-1.5 ${
               calcMode === "zone"
                 ? "bg-[rgba(58,141,123,0.12)] text-[#3A8D7B] border border-[rgba(58,141,123,0.3)]"
                 : "bg-transparent border border-[rgba(0,0,0,0.06)] text-[#9CA3AF] hover:text-[#6B7280]"
             }`}
           >
-            Без ЖК (по району)
+            📍 По району
           </button>
         </div>
       )}
@@ -405,7 +405,7 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
         <svg className="h-4 w-4 text-[#3A8D7B] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <span className="text-xs text-[#3A8D7B]">
+        <span className="text-[13px] text-[#3A8D7B]">
           Экспертная оценка — индивидуальный расчёт для {PROPERTY_LABELS[propertyType] ?? "объекта"}
         </span>
       </div>
@@ -420,7 +420,7 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
       <div className="space-y-4">
         {/* Name */}
         <div>
-          <label className="text-xs font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
+          <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
             Ваше имя
           </label>
           <input
@@ -434,7 +434,7 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
 
         {/* Phone */}
         <div>
-          <label className="text-xs font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
+          <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
             Телефон <span className="text-[#E74C3C]">*</span>
           </label>
           <input
@@ -448,7 +448,7 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
 
         {/* District */}
         <div>
-          <label className="text-xs font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
+          <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
             Район <span className="text-[#E74C3C]">*</span>
           </label>
           <select
@@ -465,7 +465,7 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
 
         {/* Area */}
         <div>
-          <label className="text-xs font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
+          <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
             Площадь, м² <span className="text-[#E74C3C]">*</span>
           </label>
           <input
@@ -480,7 +480,7 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
 
         {/* Condition */}
         <div>
-          <label className="text-xs font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
+          <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
             Состояние
           </label>
           <div className="flex flex-wrap gap-2">
@@ -502,7 +502,7 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
 
         {/* Description */}
         <div>
-          <label className="text-xs font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
+          <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
             Описание объекта
           </label>
           <textarea
@@ -523,7 +523,7 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
         {loading ? "Отправка..." : "Отправить заявку на экспертный выкуп"}
       </button>
 
-      <p className="text-xs text-[#9CA3AF] text-center mt-3">
+      <p className="text-[13px] text-[#9CA3AF] text-center mt-3">
         Бесплатно · Без обязательств · Ответ в течение 15 минут
       </p>
     </div>

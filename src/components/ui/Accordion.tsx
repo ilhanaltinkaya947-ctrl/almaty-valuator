@@ -26,7 +26,7 @@ export function Accordion({ items, defaultOpen }: AccordionProps) {
             onClick={() => setOpenIndex(openIndex === i ? null : i)}
             className="w-full flex items-center justify-between py-6 text-left cursor-pointer group"
           >
-            <span className={`font-medium text-[15px] pr-4 transition-colors duration-200 ${
+            <span className={`font-medium text-base pr-4 transition-colors duration-200 ${
               openIndex === i ? "text-[#3A8D7B]" : "text-[#1A2332] group-hover:text-[#3A8D7B]"
             }`}>
               {item.question}
@@ -52,7 +52,7 @@ export function Accordion({ items, defaultOpen }: AccordionProps) {
               openIndex === i ? "max-h-96 pb-6 opacity-100" : "max-h-0 opacity-0"
             }`}
           >
-            <p className="text-[#6B7280] text-[15px] leading-[1.7]">
+            <p className="text-[#6B7280] text-base leading-[1.7]">
               {item.answer}
             </p>
           </div>

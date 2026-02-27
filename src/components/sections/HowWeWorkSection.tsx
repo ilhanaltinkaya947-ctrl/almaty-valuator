@@ -37,7 +37,7 @@ export function HowWeWorkSection() {
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6 mb-8 sm:mb-12">
           <div>
-            <div className="text-[12px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#3A8D7B" }}>
+            <div className="text-[13px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#3A8D7B" }}>
               Процесс
             </div>
             <h2
@@ -56,7 +56,7 @@ export function HowWeWorkSection() {
         </div>
 
         {/* 3×2 card grid */}
-        <div ref={ref} className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
+        <div ref={ref} className="grid grid-cols-3 gap-2 sm:gap-4">
           {STEPS.map((step) => (
             <div
               key={step.num}
@@ -83,13 +83,13 @@ export function HowWeWorkSection() {
                 {step.num}
               </div>
 
-              <div className="relative p-4 sm:p-6">
+              <div className="relative p-3 sm:p-6">
                 <span className="text-lg sm:text-xl mb-2 sm:mb-3 block">{step.icon}</span>
-                <h3 className="text-[13px] sm:text-[17px] font-semibold text-[#1A2332] mb-1.5 sm:mb-2 group-hover:text-[#3A8D7B] transition-colors duration-300">
+                <h3 className="text-sm sm:text-lg font-semibold text-[#1A2332] mb-1.5 sm:mb-2 group-hover:text-[#3A8D7B] transition-colors duration-300">
                   {step.title}
                 </h3>
                 <span
-                  className="inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-mono font-medium"
+                  className="inline-flex rounded-full px-2.5 py-0.5 text-[12px] font-mono font-medium"
                   style={{
                     backgroundColor: step.highlight ? "rgba(58,141,123,0.12)" : "rgba(58,141,123,0.06)",
                     color: "#3A8D7B",

@@ -39,7 +39,7 @@ export function PropertyTypesSection() {
         {/* Right-aligned heading — different from other sections */}
         <div className="mb-8 sm:mb-12 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6">
           <div>
-            <div className="text-[12px] font-medium uppercase tracking-[0.2em] mb-5" style={{ color: "#3A8D7B" }}>
+            <div className="text-[13px] font-medium uppercase tracking-[0.2em] mb-5" style={{ color: "#3A8D7B" }}>
               Виды недвижимости
             </div>
             <h2
@@ -63,7 +63,7 @@ export function PropertyTypesSection() {
         </div>
 
         {/* Bento grid — asymmetric, NOT uniform 2x2 */}
-        <RevealGroup className="grid grid-cols-2 gap-3 sm:gap-5 auto-rows-[160px] sm:auto-rows-[220px]">
+        <RevealGroup className="grid grid-cols-2 gap-3 sm:gap-5 auto-rows-[180px] sm:auto-rows-[220px]">
           {PROPERTY_TYPES.map((pt) => (
             <div
               key={pt.title}
@@ -98,7 +98,7 @@ export function PropertyTypesSection() {
               </span>
               {/* Content */}
               <div className="absolute bottom-0 left-0 right-0 p-5">
-                <h3 className="text-[14px] sm:text-[17px] font-semibold text-white mb-1 group-hover:text-[#66BB6A] transition-colors duration-300">
+                <h3 className="text-[15px] sm:text-lg font-semibold text-white mb-1 group-hover:text-[#66BB6A] transition-colors duration-300">
                   {pt.title}
                 </h3>
               </div>

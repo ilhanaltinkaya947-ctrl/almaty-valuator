@@ -4,10 +4,8 @@ import { useState, useEffect } from "react";
 
 const NAV_LINKS = [
   { href: "#calculator", label: "Калькулятор" },
-  { href: "#about", label: "О нас" },
-  { href: "#services", label: "Услуги" },
-  { href: "#steps", label: "Как мы работаем" },
-  { href: "#faq", label: "FAQ" },
+  { href: "#about", label: "О компании" },
+  { href: "#faq", label: "Вопросы" },
   { href: "#contacts", label: "Контакты" },
 ];
 
@@ -50,12 +48,12 @@ export function Header() {
           </a>
 
           {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-7">
+          <nav className="hidden lg:flex items-center gap-8">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="text-[14px] font-medium text-[#6B7280] hover:text-[#1A2332] transition-colors duration-300"
+                className="text-[15px] font-medium text-[#6B7280] hover:text-[#1A2332] transition-colors duration-300"
               >
                 {link.label}
               </a>
@@ -66,13 +64,13 @@ export function Header() {
           <div className="hidden lg:flex items-center gap-5">
             <a
               href="tel:+77074503277"
-              className="text-[14px] font-medium text-[#6B7280] hover:text-[#1A2332] transition-colors duration-300"
+              className="text-[15px] font-medium text-[#6B7280] hover:text-[#1A2332] transition-colors duration-300"
             >
               +7 (707) 450-32-77
             </a>
             <a
               href="#contacts"
-              className="rounded-full bg-gradient-to-r from-[#66BB6A] to-[#26A69A] px-5 py-2 text-[13px] font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(58,141,123,0.2)]"
+              className="rounded-full bg-gradient-to-r from-[#66BB6A] to-[#26A69A] px-5 py-2 text-[14px] font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(58,141,123,0.2)]"
             >
               Оставить заявку
             </a>

@@ -22,7 +22,7 @@ export function CalculatorSection() {
           {/* Left column — vertical branding strip */}
           <div className="hidden lg:flex flex-col items-start pt-8">
             <div
-              className="text-[11px] font-medium uppercase tracking-[0.2em] mb-6"
+              className="text-[13px] font-medium uppercase tracking-[0.2em] mb-6"
               style={{ color: "#3A8D7B" }}
             >
               Онлайн-оценка
@@ -49,7 +49,7 @@ export function CalculatorSection() {
                   style={{ background: "rgba(58,141,123,0.04)", border: "1px solid rgba(58,141,123,0.08)" }}
                 >
                   <span className="text-lg">{f.icon}</span>
-                  <span className="text-[13px] text-[#6B7280] font-medium">{f.text}</span>
+                  <span className="text-sm text-[#6B7280] font-medium">{f.text}</span>
                 </div>
               ))}
             </div>
@@ -73,7 +73,7 @@ export function CalculatorSection() {
           <div>
             {/* Mobile-only heading */}
             <div className="lg:hidden mb-6">
-              <div className="text-[11px] font-medium uppercase tracking-[0.2em] mb-3" style={{ color: "#3A8D7B" }}>
+              <div className="text-[13px] font-medium uppercase tracking-[0.2em] mb-3" style={{ color: "#3A8D7B" }}>
                 Онлайн-оценка
               </div>
               <h2
@@ -82,6 +82,23 @@ export function CalculatorSection() {
               >
                 Узнайте стоимость <span className="text-gold-gradient">за 2 минуты</span>
               </h2>
+              {/* Mobile feature badges */}
+              <div className="flex flex-wrap gap-2 mt-3">
+                {[
+                  { icon: "📊", text: "Данные krisha.kz" },
+                  { icon: "🏘️", text: "25+ ЖК" },
+                  { icon: "⚡", text: "Мгновенно" },
+                ].map((f) => (
+                  <span
+                    key={f.text}
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium"
+                    style={{ background: "rgba(58,141,123,0.06)", border: "1px solid rgba(58,141,123,0.1)", color: "#6B7280" }}
+                  >
+                    <span>{f.icon}</span>
+                    {f.text}
+                  </span>
+                ))}
+              </div>
             </div>
 
             <div

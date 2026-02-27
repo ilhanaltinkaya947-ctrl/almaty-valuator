@@ -52,7 +52,7 @@ export function AboutSection() {
             {/* Content over image */}
             <div className="absolute inset-0 flex flex-col justify-between p-5 sm:p-12">
               <div>
-                <div className="text-[11px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#66BB6A" }}>
+                <div className="text-[13px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#66BB6A" }}>
                   О компании
                 </div>
                 <h2
@@ -80,7 +80,7 @@ export function AboutSection() {
                     <div className="font-mono font-bold leading-none" style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)", color: "#66BB6A" }}>
                       {s.num}
                     </div>
-                    <div className="text-[11px] text-[#8B95A8] mt-1">{s.label}</div>
+                    <div className="text-[12px] text-[#8B95A8] mt-1">{s.label}</div>
                   </div>
                 ))}
               </div>
@@ -102,8 +102,8 @@ export function AboutSection() {
               >
                 <span className="text-lg sm:text-xl shrink-0 transition-transform duration-300 group-hover:scale-110">{b.icon}</span>
                 <div>
-                  <div className="text-[13px] sm:text-[14px] font-semibold text-[#1A2332]">{b.label}</div>
-                  <div className="text-[10px] sm:text-[11px] text-[#9CA3AF]">{b.sub}</div>
+                  <div className="text-sm sm:text-[15px] font-semibold text-[#1A2332]">{b.label}</div>
+                  <div className="text-[12px] sm:text-[13px] text-[#9CA3AF]">{b.sub}</div>
                 </div>
               </div>
             ))}

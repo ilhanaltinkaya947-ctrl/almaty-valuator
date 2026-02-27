@@ -71,7 +71,7 @@ export function HeroSection() {
                 style={{ background: "rgba(58,141,123,0.08)", border: "1px solid rgba(58,141,123,0.15)" }}
               >
                 <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "#3A8D7B" }} />
-                <span className="text-[12px] font-medium uppercase tracking-[0.15em]" style={{ color: "#3A8D7B" }}>
+                <span className="text-[13px] font-medium uppercase tracking-[0.15em]" style={{ color: "#3A8D7B" }}>
                   Срочный выкуп недвижимости
                 </span>
               </div>
@@ -124,7 +124,7 @@ export function HeroSection() {
                 ].map((b) => (
                   <span
                     key={b.text}
-                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium"
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium"
                     style={{
                       background: "rgba(58,141,123,0.05)",
                       border: "1px solid rgba(58,141,123,0.1)",

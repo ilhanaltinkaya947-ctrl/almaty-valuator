@@ -37,7 +37,7 @@ export function CTABanner() {
                 ].map((t) => (
                   <span
                     key={t.text}
-                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium"
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-medium"
                     style={{ background: "rgba(58,141,123,0.06)", color: "#6B7280" }}
                   >
                     <span style={{ color: "#3A8D7B" }}>{t.icon}</span>

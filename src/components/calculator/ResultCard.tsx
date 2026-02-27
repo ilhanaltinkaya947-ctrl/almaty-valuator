@@ -52,7 +52,7 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
           }}
         />
         <div className="relative">
-          <div className="text-[11px] text-[#6B7280] uppercase tracking-[0.15em] font-medium mb-2">
+          <div className="text-[12px] text-[#6B7280] uppercase tracking-[0.15em] font-medium mb-2">
             Цена срочного выкупа
           </div>
           <div className="font-bold text-[#3A8D7B] font-mono mb-2" style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}>
@@ -66,7 +66,7 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
             <span className="text-[#9CA3AF]">&middot;</span>
             <span className="text-[#6B7280] font-mono">{formatPrice(result.pricePerSqm)}/м&sup2;</span>
           </div>
-          <div className="mt-3 flex items-center gap-2 text-xs text-[#9CA3AF]">
+          <div className="mt-3 flex items-center gap-2 text-[13px] text-[#9CA3AF]">
             <svg className="h-3.5 w-3.5 text-[#25D366]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
@@ -77,7 +77,7 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
 
       {/* Factor chips */}
       <div className="mb-6">
-        <div className="text-xs font-medium text-[#9CA3AF] uppercase tracking-[0.15em] mb-3">
+        <div className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] mb-3">
           Коэффициенты оценки
         </div>
         <FactorChips params={result.params} />
@@ -99,21 +99,17 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
         intent={negotiateMode ? "negotiate" : "ready"}
       />
 
-      {/* Negotiate button */}
+      {/* Negotiate link */}
       {!negotiateMode && (
         <button
           onClick={() => setNegotiateMode(true)}
-          className="w-full mt-3 rounded-2xl px-6 py-4 text-sm font-medium transition-all duration-300 cursor-pointer text-[#3A8D7B] hover:text-[#1A2332]"
-          style={{
-            border: "1px solid rgba(58,141,123,0.25)",
-            background: "rgba(58,141,123,0.04)",
-          }}
+          className="mt-3 text-sm font-medium text-[#3A8D7B] hover:text-[#2D6B5F] transition-colors duration-200 cursor-pointer mx-auto block"
         >
-          Обсудить цену
+          Хотите обсудить цену?
         </button>
       )}
 
-      <p className="text-xs text-[#9CA3AF] text-center mt-4">
+      <p className="text-[13px] text-[#9CA3AF] text-center mt-4">
         Сумма является ориентировочной. Точная цена фиксируется после осмотра.
       </p>
     </div>

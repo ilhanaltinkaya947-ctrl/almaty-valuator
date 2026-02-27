@@ -47,10 +47,10 @@ export function ContactSection() {
       />
 
       <div className="relative mx-auto max-w-[1120px] px-4 sm:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 lg:gap-14 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 lg:gap-10 items-start">
           {/* Left — heading + form */}
           <div>
-            <div className="text-[12px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#3A8D7B" }}>
+            <div className="text-[13px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#3A8D7B" }}>
               Контакты
             </div>
             <h2
@@ -70,7 +70,7 @@ export function ContactSection() {
             >
               {!submitted ? (
                 <form onSubmit={handleSubmit}>
-                  <div className="flex items-center gap-2 text-[12px] text-[#9CA3AF] mb-5">
+                  <div className="flex items-center gap-2 text-[13px] text-[#9CA3AF] mb-5">
                     <span style={{ color: "#3A8D7B" }}>🔒</span>
                     Ваши данные защищены
                   </div>
@@ -159,7 +159,7 @@ export function ContactSection() {
                 >
                   <span className="text-base">{info.icon}</span>
                   <span
-                    className="text-[14px] font-medium group-hover:text-[#1A2332] transition-colors"
+                    className="text-[15px] font-medium group-hover:text-[#1A2332] transition-colors"
                     style={{ color: info.highlight ? "#3A8D7B" : "#6B7280" }}
                   >
                     {info.label}
@@ -174,7 +174,7 @@ export function ContactSection() {
               rel="noopener noreferrer"
               className="group inline-flex items-center gap-2 mt-2 ml-4 text-[#3A8D7B] hover:text-[#2D6B5F] transition-colors duration-200"
             >
-              <span className="text-[13px] font-medium">Открыть на карте</span>
+              <span className="text-sm font-medium">Открыть на карте</span>
               <svg className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
               </svg>

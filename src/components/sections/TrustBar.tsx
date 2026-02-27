@@ -52,7 +52,7 @@ function AnimatedStat({ value, suffix, label, delay }: { value: number; suffix: 
       <div className="text-[28px] sm:text-[42px] font-bold font-mono tracking-tight leading-none mb-0.5" style={{ color: "#3A8D7B" }}>
         {count}{suffix}
       </div>
-      <div className="text-[11px] sm:text-[13px] text-[#6B7280]">{label}</div>
+      <div className="text-[12px] sm:text-sm text-[#6B7280]">{label}</div>
     </div>
   );
 }

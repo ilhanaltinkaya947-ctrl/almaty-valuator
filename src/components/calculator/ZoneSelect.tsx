@@ -38,7 +38,7 @@ export function ZoneSelect({ zones, selectedZoneId, onSelect }: ZoneSelectProps)
 
           return (
             <div key={district}>
-              <div className="text-[11px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] mb-2 sticky top-0 bg-white py-1 z-10">
+              <div className="text-[12px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] mb-2 sticky top-0 bg-white py-1 z-10">
                 {district}
               </div>
               <div className="space-y-1.5">

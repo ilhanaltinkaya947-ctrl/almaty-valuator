@@ -38,7 +38,7 @@ export function AdvantagesSection() {
     <section className="py-14 sm:py-24" style={{ backgroundColor: "#FFFFFF" }}>
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         <div className="text-center mb-8 sm:mb-12">
-          <div className="text-[12px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#3A8D7B" }}>
+          <div className="text-[13px] font-medium uppercase tracking-[0.2em] mb-4" style={{ color: "#3A8D7B" }}>
             Преимущества
           </div>
           <h2
@@ -50,7 +50,7 @@ export function AdvantagesSection() {
         </div>
 
         {/* 4×2 grid with real visual weight */}
-        <div ref={ref} className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+        <div ref={ref} className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {ITEMS.map((item, i) => (
             <div
               key={item.label}
@@ -72,10 +72,10 @@ export function AdvantagesSection() {
               <span className="text-xl sm:text-2xl block mb-2 sm:mb-3 transition-transform duration-300 group-hover:scale-110">
                 {item.icon}
               </span>
-              <div className="text-[12px] sm:text-[14px] font-semibold text-[#1A2332] mb-0.5 group-hover:text-[#3A8D7B] transition-colors duration-300 leading-snug">
+              <div className="text-[13px] sm:text-[15px] font-semibold text-[#1A2332] mb-0.5 group-hover:text-[#3A8D7B] transition-colors duration-300 leading-snug">
                 {item.label}
               </div>
-              <div className="text-[10px] sm:text-[11px] text-[#9CA3AF]">{item.sub}</div>
+              <div className="text-[12px] sm:text-[13px] text-[#9CA3AF]">{item.sub}</div>
             </div>
           ))}
         </div>
