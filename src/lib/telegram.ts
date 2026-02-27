@@ -167,6 +167,10 @@ export async function notifyLeadInteractive(lead: {
   estimated_price?: number | null;
   source?: string | null;
   needs_manual_review?: boolean;
+  year_built?: number | null;
+  wall_material?: string | null;
+  is_pledged?: boolean | null;
+  intent?: string | null;
 }) {
   const isManual = lead.needs_manual_review === true;
   const price = lead.estimated_price
@@ -183,7 +187,20 @@ export async function notifyLeadInteractive(lead: {
     land: "Участок",
   };
 
+  const WALL_MATERIAL_LABELS: Record<string, string> = {
+    panel: "Панель",
+    brick: "Кирпич",
+    monolith: "Монолит",
+  };
+
   const typeLabel = PROPERTY_TYPE_LABELS[lead.property_type ?? ""] ?? lead.property_type ?? "—";
+  const intentBadge = lead.intent === "negotiate" ? "🔄 ТОРГ" : "✅ ГОТОВ";
+
+  // Build extra info lines
+  const extraLines: string[] = [];
+  if (lead.year_built) extraLines.push(`🏗 <b>Год:</b> ${lead.year_built}`);
+  if (lead.wall_material) extraLines.push(`🧱 <b>Материал:</b> ${WALL_MATERIAL_LABELS[lead.wall_material] ?? lead.wall_material}`);
+  if (lead.is_pledged != null) extraLines.push(`🔒 <b>Залог:</b> ${lead.is_pledged ? "Да" : "Нет"}`);
 
   const text = isManual
     ? [
@@ -198,13 +215,14 @@ export async function notifyLeadInteractive(lead: {
         "<i>Требуется экспертная оценка и ручной ввод цены.</i>",
       ].join("\n")
     : [
-        "📢 <b>Новый лид!</b>",
+        `📢 <b>Новый лид!</b> ${intentBadge}`,
         "",
         `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
         `🏢 <b>ЖК:</b> ${lead.complex_name ?? "—"}`,
         `💰 <b>Оценка:</b> ${price}`,
         `📞 <b>Телефон:</b> ${maskedPhone}`,
         `🏠 <b>Тип:</b> ${typeLabel}`,
+        ...extraLines,
         `📍 <b>Источник:</b> ${lead.source ?? "website"}`,
         "",
         "⬇️ <i>Выберите действие:</i>",
@@ -266,6 +284,10 @@ export async function notifyNewLead(lead: {
   estimated_price?: number | null;
   source?: string | null;
   needs_manual_review?: boolean;
+  year_built?: number | null;
+  wall_material?: string | null;
+  is_pledged?: boolean | null;
+  intent?: string | null;
 }) {
   // If we have a lead ID, send interactive card
   if (lead.id) {
@@ -278,6 +300,10 @@ export async function notifyNewLead(lead: {
       estimated_price: lead.estimated_price,
       source: lead.source,
       needs_manual_review: lead.needs_manual_review,
+      year_built: lead.year_built,
+      wall_material: lead.wall_material,
+      is_pledged: lead.is_pledged,
+      intent: lead.intent,
     });
   }
 

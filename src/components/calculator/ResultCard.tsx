@@ -1,6 +1,7 @@
 "use client";
 
-import type { AutoEvaluationResult } from "@/types/evaluation";
+import { useState } from "react";
+import type { AutoEvaluationResult, WallMaterial } from "@/types/evaluation";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { FactorChips } from "@/components/calculator/FactorChips";
 import { BenchmarkTeaser } from "@/components/calculator/BenchmarkTeaser";
@@ -13,9 +14,14 @@ interface ResultCardProps {
   onBack: () => void;
   zoneId?: string;
   buildingSeries?: string;
+  yearBuilt?: number;
+  wallMaterial?: WallMaterial;
+  isPledged?: boolean;
 }
 
-export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries }: ResultCardProps) {
+export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries, yearBuilt, wallMaterial, isPledged }: ResultCardProps) {
+  const [negotiateMode, setNegotiateMode] = useState(false);
+
   return (
     <div className="fade-enter">
       <button
@@ -87,11 +93,28 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
         estimatedPrice={result.totalPrice}
         zoneId={zoneId}
         buildingSeries={buildingSeries}
+        yearBuilt={yearBuilt}
+        wallMaterial={wallMaterial}
+        isPledged={isPledged}
+        intent={negotiateMode ? "negotiate" : "ready"}
       />
 
+      {/* Negotiate button */}
+      {!negotiateMode && (
+        <button
+          onClick={() => setNegotiateMode(true)}
+          className="w-full mt-3 rounded-2xl px-6 py-4 text-sm font-medium transition-all duration-300 cursor-pointer text-[#C8A44E] hover:text-white"
+          style={{
+            border: "1px solid rgba(200,164,78,0.25)",
+            background: "rgba(200,164,78,0.04)",
+          }}
+        >
+          Обсудить цену
+        </button>
+      )}
+
       <p className="text-xs text-[#5A6478] text-center mt-4">
-        Данная оценка носит информационный характер и не является официальным
-        заключением
+        Сумма ориентировочная, утверждается экспертом на месте
       </p>
     </div>
   );

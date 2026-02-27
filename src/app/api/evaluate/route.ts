@@ -11,10 +11,9 @@ const zoneEvaluationSchema = z.object({
   buildingSeries: z.enum(["stalinka", "khrushchevka", "brezhnevka", "uluchshenka", "individual", "novostroyka"]),
   seriesModifier: z.number().min(0.5).max(2.0),
   area: z.number().min(10).max(500),
-  floor: z.number().int().min(1),
-  totalFloors: z.number().int().min(1),
-  view: z.enum(["mountain", "park", "city", "industrial"]),
-  condition: z.enum(["designer", "euro", "good", "average", "rough"]),
+  yearBuilt: z.number().int().min(1950).max(2026),
+  wallMaterial: z.enum(["panel", "brick", "monolith"]),
+  condition: z.enum(["renovated", "rough"]),
 });
 
 export async function POST(request: Request) {
@@ -31,7 +30,7 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       }
-      const result = evaluateZone(parsed.data, settings.baseRate, settings.buybackDiscount);
+      const result = evaluateZone(parsed.data, settings.baseRate);
       return NextResponse.json(result);
     }
 
@@ -44,7 +43,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = evaluatePrice(parsed.data, settings.baseRate, settings.buybackDiscount);
+    const result = evaluatePrice(parsed.data, settings.baseRate);
     return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 });

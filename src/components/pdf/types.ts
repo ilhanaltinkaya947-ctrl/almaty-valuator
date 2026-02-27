@@ -26,10 +26,8 @@ export interface ReportData {
   // Coefficients
   baseRate: number;
   kComplex: number;
-  kFloor: number;
   kYear: number;
-  kView: number;
-  kCondition: number;
+  kMaterial: number;
 
   // Analytics
   liquidityIndex: number;

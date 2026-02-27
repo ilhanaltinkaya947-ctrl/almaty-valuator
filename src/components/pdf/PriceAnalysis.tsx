@@ -10,10 +10,8 @@ export function PriceAnalysis({ data }: { data: ReportData }) {
   const coefficients = [
     { label: "Базовая ставка", value: `${formatPrice(data.baseRate)} тг/м²` },
     { label: "K комплекс", value: `×${data.kComplex.toFixed(2)}` },
-    { label: "K этаж", value: `×${data.kFloor.toFixed(2)}` },
     { label: "K год", value: `×${data.kYear.toFixed(2)}` },
-    { label: "K вид", value: `×${data.kView.toFixed(2)}` },
-    { label: "K состояние", value: `×${data.kCondition.toFixed(2)}` },
+    { label: "K материал", value: `×${data.kMaterial.toFixed(2)}` },
   ];
 
   return (
@@ -86,7 +84,7 @@ export function PriceAnalysis({ data }: { data: ReportData }) {
         {/* Formula */}
         <View style={{ ...styles.divider, marginTop: 8 }} />
         <Text style={{ ...styles.caption, textAlign: "center" }}>
-          Рынок = Площадь × Ставка × K_комплекс × K_этаж × K_год × K_вид × K_состояние
+          Рынок = Площадь × Ставка × K_комплекс × K_год × K_материал
         </Text>
         <Text style={{ ...styles.caption, textAlign: "center", marginTop: 2 }}>
           Выкуп = Рынок × 0.70 (дисконт за срочность сделки)

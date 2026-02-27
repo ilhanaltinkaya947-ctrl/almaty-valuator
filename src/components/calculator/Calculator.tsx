@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import type { Complex } from "@/data/complexes";
 import type {
-  ViewType,
   ConditionType,
+  WallMaterial,
   AutoEvaluationResult,
   PropertyType,
   BuildingSeries,
@@ -40,6 +40,11 @@ export function Calculator() {
   // Path A state
   const [selectedComplex, setSelectedComplex] = useState<Complex | null>(null);
   const [result, setResult] = useState<AutoEvaluationResult | null>(null);
+
+  // Shared new fields
+  const [lastYearBuilt, setLastYearBuilt] = useState<number | undefined>();
+  const [lastWallMaterial, setLastWallMaterial] = useState<WallMaterial | undefined>();
+  const [lastIsPledged, setLastIsPledged] = useState<boolean>(false);
 
   // Path B state
   const [zones, setZones] = useState<PriceZone[]>(PRICE_ZONES);
@@ -93,21 +98,25 @@ export function Calculator() {
 
   function handleCalculate(params: {
     area: number;
-    floor: number;
-    view: ViewType;
+    yearBuilt: number;
+    wallMaterial: WallMaterial;
     condition: ConditionType;
+    isPledged: boolean;
   }) {
     if (!selectedComplex) return;
+
+    setLastYearBuilt(params.yearBuilt);
+    setLastWallMaterial(params.wallMaterial);
+    setLastIsPledged(params.isPledged);
 
     const evalResult = evaluateAuto({
       complexName: selectedComplex.name,
       area: params.area,
-      floor: params.floor,
-      totalFloors: selectedComplex.totalFloors,
-      yearBuilt: selectedComplex.yearBuilt,
-      view: params.view,
+      yearBuilt: params.yearBuilt,
+      wallMaterial: params.wallMaterial,
       condition: params.condition,
       complexCoefficient: selectedComplex.coefficient,
+      housingClass: selectedComplex.class,
     });
 
     setResult(evalResult);
@@ -127,12 +136,16 @@ export function Calculator() {
 
   function handleZoneCalculate(params: {
     area: number;
-    floor: number;
-    totalFloors: number;
-    view: ViewType;
+    yearBuilt: number;
+    wallMaterial: WallMaterial;
     condition: ConditionType;
+    isPledged: boolean;
   }) {
     if (!selectedZone || !selectedSeries) return;
+
+    setLastYearBuilt(params.yearBuilt);
+    setLastWallMaterial(params.wallMaterial);
+    setLastIsPledged(params.isPledged);
 
     const evalResult = evaluateZone({
       zoneId: selectedZone.id,
@@ -141,9 +154,8 @@ export function Calculator() {
       buildingSeries: selectedSeries.series,
       seriesModifier: selectedSeries.modifier,
       area: params.area,
-      floor: params.floor,
-      totalFloors: params.totalFloors,
-      view: params.view,
+      yearBuilt: params.yearBuilt,
+      wallMaterial: params.wallMaterial,
       condition: params.condition,
     });
 
@@ -167,6 +179,9 @@ export function Calculator() {
     setSelectedZone(null);
     setSelectedSeries(null);
     setResult(null);
+    setLastYearBuilt(undefined);
+    setLastWallMaterial(undefined);
+    setLastIsPledged(false);
   }
 
   const isAuto = isAutoCalcType(propertyType);
@@ -237,6 +252,9 @@ export function Calculator() {
               result={result}
               complexName={selectedComplex.name}
               onBack={() => setStep(2)}
+              yearBuilt={lastYearBuilt}
+              wallMaterial={lastWallMaterial}
+              isPledged={lastIsPledged}
             />
           )}
         </>
@@ -275,6 +293,9 @@ export function Calculator() {
               onBack={() => setStep(3)}
               zoneId={selectedZone?.id}
               buildingSeries={selectedSeries?.series}
+              yearBuilt={lastYearBuilt}
+              wallMaterial={lastWallMaterial}
+              isPledged={lastIsPledged}
             />
           )}
         </>

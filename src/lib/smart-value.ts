@@ -4,7 +4,7 @@ import type {
   AutoEvaluationResult,
   CalculationParams,
   BuybackBreakdown,
-  ViewType,
+  WallMaterial,
   ConditionType,
   ZoneEvaluationInput,
 } from "@/types/evaluation";
@@ -14,12 +14,7 @@ import { isAutoCalcType } from "@/types/evaluation";
 
 const DEFAULT_BASE_RATE = 805_000;
 
-const BUYBACK_BREAKDOWN: BuybackBreakdown = {
-  targetMargin: 0.15,        // 15% agency profit
-  negotiationReserve: 0.10,  // 10% room to negotiate up
-  operationalCosts: 0.05,    // 5% operational costs
-  buybackCoefficient: 0.70,  // total: 1 - (15+10+5)% = 70% of market
-};
+const ROUGH_DEDUCTION = 175_000; // тг/м² deduction for rough finish
 
 const NEGOTIATION_LIMIT_COEFFICIENT = 0.80; // max we pay (-20% from market)
 
@@ -31,44 +26,44 @@ const MANUAL_REVIEW_MESSAGES: Record<string, string> = {
 
 // ── Coefficient Functions ──
 
-export function getFloorCoefficient(
-  floor: number,
-  totalFloors: number,
-): number {
-  if (floor === totalFloors) return 0.95;
-  if (floor === 1) return 0.93;
-  if (floor <= 3) return 0.97;
-  if (floor <= 6) return 1.0;
-  if (floor <= 15) return 1.05;
-  return 1.08;
-}
-
+/** Step-function year coefficient */
 export function getYearCoefficient(yearBuilt: number): number {
-  const age = 2026 - yearBuilt;
-  return Math.max(0.7, 1.0 - age * 0.015);
+  if (yearBuilt > 2020) return 1.0;
+  if (yearBuilt >= 2011) return 0.9;
+  if (yearBuilt >= 2000) return 0.8;
+  return 0.7;
 }
 
-const VIEW_COEFFICIENTS: Record<ViewType, number> = {
-  mountain: 1.1,
-  park: 1.05,
-  city: 1.0,
-  industrial: 0.95,
+const MATERIAL_COEFFICIENTS: Record<WallMaterial, number> = {
+  panel: 1.0,
+  brick: 1.10,
+  monolith: 1.05,
 };
 
-const CONDITION_COEFFICIENTS: Record<ConditionType, number> = {
-  designer: 1.15,
-  euro: 1.08,
-  good: 1.03,
-  average: 1.0,
-  rough: 0.85,
-};
-
-export function getViewCoefficient(view: ViewType): number {
-  return VIEW_COEFFICIENTS[view];
+export function getMaterialCoefficient(wall: WallMaterial): number {
+  return MATERIAL_COEFFICIENTS[wall];
 }
 
-export function getConditionCoefficient(condition: ConditionType): number {
-  return CONDITION_COEFFICIENTS[condition];
+/** Get adjusted base rate: subtract 175k for rough finish */
+export function getAdjustedBase(baseRate: number, condition: ConditionType): number {
+  return condition === "rough" ? baseRate - ROUGH_DEDUCTION : baseRate;
+}
+
+/** Class-based buyback multiplier for Path A (ЖК) */
+export function getBuybackMultiplier(housingClass: string): number {
+  switch (housingClass) {
+    case "elite":
+    case "business_plus":
+    case "business":
+      return 0.90;
+    case "comfort_plus":
+      return 0.85;
+    case "comfort":
+      return 0.90;
+    case "standard":
+    default:
+      return 0.70;
+  }
 }
 
 // ── Main Evaluation ──
@@ -76,7 +71,6 @@ export function getConditionCoefficient(condition: ConditionType): number {
 export function evaluatePrice(
   input: EvaluationInput,
   baseRate: number = DEFAULT_BASE_RATE,
-  buybackCoefficient: number = BUYBACK_BREAKDOWN.buybackCoefficient,
 ): EvaluationResult {
   const propertyType = input.propertyType ?? "apartment";
 
@@ -90,49 +84,46 @@ export function evaluatePrice(
   }
 
   // Branch A: auto calculation for apartments & townhouses
-  return evaluateAuto(input, baseRate, buybackCoefficient);
+  return evaluateAuto(input, baseRate);
 }
 
-/** Auto calculation for apartments and townhouses */
+/** Auto calculation for apartments and townhouses (Path A) */
 export function evaluateAuto(
   input: EvaluationInput,
   baseRate: number = DEFAULT_BASE_RATE,
-  buybackCoefficient: number = BUYBACK_BREAKDOWN.buybackCoefficient,
 ): AutoEvaluationResult {
   const kComplex = input.complexCoefficient;
-  const kFloor = getFloorCoefficient(input.floor, input.totalFloors);
   const kYear = getYearCoefficient(input.yearBuilt);
-  const kView = getViewCoefficient(input.view);
-  const kCondition = getConditionCoefficient(input.condition);
+  const kMaterial = getMaterialCoefficient(input.wallMaterial);
+  const adjustedBase = getAdjustedBase(baseRate, input.condition);
+  const buybackCoefficient = getBuybackMultiplier(input.housingClass);
 
   const params: CalculationParams = {
-    baseRate,
+    baseRate: adjustedBase,
     kComplex,
-    kFloor,
     kYear,
-    kView,
-    kCondition,
+    kMaterial,
   };
 
   // Market price (100%)
   const marketPrice = Math.round(
-    input.area * baseRate * kComplex * kFloor * kYear * kView * kCondition,
+    input.area * adjustedBase * kComplex * kYear * kMaterial,
   );
   const marketPricePerSqm = Math.round(marketPrice / input.area);
 
-  // Offer price (buyback: market * buybackCoefficient)
+  // Offer price (buyback: market × buybackMultiplier)
   const totalPrice = Math.round(marketPrice * buybackCoefficient);
   const pricePerSqm = Math.round(totalPrice / input.area);
 
   // Negotiation limit (-20% from market, the max we agree to pay)
   const negotiationLimit = Math.round(marketPrice * NEGOTIATION_LIMIT_COEFFICIENT);
 
-  // Build dynamic breakdown from the passed coefficient
+  // Build dynamic breakdown from the buyback coefficient
   const remainder = 1 - buybackCoefficient;
   const dynamicBreakdown: BuybackBreakdown = {
-    targetMargin: remainder * 0.5,        // ~half of remainder
-    negotiationReserve: remainder * 0.333, // ~third of remainder
-    operationalCosts: remainder * 0.167,   // ~sixth of remainder
+    targetMargin: remainder * 0.5,
+    negotiationReserve: remainder * 0.333,
+    operationalCosts: remainder * 0.167,
     buybackCoefficient,
   };
 
@@ -151,35 +142,31 @@ export function evaluateAuto(
 // ── Zone-based Evaluation (Path B: non-ЖК apartments) ──
 
 /** Evaluate price for non-ЖК apartments using zone + building series coefficients.
- *  kYear = 1.0 (building age is already baked into zone avg price).
- *  kComplex = kZone × kSeries
+ *  Buyback is always 0.70 for zone path.
  */
 export function evaluateZone(
   input: ZoneEvaluationInput,
   baseRate: number = DEFAULT_BASE_RATE,
-  buybackCoefficient: number = BUYBACK_BREAKDOWN.buybackCoefficient,
 ): AutoEvaluationResult {
   const kZone = input.zoneCoefficient;
   const kSeries = input.seriesModifier;
   const kComplex = kZone * kSeries;
-  const kFloor = getFloorCoefficient(input.floor, input.totalFloors);
-  const kYear = 1.0; // baked into zone avg price
-  const kView = getViewCoefficient(input.view);
-  const kCondition = getConditionCoefficient(input.condition);
+  const kYear = getYearCoefficient(input.yearBuilt);
+  const kMaterial = getMaterialCoefficient(input.wallMaterial);
+  const adjustedBase = getAdjustedBase(baseRate, input.condition);
+  const buybackCoefficient = 0.70; // always 0.70 for zone path
 
   const params: CalculationParams = {
-    baseRate,
+    baseRate: adjustedBase,
     kComplex,
-    kFloor,
     kYear,
-    kView,
-    kCondition,
+    kMaterial,
     kZone,
     kSeries,
   };
 
   const marketPrice = Math.round(
-    input.area * baseRate * kComplex * kFloor * kYear * kView * kCondition,
+    input.area * adjustedBase * kComplex * kYear * kMaterial,
   );
   const marketPricePerSqm = Math.round(marketPrice / input.area);
 

@@ -100,6 +100,10 @@ export type Database = {
           property_type: string | null;
           zone_id: string | null;
           building_series: BuildingSeriesEnum | null;
+          year_built: number | null;
+          wall_material: string | null;
+          is_pledged: boolean;
+          intent: string;
           created_at: string;
           contacted_at: string | null;
         };
@@ -120,6 +124,10 @@ export type Database = {
           property_type?: string | null;
           zone_id?: string | null;
           building_series?: BuildingSeriesEnum | null;
+          year_built?: number | null;
+          wall_material?: string | null;
+          is_pledged?: boolean;
+          intent?: string;
         };
         Update: {
           id?: string;
@@ -138,6 +146,10 @@ export type Database = {
           property_type?: string | null;
           zone_id?: string | null;
           building_series?: BuildingSeriesEnum | null;
+          year_built?: number | null;
+          wall_material?: string | null;
+          is_pledged?: boolean;
+          intent?: string;
           contacted_at?: string | null;
         };
         Relationships: [

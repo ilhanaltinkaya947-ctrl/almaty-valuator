@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { formatPhone, unformatPhone } from "@/lib/utils";
+import type { WallMaterial, LeadIntent } from "@/types/evaluation";
 
 interface LeadCaptureFormProps {
   onSubmitted?: (phone: string) => void;
@@ -11,9 +12,25 @@ interface LeadCaptureFormProps {
   estimatedPrice?: number;
   zoneId?: string;
   buildingSeries?: string;
+  yearBuilt?: number;
+  wallMaterial?: WallMaterial;
+  isPledged?: boolean;
+  intent?: LeadIntent;
 }
 
-export function LeadCaptureForm({ onSubmitted, complexId, areaSqm, floor, estimatedPrice, zoneId, buildingSeries }: LeadCaptureFormProps) {
+export function LeadCaptureForm({
+  onSubmitted,
+  complexId,
+  areaSqm,
+  floor,
+  estimatedPrice,
+  zoneId,
+  buildingSeries,
+  yearBuilt,
+  wallMaterial,
+  isPledged,
+  intent = "ready",
+}: LeadCaptureFormProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("+7");
   const [submitted, setSubmitted] = useState(false);
@@ -43,6 +60,10 @@ export function LeadCaptureForm({ onSubmitted, complexId, areaSqm, floor, estima
           source: "landing",
           zone_id: zoneId,
           building_series: buildingSeries,
+          year_built: yearBuilt,
+          wall_material: wallMaterial,
+          is_pledged: isPledged ?? false,
+          intent,
         }),
       });
     } catch {
@@ -63,7 +84,9 @@ export function LeadCaptureForm({ onSubmitted, complexId, areaSqm, floor, estima
         </div>
         <h4 className="text-lg font-semibold text-white mb-1">Заявка принята!</h4>
         <p className="text-sm text-[#7A8299]">
-          Наш эксперт свяжется с вами в течение 15 минут
+          {intent === "negotiate"
+            ? "Наш эксперт свяжется для обсуждения цены"
+            : "Наш эксперт свяжется с вами в течение 15 минут"}
         </p>
       </div>
     );
@@ -78,7 +101,9 @@ export function LeadCaptureForm({ onSubmitted, complexId, areaSqm, floor, estima
           </svg>
         </div>
         <h4 className="font-semibold text-white text-[15px]">
-          Точная оценка от эксперта — бесплатно
+          {intent === "negotiate"
+            ? "Обсудить цену с экспертом"
+            : "Точная оценка от эксперта — бесплатно"}
         </h4>
       </div>
 
@@ -104,7 +129,11 @@ export function LeadCaptureForm({ onSubmitted, complexId, areaSqm, floor, estima
         disabled={!isValid || loading}
         className="w-full rounded-2xl bg-[#C8A44E] px-6 py-5 font-semibold text-[#08090E] text-base transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(200,164,78,0.3)] disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
       >
-        {loading ? "Отправка..." : "Получить бесплатную оценку"}
+        {loading
+          ? "Отправка..."
+          : intent === "negotiate"
+            ? "Обсудить цену"
+            : "Получить бесплатную оценку"}
       </button>
 
       <p className="text-xs text-[#5A6478] text-center mt-3">

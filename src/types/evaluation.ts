@@ -1,6 +1,8 @@
-export type ViewType = "mountain" | "park" | "city" | "industrial";
+export type WallMaterial = "panel" | "brick" | "monolith";
 
-export type ConditionType = "designer" | "euro" | "good" | "average" | "rough";
+export type ConditionType = "renovated" | "rough";
+
+export type LeadIntent = "ready" | "negotiate";
 
 export type PropertyType = "apartment" | "townhouse" | "house" | "commercial" | "land";
 
@@ -17,22 +19,19 @@ export function isAutoCalcType(type: PropertyType): boolean {
 export interface EvaluationInput {
   complexName: string;
   area: number;
-  floor: number;
-  totalFloors: number;
   yearBuilt: number;
-  view: ViewType;
+  wallMaterial: WallMaterial;
   condition: ConditionType;
   complexCoefficient: number;
+  housingClass: string;
   propertyType?: PropertyType;
 }
 
 export interface CalculationParams {
   baseRate: number;
   kComplex: number;
-  kFloor: number;
   kYear: number;
-  kView: number;
-  kCondition: number;
+  kMaterial: number;
   kZone?: number;
   kSeries?: number;
 }
@@ -50,7 +49,7 @@ export interface AutoEvaluationResult {
   needsManualReview: false;
 
   // Public — shown on landing
-  totalPrice: number;      // offerPrice (buyback = market × 0.70)
+  totalPrice: number;      // offerPrice (buyback = market × multiplier)
   pricePerSqm: number;     // offerPrice / area
 
   // Internal — shown in admin/CRM/PDF
@@ -88,8 +87,7 @@ export interface ZoneEvaluationInput {
   buildingSeries: BuildingSeries;
   seriesModifier: number;
   area: number;
-  floor: number;
-  totalFloors: number;
-  view: ViewType;
+  yearBuilt: number;
+  wallMaterial: WallMaterial;
   condition: ConditionType;
 }

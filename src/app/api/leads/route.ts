@@ -17,6 +17,10 @@ const createLeadSchema = z.object({
   notes: z.string().optional(),
   zone_id: z.string().uuid().optional(),
   building_series: z.enum(["stalinka", "khrushchevka", "brezhnevka", "uluchshenka", "individual", "novostroyka"]).optional(),
+  year_built: z.number().int().min(1950).max(2026).optional(),
+  wall_material: z.enum(["panel", "brick", "monolith"]).optional(),
+  is_pledged: z.boolean().optional(),
+  intent: z.enum(["ready", "negotiate"]).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -42,6 +46,10 @@ export async function POST(req: NextRequest) {
         notes: data.notes ?? null,
         zone_id: data.zone_id ?? null,
         building_series: data.building_series ?? null,
+        year_built: data.year_built ?? null,
+        wall_material: data.wall_material ?? null,
+        is_pledged: data.is_pledged ?? false,
+        intent: data.intent ?? "ready",
       })
       .select()
       .single();
@@ -66,6 +74,10 @@ export async function POST(req: NextRequest) {
           estimated_price: data.estimated_price,
           source: data.source,
           needs_manual_review: data.needs_manual_review,
+          year_built: data.year_built,
+          wall_material: data.wall_material,
+          is_pledged: data.is_pledged,
+          intent: data.intent,
         }).catch((err) => console.error("Telegram notify error:", err))
       );
     }

@@ -22,10 +22,8 @@ export function FactorChips({ params }: FactorChipsProps) {
     chips.push({ key: "kComplex", label: "ЖК", color: "#C8A44E", value: params.kComplex });
   }
 
-  chips.push({ key: "kFloor",     label: "Этаж",  color: "#4A8FD4", value: params.kFloor });
-  chips.push({ key: "kYear",      label: "Год",   color: "#7BC67E", value: params.kYear });
-  chips.push({ key: "kView",      label: "Вид",   color: "#D9904A", value: params.kView });
-  chips.push({ key: "kCondition", label: "Сост.",  color: "#9B6BD6", value: params.kCondition });
+  chips.push({ key: "kYear",     label: "Год",      color: "#7BC67E", value: params.kYear });
+  chips.push({ key: "kMaterial", label: "Материал", color: "#D9904A", value: params.kMaterial });
 
   return (
     <div className="flex flex-wrap gap-2">

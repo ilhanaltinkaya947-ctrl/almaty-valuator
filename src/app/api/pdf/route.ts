@@ -5,29 +5,19 @@ import { ReportDocument } from "@/components/pdf/ReportDocument";
 import { COMPLEXES, CLASS_LABELS } from "@/data/complexes";
 import { evaluateAuto } from "@/lib/smart-value";
 import type { ReportData, BenchmarkComplex } from "@/components/pdf/types";
-import type { ViewType, ConditionType } from "@/types/evaluation";
-
-const VIEW_LABELS: Record<ViewType, string> = {
-  mountain: "Горы",
-  park: "Парк",
-  city: "Город",
-  industrial: "Промзона",
-};
+import type { ConditionType, WallMaterial } from "@/types/evaluation";
 
 const CONDITION_LABELS: Record<ConditionType, string> = {
-  designer: "Дизайнерский",
-  euro: "Евроремонт",
-  good: "Хороший",
-  average: "Средний",
+  renovated: "С ремонтом",
   rough: "Черновая",
 };
 
 const pdfRequestSchema = z.object({
   complexName: z.string().min(1),
   area: z.number().min(20).max(300),
-  floor: z.number().int().min(1),
-  view: z.enum(["mountain", "park", "city", "industrial"]),
-  condition: z.enum(["designer", "euro", "good", "average", "rough"]),
+  yearBuilt: z.number().int().min(1950).max(2026),
+  wallMaterial: z.enum(["panel", "brick", "monolith"]),
+  condition: z.enum(["renovated", "rough"]),
 });
 
 export async function POST(req: NextRequest) {
@@ -45,12 +35,11 @@ export async function POST(req: NextRequest) {
     const result = evaluateAuto({
       complexName: complex.name,
       area: input.area,
-      floor: input.floor,
-      totalFloors: complex.totalFloors,
-      yearBuilt: complex.yearBuilt,
-      view: input.view,
-      condition: input.condition,
+      yearBuilt: input.yearBuilt,
+      wallMaterial: input.wallMaterial as WallMaterial,
+      condition: input.condition as ConditionType,
       complexCoefficient: complex.coefficient,
+      housingClass: complex.class,
     });
 
     // Find 3-4 benchmark complexes (same district or similar class)
@@ -74,19 +63,17 @@ export async function POST(req: NextRequest) {
       yearBuilt: complex.yearBuilt,
       totalFloors: complex.totalFloors,
       area: input.area,
-      floor: input.floor,
-      viewLabel: VIEW_LABELS[input.view],
-      conditionLabel: CONDITION_LABELS[input.condition],
+      floor: 0,
+      viewLabel: "—",
+      conditionLabel: CONDITION_LABELS[input.condition as ConditionType],
       totalPrice: result.totalPrice,
       pricePerSqm: result.pricePerSqm,
       marketPrice: result.marketPrice,
       marketPricePerSqm: result.marketPricePerSqm,
       baseRate: result.params.baseRate,
       kComplex: result.params.kComplex,
-      kFloor: result.params.kFloor,
       kYear: result.params.kYear,
-      kView: result.params.kView,
-      kCondition: result.params.kCondition,
+      kMaterial: result.params.kMaterial,
       liquidityIndex: complex.liquidityIndex,
       benchmarks,
       generatedAt: new Date().toLocaleDateString("ru-RU", {
