@@ -33,6 +33,8 @@ export interface CalculationParams {
   kYear: number;
   kView: number;
   kCondition: number;
+  kZone?: number;
+  kSeries?: number;
 }
 
 /** Buyback discount structure (internal) */
@@ -68,3 +70,26 @@ export interface ManualReviewResult {
 }
 
 export type EvaluationResult = AutoEvaluationResult | ManualReviewResult;
+
+// ── Zone-based evaluation (Path B) ──
+
+export type BuildingSeries =
+  | "stalinka"
+  | "khrushchevka"
+  | "brezhnevka"
+  | "uluchshenka"
+  | "individual"
+  | "novostroyka";
+
+export interface ZoneEvaluationInput {
+  zoneId: string;
+  zoneName: string;
+  zoneCoefficient: number;
+  buildingSeries: BuildingSeries;
+  seriesModifier: number;
+  area: number;
+  floor: number;
+  totalFloors: number;
+  view: ViewType;
+  condition: ConditionType;
+}

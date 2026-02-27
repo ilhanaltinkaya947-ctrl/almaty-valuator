@@ -9,9 +9,11 @@ interface LeadCaptureFormProps {
   areaSqm?: number;
   floor?: number;
   estimatedPrice?: number;
+  zoneId?: string;
+  buildingSeries?: string;
 }
 
-export function LeadCaptureForm({ onSubmitted, complexId, areaSqm, floor, estimatedPrice }: LeadCaptureFormProps) {
+export function LeadCaptureForm({ onSubmitted, complexId, areaSqm, floor, estimatedPrice, zoneId, buildingSeries }: LeadCaptureFormProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("+7");
   const [submitted, setSubmitted] = useState(false);
@@ -39,6 +41,8 @@ export function LeadCaptureForm({ onSubmitted, complexId, areaSqm, floor, estima
           floor,
           estimated_price: estimatedPrice,
           source: "landing",
+          zone_id: zoneId,
+          building_series: buildingSeries,
         }),
       });
     } catch {

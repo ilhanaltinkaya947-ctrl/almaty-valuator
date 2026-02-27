@@ -39,9 +39,9 @@ CREATE TRIGGER complexes_updated_at
   BEFORE UPDATE ON complexes
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+-- Enable trigram extension for fuzzy search (must be before gin_trgm_ops index)
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- Index for search
 CREATE INDEX idx_complexes_name ON complexes USING gin (name gin_trgm_ops);
 CREATE INDEX idx_complexes_district ON complexes (district);
-
--- Enable trigram extension for fuzzy search
-CREATE EXTENSION IF NOT EXISTS pg_trgm;

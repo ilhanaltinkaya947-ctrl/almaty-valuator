@@ -1,21 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Complex } from "@/data/complexes";
 import type {
   ViewType,
   ConditionType,
   AutoEvaluationResult,
   PropertyType,
+  BuildingSeries,
 } from "@/types/evaluation";
 import { isAutoCalcType } from "@/types/evaluation";
-import { evaluateAuto } from "@/lib/smart-value";
+import { evaluateAuto, evaluateZone } from "@/lib/smart-value";
+import { PRICE_ZONES, BUILDING_SERIES } from "@/data/zones";
+import type { PriceZone, BuildingSeriesInfo } from "@/data/zones";
 import { ComplexSearch } from "./ComplexSearch";
 import { ParameterForm } from "./ParameterForm";
 import { ResultCard } from "./ResultCard";
+import { ZoneSelect } from "./ZoneSelect";
+import { BuildingSeriesSelect } from "./BuildingSeriesSelect";
+import { ZoneParameterForm } from "./ZoneParameterForm";
 import { formatPhone, unformatPhone } from "@/lib/utils";
 
-type CalcStep = 1 | 2 | 3;
+type CalcStep = 1 | 2 | 3 | 4;
+type CalcMode = "complex" | "zone";
 
 const PROPERTY_TYPES: { value: PropertyType; label: string; icon: string }[] = [
   { value: "apartment", label: "Квартира", icon: "🏢" },
@@ -27,10 +34,58 @@ const PROPERTY_TYPES: { value: PropertyType; label: string; icon: string }[] = [
 
 export function Calculator() {
   const [propertyType, setPropertyType] = useState<PropertyType>("apartment");
+  const [calcMode, setCalcMode] = useState<CalcMode>("complex");
   const [step, setStep] = useState<CalcStep>(1);
+
+  // Path A state
   const [selectedComplex, setSelectedComplex] = useState<Complex | null>(null);
   const [result, setResult] = useState<AutoEvaluationResult | null>(null);
 
+  // Path B state
+  const [zones, setZones] = useState<PriceZone[]>(PRICE_ZONES);
+  const [seriesList, setSeriesList] = useState<BuildingSeriesInfo[]>(BUILDING_SERIES);
+  const [selectedZone, setSelectedZone] = useState<PriceZone | null>(null);
+  const [selectedSeries, setSelectedSeries] = useState<BuildingSeriesInfo | null>(null);
+
+  // Fetch zones from API on mount
+  useEffect(() => {
+    fetch("/api/zones")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.zones?.length) {
+          const mapped: PriceZone[] = data.zones.map((z: Record<string, unknown>) => ({
+            id: z.id as string,
+            name: z.name as string,
+            slug: z.slug as string,
+            district: z.district as string,
+            description: (z.description as string) ?? "",
+            avgPriceSqm: z.avg_price_sqm as number,
+            coefficient: Number(z.coefficient),
+            sortOrder: z.sort_order as number,
+          }));
+          setZones(mapped);
+        }
+        if (data.series?.length) {
+          const mapped: BuildingSeriesInfo[] = data.series.map((s: Record<string, unknown>) => ({
+            series: s.series as BuildingSeries,
+            labelRu: s.label_ru as string,
+            descriptionRu: (s.description_ru as string) ?? "",
+            yearMin: s.year_min as number,
+            yearMax: s.year_max as number,
+            floorMin: (s.floor_min as number) ?? 1,
+            floorMax: (s.floor_max as number) ?? 16,
+            modifier: Number(s.modifier),
+            sortOrder: s.sort_order as number,
+          }));
+          setSeriesList(mapped);
+        }
+      })
+      .catch(() => {
+        // Keep static fallback
+      });
+  }, []);
+
+  // Path A handlers
   function handleSelectComplex(complex: Complex) {
     setSelectedComplex(complex);
     setStep(2);
@@ -59,19 +114,72 @@ export function Calculator() {
     setStep(3);
   }
 
+  // Path B handlers
+  function handleSelectZone(zone: PriceZone) {
+    setSelectedZone(zone);
+    setStep(2);
+  }
+
+  function handleSelectSeries(series: BuildingSeriesInfo) {
+    setSelectedSeries(series);
+    setStep(3);
+  }
+
+  function handleZoneCalculate(params: {
+    area: number;
+    floor: number;
+    totalFloors: number;
+    view: ViewType;
+    condition: ConditionType;
+  }) {
+    if (!selectedZone || !selectedSeries) return;
+
+    const evalResult = evaluateZone({
+      zoneId: selectedZone.id,
+      zoneName: selectedZone.name,
+      zoneCoefficient: selectedZone.coefficient,
+      buildingSeries: selectedSeries.series,
+      seriesModifier: selectedSeries.modifier,
+      area: params.area,
+      floor: params.floor,
+      totalFloors: params.totalFloors,
+      view: params.view,
+      condition: params.condition,
+    });
+
+    setResult(evalResult);
+    setStep(4);
+  }
+
   function handlePropertyTypeChange(type: PropertyType) {
     setPropertyType(type);
+    resetState();
+  }
+
+  function handleModeChange(mode: CalcMode) {
+    setCalcMode(mode);
+    resetState();
+  }
+
+  function resetState() {
     setStep(1);
     setSelectedComplex(null);
+    setSelectedZone(null);
+    setSelectedSeries(null);
     setResult(null);
   }
 
   const isAuto = isAutoCalcType(propertyType);
 
+  // Build result label for zone path
+  const zoneResultLabel = selectedZone && selectedSeries
+    ? `${selectedZone.name} · ${selectedSeries.labelRu}`
+    : "";
+
   return (
     <div>
       {/* Property type toggle — pill style */}
-      <div className="flex gap-2 mb-8 flex-wrap">
+      <div className="flex gap-2 mb-4 flex-wrap">
         {PROPERTY_TYPES.map((pt) => (
           <button
             key={pt.value}
@@ -87,8 +195,34 @@ export function Calculator() {
         ))}
       </div>
 
-      {/* Branch A: Auto calculation (apartments, townhouses) */}
-      {isAuto ? (
+      {/* Sub-toggle: ЖК vs Район — only for apartment/townhouse */}
+      {isAuto && (
+        <div className="flex gap-2 mb-8">
+          <button
+            onClick={() => handleModeChange("complex")}
+            className={`rounded-full px-4 py-2 text-xs font-medium transition-all duration-300 cursor-pointer ${
+              calcMode === "complex"
+                ? "bg-[rgba(200,164,78,0.12)] text-[#C8A44E] border border-[rgba(200,164,78,0.3)]"
+                : "bg-transparent border border-[rgba(255,255,255,0.06)] text-[#5A6478] hover:text-[#7A8299]"
+            }`}
+          >
+            Жилой комплекс
+          </button>
+          <button
+            onClick={() => handleModeChange("zone")}
+            className={`rounded-full px-4 py-2 text-xs font-medium transition-all duration-300 cursor-pointer ${
+              calcMode === "zone"
+                ? "bg-[rgba(200,164,78,0.12)] text-[#C8A44E] border border-[rgba(200,164,78,0.3)]"
+                : "bg-transparent border border-[rgba(255,255,255,0.06)] text-[#5A6478] hover:text-[#7A8299]"
+            }`}
+          >
+            Без ЖК (по району)
+          </button>
+        </div>
+      )}
+
+      {/* Path A: ЖК-based auto calculation */}
+      {isAuto && calcMode === "complex" && (
         <>
           {step === 1 && <ComplexSearch onSelect={handleSelectComplex} />}
           {step === 2 && selectedComplex && (
@@ -106,15 +240,53 @@ export function Calculator() {
             />
           )}
         </>
-      ) : (
-        /* Branch B: Expert review form (houses, commercial, land) */
-        <ExpertRequestForm propertyType={propertyType} />
       )}
+
+      {/* Path B: Zone-based calculation */}
+      {isAuto && calcMode === "zone" && (
+        <>
+          {step === 1 && (
+            <ZoneSelect
+              zones={zones}
+              selectedZoneId={selectedZone?.id ?? null}
+              onSelect={handleSelectZone}
+            />
+          )}
+          {step === 2 && selectedZone && (
+            <BuildingSeriesSelect
+              seriesList={seriesList}
+              selectedSeries={selectedSeries?.series ?? null}
+              onSelect={handleSelectSeries}
+              onBack={() => setStep(1)}
+            />
+          )}
+          {step === 3 && selectedZone && selectedSeries && (
+            <ZoneParameterForm
+              zone={selectedZone}
+              series={selectedSeries}
+              onSubmit={handleZoneCalculate}
+              onBack={() => setStep(2)}
+            />
+          )}
+          {step === 4 && result && (
+            <ResultCard
+              result={result}
+              complexName={zoneResultLabel}
+              onBack={() => setStep(3)}
+              zoneId={selectedZone?.id}
+              buildingSeries={selectedSeries?.series}
+            />
+          )}
+        </>
+      )}
+
+      {/* Path C: Expert review form (houses, commercial, land) */}
+      {!isAuto && <ExpertRequestForm propertyType={propertyType} />}
     </div>
   );
 }
 
-// ── Branch B: Expert Request Form ──
+// ── Branch C: Expert Request Form ──
 
 const PROPERTY_LABELS: Record<string, string> = {
   house: "дома или коттеджа",

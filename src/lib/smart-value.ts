@@ -6,6 +6,7 @@ import type {
   BuybackBreakdown,
   ViewType,
   ConditionType,
+  ZoneEvaluationInput,
 } from "@/types/evaluation";
 import { isAutoCalcType } from "@/types/evaluation";
 
@@ -132,6 +133,66 @@ export function evaluateAuto(
     targetMargin: remainder * 0.5,        // ~half of remainder
     negotiationReserve: remainder * 0.333, // ~third of remainder
     operationalCosts: remainder * 0.167,   // ~sixth of remainder
+    buybackCoefficient,
+  };
+
+  return {
+    needsManualReview: false,
+    totalPrice,
+    pricePerSqm,
+    marketPrice,
+    marketPricePerSqm,
+    negotiationLimit,
+    buybackBreakdown: dynamicBreakdown,
+    params,
+  };
+}
+
+// ── Zone-based Evaluation (Path B: non-ЖК apartments) ──
+
+/** Evaluate price for non-ЖК apartments using zone + building series coefficients.
+ *  kYear = 1.0 (building age is already baked into zone avg price).
+ *  kComplex = kZone × kSeries
+ */
+export function evaluateZone(
+  input: ZoneEvaluationInput,
+  baseRate: number = DEFAULT_BASE_RATE,
+  buybackCoefficient: number = BUYBACK_BREAKDOWN.buybackCoefficient,
+): AutoEvaluationResult {
+  const kZone = input.zoneCoefficient;
+  const kSeries = input.seriesModifier;
+  const kComplex = kZone * kSeries;
+  const kFloor = getFloorCoefficient(input.floor, input.totalFloors);
+  const kYear = 1.0; // baked into zone avg price
+  const kView = getViewCoefficient(input.view);
+  const kCondition = getConditionCoefficient(input.condition);
+
+  const params: CalculationParams = {
+    baseRate,
+    kComplex,
+    kFloor,
+    kYear,
+    kView,
+    kCondition,
+    kZone,
+    kSeries,
+  };
+
+  const marketPrice = Math.round(
+    input.area * baseRate * kComplex * kFloor * kYear * kView * kCondition,
+  );
+  const marketPricePerSqm = Math.round(marketPrice / input.area);
+
+  const totalPrice = Math.round(marketPrice * buybackCoefficient);
+  const pricePerSqm = Math.round(totalPrice / input.area);
+
+  const negotiationLimit = Math.round(marketPrice * NEGOTIATION_LIMIT_COEFFICIENT);
+
+  const remainder = 1 - buybackCoefficient;
+  const dynamicBreakdown: BuybackBreakdown = {
+    targetMargin: remainder * 0.5,
+    negotiationReserve: remainder * 0.333,
+    operationalCosts: remainder * 0.167,
     buybackCoefficient,
   };
 

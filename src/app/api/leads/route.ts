@@ -15,6 +15,8 @@ const createLeadSchema = z.object({
   needs_manual_review: z.boolean().optional(),
   status: z.enum(["new", "pending_review"]).optional(),
   notes: z.string().optional(),
+  zone_id: z.string().uuid().optional(),
+  building_series: z.enum(["stalinka", "khrushchevka", "brezhnevka", "uluchshenka", "individual", "novostroyka"]).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -38,6 +40,8 @@ export async function POST(req: NextRequest) {
         needs_manual_review: data.needs_manual_review ?? false,
         status: data.status ?? "new",
         notes: data.notes ?? null,
+        zone_id: data.zone_id ?? null,
+        building_series: data.building_series ?? null,
       })
       .select()
       .single();

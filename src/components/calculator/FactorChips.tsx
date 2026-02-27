@@ -4,23 +4,33 @@ interface FactorChipsProps {
   params: CalculationParams;
 }
 
-const CHIP_CONFIG: {
-  key: keyof CalculationParams;
+interface ChipDef {
+  key: string;
   label: string;
   color: string;
-}[] = [
-  { key: "kComplex", label: "ЖК", color: "#C8A44E" },
-  { key: "kFloor", label: "Этаж", color: "#4A8FD4" },
-  { key: "kYear", label: "Год", color: "#7BC67E" },
-  { key: "kView", label: "Вид", color: "#D9904A" },
-  { key: "kCondition", label: "Сост.", color: "#9B6BD6" },
-];
+  value: number | undefined;
+}
 
 export function FactorChips({ params }: FactorChipsProps) {
+  const chips: ChipDef[] = [];
+
+  // Zone path: show zone + series chips instead of single ЖК chip
+  if (params.kZone != null && params.kSeries != null) {
+    chips.push({ key: "kZone",   label: "Район", color: "#4A8FD4", value: params.kZone });
+    chips.push({ key: "kSeries", label: "Серия",  color: "#C8A44E", value: params.kSeries });
+  } else {
+    chips.push({ key: "kComplex", label: "ЖК", color: "#C8A44E", value: params.kComplex });
+  }
+
+  chips.push({ key: "kFloor",     label: "Этаж",  color: "#4A8FD4", value: params.kFloor });
+  chips.push({ key: "kYear",      label: "Год",   color: "#7BC67E", value: params.kYear });
+  chips.push({ key: "kView",      label: "Вид",   color: "#D9904A", value: params.kView });
+  chips.push({ key: "kCondition", label: "Сост.",  color: "#9B6BD6", value: params.kCondition });
+
   return (
     <div className="flex flex-wrap gap-2">
-      {CHIP_CONFIG.map(({ key, label, color }) => {
-        const val = params[key] as number;
+      {chips.map(({ key, label, color, value }) => {
+        if (value == null) return null;
         return (
           <div
             key={key}
@@ -36,7 +46,7 @@ export function FactorChips({ params }: FactorChipsProps) {
             />
             <span className="text-[#7A8299]">{label}</span>
             <span className="font-mono font-bold" style={{ color }}>
-              &times;{val.toFixed(2)}
+              &times;{value.toFixed(2)}
             </span>
           </div>
         );

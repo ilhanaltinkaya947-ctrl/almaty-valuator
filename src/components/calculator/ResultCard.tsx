@@ -11,9 +11,11 @@ interface ResultCardProps {
   result: AutoEvaluationResult;
   complexName: string;
   onBack: () => void;
+  zoneId?: string;
+  buildingSeries?: string;
 }
 
-export function ResultCard({ result, complexName, onBack }: ResultCardProps) {
+export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries }: ResultCardProps) {
   return (
     <div className="fade-enter">
       <button
@@ -81,7 +83,11 @@ export function ResultCard({ result, complexName, onBack }: ResultCardProps) {
       </div>
 
       {/* Lead capture */}
-      <LeadCaptureForm />
+      <LeadCaptureForm
+        estimatedPrice={result.totalPrice}
+        zoneId={zoneId}
+        buildingSeries={buildingSeries}
+      />
 
       <p className="text-xs text-[#5A6478] text-center mt-4">
         Данная оценка носит информационный характер и не является официальным

@@ -1,0 +1,90 @@
+// src/data/zones.ts
+// Static fallback data for price zones and building series.
+// Used client-side when API is unavailable.
+
+import type { BuildingSeries } from "@/types/evaluation";
+
+export interface PriceZone {
+  id: string;
+  name: string;
+  slug: string;
+  district: string;
+  description: string;
+  avgPriceSqm: number;
+  coefficient: number;
+  sortOrder: number;
+}
+
+export interface BuildingSeriesInfo {
+  series: BuildingSeries;
+  labelRu: string;
+  descriptionRu: string;
+  yearMin: number;
+  yearMax: number;
+  floorMin: number;
+  floorMax: number;
+  modifier: number;
+  sortOrder: number;
+}
+
+export const PRICE_ZONES: PriceZone[] = [
+  // Медеуский
+  { id: "z-medeu-verhniy",       name: "Медеу верхний",         slug: "medeu-verhniy",        district: "Медеуский",     description: "Горная часть Медеу, элитные коттеджи и резиденции",                avgPriceSqm: 1350000, coefficient: 1.68, sortOrder: 1 },
+  { id: "z-dostyk-koridor",      name: "Достык коридор",        slug: "dostyk-koridor",       district: "Медеуский",     description: "Проспект Достык от Аль-Фараби до Курмангазы",                     avgPriceSqm: 1200000, coefficient: 1.49, sortOrder: 2 },
+  { id: "z-samal-zholdasbekova", name: "Самал — Жолдасбекова",  slug: "samal-zholdasbekova",  district: "Медеуский",     description: "Микрорайоны Самал, улица Жолдасбекова",                           avgPriceSqm: 1050000, coefficient: 1.30, sortOrder: 3 },
+  { id: "z-koktobe-remizovka",   name: "Коктобе — Ремизовка",   slug: "koktobe-remizovka",    district: "Медеуский",     description: "Предгорья Коктобе, район Ремизовка",                              avgPriceSqm:  950000, coefficient: 1.18, sortOrder: 4 },
+
+  // Бостандыкский
+  { id: "z-bostandyk-verhniy",   name: "Бостандык верхний",      slug: "bostandyk-verhniy",    district: "Бостандыкский", description: "Верхняя часть Бостандыка, район Аль-Фараби",                      avgPriceSqm: 1100000, coefficient: 1.37, sortOrder: 5 },
+  { id: "z-almagul-kazakhfilm",  name: "Алмагуль — Казахфильм", slug: "almagul-kazakhfilm",   district: "Бостандыкский", description: "Микрорайон Алмагуль, район Казахфильм",                           avgPriceSqm:  920000, coefficient: 1.14, sortOrder: 6 },
+  { id: "z-orbita-sayran",       name: "Орбита — Сайран",        slug: "orbita-sayran",        district: "Бостандыкский", description: "Микрорайоны Орбита, озеро Сайран",                                avgPriceSqm:  850000, coefficient: 1.06, sortOrder: 7 },
+  { id: "z-tastak",              name: "Тастак",                 slug: "tastak",               district: "Бостандыкский", description: "Микрорайоны Тастак 1-4",                                          avgPriceSqm:  750000, coefficient: 0.93, sortOrder: 8 },
+
+  // Алмалинский
+  { id: "z-centr-arbat",         name: "Центр — Арбат",          slug: "centr-arbat",          district: "Алмалинский",   description: "Исторический центр, пешеходная улица Панфилова",                  avgPriceSqm:  950000, coefficient: 1.18, sortOrder: 9 },
+  { id: "z-ploshchad",           name: "Площадь Республики",     slug: "ploshchad-respubliki", district: "Алмалинский",   description: "Район Площади Республики, центральный парк",                      avgPriceSqm:  900000, coefficient: 1.12, sortOrder: 10 },
+  { id: "z-almaly-zhibek",       name: "Алмалы — Жибек Жолы",   slug: "almaly-zhibek-zholy",  district: "Алмалинский",   description: "Район метро Жибек Жолы, нижняя часть центра",                     avgPriceSqm:  870000, coefficient: 1.08, sortOrder: 11 },
+
+  // Ауэзовский
+  { id: "z-mamyr-saina",         name: "Мамыр — Саина",          slug: "mamyr-saina",          district: "Ауэзовский",   description: "Микрорайоны Мамыр, район проспекта Саина",                        avgPriceSqm:  650000, coefficient: 0.81, sortOrder: 12 },
+  { id: "z-orbita-auezov",       name: "Орбита (Ауэзов)",        slug: "orbita-auezov",        district: "Ауэзовский",   description: "Район Орбита в составе Ауэзовского района",                      avgPriceSqm:  680000, coefficient: 0.84, sortOrder: 13 },
+  { id: "z-aksay",               name: "Аксай",                  slug: "aksay",                district: "Ауэзовский",   description: "Микрорайоны Аксай 1-5",                                           avgPriceSqm:  630000, coefficient: 0.78, sortOrder: 14 },
+  { id: "z-zhetysu",             name: "Жетысу",                 slug: "zhetysu",              district: "Ауэзовский",   description: "Микрорайоны Жетысу 1-4",                                          avgPriceSqm:  620000, coefficient: 0.77, sortOrder: 15 },
+  { id: "z-mikrorayony",         name: "Микрорайоны",            slug: "mikrorayony",          district: "Ауэзовский",   description: "Спальные микрорайоны Ауэзовского района",                         avgPriceSqm:  600000, coefficient: 0.75, sortOrder: 16 },
+
+  // Жетысуский
+  { id: "z-taugul",              name: "Таугуль — Жандосова",    slug: "taugul-zhandosova",    district: "Жетысуский",    description: "Район Таугуль, улица Жандосова",                                  avgPriceSqm:  620000, coefficient: 0.77, sortOrder: 17 },
+  { id: "z-ainabulak",           name: "Айнабулак",              slug: "ainabulak",            district: "Жетысуский",    description: "Микрорайоны Айнабулак",                                           avgPriceSqm:  550000, coefficient: 0.68, sortOrder: 18 },
+
+  // Турксибский
+  { id: "z-turksib",             name: "Турксиб",                slug: "turksib",              district: "Турксибский",   description: "Центральная часть Турксибского района",                           avgPriceSqm:  520000, coefficient: 0.65, sortOrder: 19 },
+  { id: "z-altyn-orda",          name: "Алтын Орда",             slug: "altyn-orda",           district: "Турксибский",   description: "Район Алтын Орда, окраина Турксибского",                          avgPriceSqm:  500000, coefficient: 0.62, sortOrder: 20 },
+
+  // Наурызбайский
+  { id: "z-nurlytau",            name: "Нурлытау — Ремизовка",  slug: "nurlytau-remizovka",   district: "Наурызбайский", description: "Район Нурлытау, предгорья",                                       avgPriceSqm:  780000, coefficient: 0.97, sortOrder: 21 },
+  { id: "z-nauryzbay",           name: "Наурызбай",              slug: "nauryzbay",            district: "Наурызбайский", description: "Центральная часть Наурызбайского района",                         avgPriceSqm:  600000, coefficient: 0.75, sortOrder: 22 },
+  { id: "z-kalkaman-duman",      name: "Калкаман — Думан",       slug: "kalkaman-duman",       district: "Наурызбайский", description: "Районы Калкаман и Думан",                                         avgPriceSqm:  550000, coefficient: 0.68, sortOrder: 23 },
+
+  // Алатауский
+  { id: "z-alatau-verhniy",      name: "Алатау верхний",         slug: "alatau-verhniy",       district: "Алатауский",    description: "Верхняя часть Алатауского района",                                avgPriceSqm:  580000, coefficient: 0.72, sortOrder: 24 },
+  { id: "z-alatau-nizhniy",      name: "Алатау нижний",          slug: "alatau-nizhniy",       district: "Алатауский",    description: "Нижняя часть Алатауского района",                                 avgPriceSqm:  500000, coefficient: 0.62, sortOrder: 25 },
+];
+
+export const BUILDING_SERIES: BuildingSeriesInfo[] = [
+  { series: "stalinka",      labelRu: "Сталинка",             descriptionRu: "Высокие потолки (3-3.5м), толстые стены",     yearMin: 1930, yearMax: 1955, floorMin: 1, floorMax: 5,  modifier: 1.08, sortOrder: 1 },
+  { series: "khrushchevka",  labelRu: "Хрущёвка",             descriptionRu: "Малогабаритные квартиры, низкие потолки",      yearMin: 1956, yearMax: 1972, floorMin: 1, floorMax: 5,  modifier: 0.87, sortOrder: 2 },
+  { series: "brezhnevka",    labelRu: "Брежневка",             descriptionRu: "Раздельный санузел, больше площадь",           yearMin: 1965, yearMax: 1980, floorMin: 1, floorMax: 12, modifier: 0.93, sortOrder: 3 },
+  { series: "uluchshenka",   labelRu: "Улучшенка",             descriptionRu: "Серии 80-90х, увеличенные кухни",              yearMin: 1980, yearMax: 2000, floorMin: 1, floorMax: 12, modifier: 0.97, sortOrder: 4 },
+  { series: "individual",    labelRu: "Индивидуальный проект", descriptionRu: "Нетиповые дома, свободная планировка",         yearMin: 1960, yearMax: 2010, floorMin: 1, floorMax: 16, modifier: 1.03, sortOrder: 5 },
+  { series: "novostroyka",   labelRu: "Новостройка (без ЖК)",  descriptionRu: "Новые дома без бренда ЖК",                     yearMin: 2010, yearMax: 2026, floorMin: 1, floorMax: 25, modifier: 1.10, sortOrder: 6 },
+];
+
+/** Group zones by district for dropdown rendering */
+export function getZonesByDistrict(zones: PriceZone[]): Record<string, PriceZone[]> {
+  const grouped: Record<string, PriceZone[]> = {};
+  for (const zone of zones) {
+    if (!grouped[zone.district]) grouped[zone.district] = [];
+    grouped[zone.district].push(zone);
+  }
+  return grouped;
+}
