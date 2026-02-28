@@ -9,7 +9,7 @@ export function HeroSection() {
 
   return (
     <section
-      className="relative min-h-screen flex flex-col overflow-hidden"
+      className="relative min-h-[calc(100svh-0px)] sm:min-h-screen flex flex-col overflow-hidden"
       style={{ backgroundColor: "#F0F9F6" }}
     >
       {/* Background effects */}
@@ -63,7 +63,7 @@ export function HeroSection() {
 
       {/* Main content */}
       <div className="relative flex-1 flex items-center">
-        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 w-full py-20 sm:py-32">
+        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 w-full py-10 sm:py-32">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-10 lg:gap-16 items-center">
             <div className="max-w-[640px]">
               <div
@@ -88,7 +88,7 @@ export function HeroSection() {
                 <span className="text-gold-gradient">и выгодно</span>
               </h1>
 
-              <p className="hero-animate-3 text-[14px] sm:text-[16px] mb-8" style={{ color: "#6B7280" }}>
+              <p className="hero-animate-3 text-[14px] sm:text-[16px] mb-5 sm:mb-8" style={{ color: "#6B7280" }}>
                 Любое состояние · Оплата в день сделки
               </p>
 

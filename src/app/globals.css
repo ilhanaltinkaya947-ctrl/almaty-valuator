@@ -30,9 +30,9 @@ body {
   overflow-x: hidden;
 }
 
-/* Force ALL sections light */
+/* Default section background — overridable via inline styles */
 section {
-  background-color: #FFFFFF !important;
+  background-color: #FFFFFF;
 }
 
 /* ── Noise texture overlay ── */
