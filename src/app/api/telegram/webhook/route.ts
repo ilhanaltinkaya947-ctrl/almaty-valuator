@@ -291,7 +291,7 @@ async function handleStart(chatId: string, agent: AgentRow) {
     adminCommands,
   ].join("\n"), {
     replyMarkup: [[
-      { text: "📊 Открыть CRM", url: `${appUrl}/mobile` },
+      { text: "📊 Открыть CRM", web_app: { url: `${appUrl}/leads` } },
     ]],
   });
 }
@@ -521,7 +521,7 @@ async function handleCrm(chatId: string) {
 
   await sendMessage(chatId, "📊 Откройте CRM для работы с лидами:", {
     replyMarkup: [[
-      { text: "📊 Открыть CRM", url: `${appUrl}/mobile` },
+      { text: "📊 Открыть CRM", web_app: { url: `${appUrl}/leads` } },
     ]],
   });
 }
