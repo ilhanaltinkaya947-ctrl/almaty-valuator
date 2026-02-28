@@ -34,6 +34,16 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
         Изменить параметры
       </button>
 
+      {/* Disclaimer — shown BEFORE the price */}
+      <div className="flex items-start gap-2.5 mb-4 px-4 py-3 rounded-xl bg-[rgba(234,179,8,0.06)] border border-[rgba(234,179,8,0.15)]">
+        <svg className="h-4 w-4 text-[#D97706] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+        <p className="text-[13px] text-[#92400E] leading-relaxed">
+          Это примерная стоимость. Точную цену рассчитает специалист после выезда на объект.
+        </p>
+      </div>
+
       {/* Price result */}
       <div
         className="relative rounded-2xl p-6 mb-6 overflow-hidden"
@@ -109,9 +119,6 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
         </button>
       )}
 
-      <p className="text-[13px] text-[#9CA3AF] text-center mt-4">
-        Сумма является ориентировочной. Точная цена фиксируется после осмотра.
-      </p>
     </div>
   );
 }
