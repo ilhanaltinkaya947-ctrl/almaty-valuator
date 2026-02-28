@@ -45,6 +45,8 @@ export type Database = {
           liquidity_index: number | null;
           avg_price_sqm: number | null;
           krisha_url: string | null;
+          wall_material: string | null;
+          zone_slug: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -63,6 +65,8 @@ export type Database = {
           liquidity_index?: number | null;
           avg_price_sqm?: number | null;
           krisha_url?: string | null;
+          wall_material?: string | null;
+          zone_slug?: string | null;
         };
         Update: {
           id?: string;
@@ -79,6 +83,8 @@ export type Database = {
           liquidity_index?: number | null;
           avg_price_sqm?: number | null;
           krisha_url?: string | null;
+          wall_material?: string | null;
+          zone_slug?: string | null;
         };
         Relationships: [];
       };

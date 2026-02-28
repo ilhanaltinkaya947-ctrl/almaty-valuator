@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const settings = await getSystemSettings();
 
     // Zone-based evaluation (Path B — Vtorichka)
-    if (body.zoneId) {
+    if (body.zoneId || body.mode === "vtorichka") {
       const parsed = vtorichkaEvaluationSchema.safeParse(body);
       if (!parsed.success) {
         return NextResponse.json(
