@@ -9,7 +9,7 @@ const LEGAL_ITEMS = [
 
 export function LegalSection() {
   return (
-    <section className="py-14 sm:py-24 relative" style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #F0F9F6 12%, #F0F9F6 88%, #FFFFFF 100%)" }}>
+    <section className="py-14 sm:py-24 relative" style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #F0F9F6 12%, #F0F9F6 100%)" }}>
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         {/* Full-width card */}
         <div
