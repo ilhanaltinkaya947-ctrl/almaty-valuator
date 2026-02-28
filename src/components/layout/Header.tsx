@@ -119,9 +119,7 @@ export function Header() {
         <div
           className="lg:hidden fixed inset-0 top-[56px] sm:top-[64px] z-40"
           style={{
-            background: "linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(240,249,246,0.98) 100%)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
+            background: "#FFFFFF",
           }}
         >
           <nav className="flex flex-col px-6 pt-8 gap-2">

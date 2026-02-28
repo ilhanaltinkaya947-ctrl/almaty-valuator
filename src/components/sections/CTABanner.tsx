@@ -1,6 +1,9 @@
 export function CTABanner() {
   return (
-    <section className="relative overflow-hidden">
+    <section
+      className="relative overflow-hidden"
+      style={{ backgroundColor: "#0F1722" }}
+    >
       {/* Dark premium CTA band */}
       <div
         className="relative py-10 sm:py-16"

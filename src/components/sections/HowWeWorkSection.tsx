@@ -33,7 +33,7 @@ export function HowWeWorkSection() {
   }, []);
 
   return (
-    <section id="steps" className="py-14 sm:py-24" style={{ backgroundColor: "#F0F9F6" }}>
+    <section id="steps" className="py-14 sm:py-24" style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #F0F9F6 12%, #F0F9F6 88%, #FFFFFF 100%)" }}>
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6 mb-8 sm:mb-12">
           <div>

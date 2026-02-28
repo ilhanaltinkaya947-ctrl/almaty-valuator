@@ -36,7 +36,7 @@ export function ContactSection() {
   }
 
   return (
-    <section id="contacts" className="relative py-10 sm:py-24" style={{ backgroundColor: "#F0F9F6" }}>
+    <section id="contacts" className="relative py-10 sm:py-24" style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #F0F9F6 12%, #F0F9F6 88%, #FFFFFF 100%)" }}>
       {/* Ambient glow */}
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] pointer-events-none"

@@ -5,7 +5,7 @@ export function CalculatorSection() {
     <section
       id="calculator"
       className="relative py-14 sm:py-24 overflow-hidden"
-      style={{ backgroundColor: "#F0F9F6" }}
+      style={{ background: "linear-gradient(180deg, #F0F9F6 0%, #F0F9F6 85%, #FFFFFF 100%)" }}
     >
       {/* Ambient glow — offset to left */}
       <div

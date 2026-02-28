@@ -9,7 +9,7 @@ export function HeroSection() {
 
   return (
     <section
-      className="relative min-h-[calc(100svh-0px)] sm:min-h-screen flex flex-col overflow-hidden"
+      className="relative sm:min-h-screen flex flex-col overflow-hidden"
       style={{ backgroundColor: "#F0F9F6" }}
     >
       {/* Background effects */}
