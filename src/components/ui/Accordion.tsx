@@ -26,17 +26,19 @@ export function Accordion({ items, defaultOpen }: AccordionProps) {
           >
             <button
               onClick={() => setOpenIndex(isOpen ? null : i)}
-              className="w-full flex items-center justify-between py-6 text-left cursor-pointer group"
+              className="w-full flex items-center justify-between py-5 text-left cursor-pointer group"
             >
-              <span className={`font-medium text-base pr-4 transition-colors duration-200 ${
-                isOpen ? "text-[#3A8D7B]" : "text-[#1A2332] group-hover:text-[#3A8D7B]"
-              }`}>
+              <span
+                className="font-medium text-base pr-4"
+                style={{ color: isOpen ? "#3A8D7B" : "#1A2332" }}
+              >
                 {item.question}
               </span>
               <svg
-                className="h-4 w-4 shrink-0 transition-transform duration-300"
+                className="h-4 w-4 shrink-0"
                 style={{
                   transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                  transition: "transform 0.2s ease",
                   color: isOpen ? "#3A8D7B" : "#9CA3AF",
                 }}
                 fill="none"
@@ -51,19 +53,13 @@ export function Accordion({ items, defaultOpen }: AccordionProps) {
                 />
               </svg>
             </button>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateRows: isOpen ? "1fr" : "0fr",
-                transition: "grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-              }}
-            >
-              <div style={{ overflow: "hidden" }}>
-                <p className="text-[#6B7280] text-base leading-[1.7] pb-6">
+            {isOpen && (
+              <div className="pb-5">
+                <p className="text-[#6B7280] text-base leading-[1.7]">
                   {item.answer}
                 </p>
               </div>
-            </div>
+            )}
           </div>
         );
       })}
