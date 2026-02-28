@@ -312,78 +312,76 @@ export function Calculator() {
   );
 }
 
-// ── Branch C: Non-apartment — message + detailed lead capture ──
+// ── Branch C: Non-apartment — type-specific fields + universal contact ──
 
-const PROPERTY_TYPE_LABELS: Record<string, string> = {
-  house: "частного дома",
-  commercial: "коммерческой недвижимости",
-  land: "земельного участка",
-  other: "объекта",
+const PROPERTY_TYPE_LABELS_RU: Record<string, string> = {
+  house: "Частный дом",
+  commercial: "Коммерческая недвижимость",
+  land: "Земельный участок",
+  other: "Другое",
 };
 
-const EXPERT_DISTRICT_OPTIONS = [
-  // Город Алматы
-  { group: "Город Алматы", options: [
-    "Алмалинский",
-    "Алатауский",
-    "Ауэзовский",
-    "Бостандыкский",
-    "Жетысуский",
-    "Медеуский",
-    "Наурызбайский",
-    "Турксибский",
-  ]},
-  // Алматинская область
-  { group: "Алматинская область", options: [
-    "Талгарский район",
-    "Карасайский район",
-    "Илийский район",
-    "Енбекшиказахский район",
-    "Жамбылский район",
-    "Каскеленский район",
-    "Талгар",
-    "Каскелен",
-    "Иссык",
-    "Есик",
-    "Капшагай",
-    "Талгарский тракт",
-    "Кульджинский тракт",
-    "Бурундай",
-    "Отеген батыр",
-    "Туздыбастау",
-    "Узынагаш",
-  ]},
+const UTILITY_OPTIONS = [
+  { value: "electricity", label: "Свет" },
+  { value: "water", label: "Вода" },
+  { value: "gas", label: "Газ" },
+  { value: "sewage", label: "Центральная канализация" },
 ];
 
-const EXPERT_CONDITION_OPTIONS = [
-  { value: "excellent", label: "Отличное" },
-  { value: "good", label: "Хорошее" },
-  { value: "average", label: "Среднее" },
-  { value: "needs_repair", label: "Требует ремонта" },
-  { value: "rough", label: "Черновая / Аварийное" },
-];
+const INPUT_CLS = "w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3.5 text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200";
+const LABEL_CLS = "text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2";
 
 function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
+  // Type-specific fields
+  const [houseArea, setHouseArea] = useState("");
+  const [landArea, setLandArea] = useState("");
+  const [yearBuilt, setYearBuilt] = useState("");
+  const [commercialArea, setCommercialArea] = useState("");
+  const [utilities, setUtilities] = useState<string[]>([]);
+  const [isFenced, setIsFenced] = useState(false);
+
+  // Universal contact fields (all required)
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("+7");
-  const [district, setDistrict] = useState("");
   const [address, setAddress] = useState("");
-  const [area, setArea] = useState("");
-  const [condition, setCondition] = useState("");
-  const [description, setDescription] = useState("");
+
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const rawPhone = unformatPhone(phone);
-  const isValid = /^\+7\d{10}$/.test(rawPhone);
+  const isValid = /^\+7\d{10}$/.test(rawPhone) && name.trim() !== "" && address.trim() !== "";
 
   function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
     setPhone(formatPhone(e.target.value));
   }
 
+  function toggleUtility(val: string) {
+    setUtilities((prev) =>
+      prev.includes(val) ? prev.filter((u) => u !== val) : [...prev, val]
+    );
+  }
+
   async function handleSubmit() {
     if (!isValid) return;
     setLoading(true);
+
+    // Build type-specific notes
+    const paramLines: string[] = [];
+    if (propertyType === "house") {
+      if (houseArea) paramLines.push(`Площадь дома: ${houseArea} м²`);
+      if (landArea) paramLines.push(`Площадь участка: ${landArea} соток`);
+      if (yearBuilt) paramLines.push(`Год постройки: ${yearBuilt}`);
+    } else if (propertyType === "land") {
+      if (landArea) paramLines.push(`Площадь: ${landArea} соток`);
+      if (utilities.length > 0) {
+        const labels = utilities.map((u) => UTILITY_OPTIONS.find((o) => o.value === u)?.label ?? u);
+        paramLines.push(`Коммуникации: ${labels.join(", ")}`);
+      }
+      paramLines.push(`Обгорожен: ${isFenced ? "Да" : "Нет"}`);
+    } else if (propertyType === "commercial") {
+      if (commercialArea) paramLines.push(`Площадь: ${commercialArea} м²`);
+      if (yearBuilt) paramLines.push(`Год постройки: ${yearBuilt}`);
+    }
 
     try {
       await fetch("/api/leads", {
@@ -391,19 +389,23 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           phone: rawPhone,
-          name: name || undefined,
+          name,
+          address,
           property_type: propertyType,
-          area_sqm: propertyType === "land" ? (parseFloat(area) || 0) * 100 : (parseFloat(area) || undefined),
+          area_sqm: propertyType === "house"
+            ? (parseFloat(houseArea) || undefined)
+            : propertyType === "commercial"
+              ? (parseFloat(commercialArea) || undefined)
+              : propertyType === "land"
+                ? (parseFloat(landArea) || 0) * 100
+                : undefined,
+          year_built: (propertyType === "house" || propertyType === "commercial") && yearBuilt
+            ? parseInt(yearBuilt)
+            : undefined,
           source: "landing",
           needs_manual_review: true,
           status: "pending_review",
-          notes: [
-            district ? `Район: ${district}` : "",
-            address ? `Адрес: ${address}` : "",
-            area ? `Площадь: ${area}${propertyType === "land" ? " соток" : " м²"}` : "",
-            condition ? `Состояние: ${EXPERT_CONDITION_OPTIONS.find(c => c.value === condition)?.label ?? condition}` : "",
-            description ? `Описание: ${description}` : "",
-          ].filter(Boolean).join("; "),
+          notes: paramLines.length > 0 ? paramLines.join("; ") : undefined,
         }),
       });
     } catch {
@@ -424,7 +426,7 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
         </div>
         <h3 className="text-lg font-semibold text-[#1A2332] mb-2">Заявка принята!</h3>
         <p className="text-sm text-[#6B7280] max-w-sm mx-auto">
-          Наш специалист свяжется с вами в течение 15 минут для точного расчёта стоимости {PROPERTY_TYPE_LABELS[propertyType] ?? "объекта"}.
+          Наш специалист свяжется с вами в течение 15 минут для индивидуального расчёта.
         </p>
       </div>
     );
@@ -432,150 +434,122 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
 
   return (
     <div className="fade-enter">
-      {/* Message about individual approach */}
+      {/* Warning message */}
       <div
         className="rounded-2xl p-4 sm:p-5 mb-5"
         style={{
-          background: "linear-gradient(145deg, rgba(58,141,123,0.06), rgba(58,141,123,0.02))",
-          border: "1px solid rgba(58,141,123,0.15)",
+          background: "linear-gradient(145deg, rgba(234,179,8,0.06), rgba(234,179,8,0.02))",
+          border: "1px solid rgba(234,179,8,0.2)",
         }}
       >
         <div className="flex gap-3">
-          <div className="h-9 w-9 rounded-full bg-[rgba(58,141,123,0.12)] flex items-center justify-center flex-shrink-0 mt-0.5">
-            <svg className="h-4.5 w-4.5 text-[#3A8D7B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-            </svg>
-          </div>
-          <p className="text-[14px] text-[#1A2332] leading-relaxed">
-            Оценка данного типа недвижимости требует индивидуального подхода. Оставьте заявку, и наш специалист свяжется с вами для точного расчёта.
+          <svg className="h-5 w-5 text-[#D97706] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
+          <p className="text-[14px] text-[#92400E] leading-relaxed">
+            Оценка данного типа недвижимости требует индивидуального экспертного анализа. Оставьте заявку, и наш специалист свяжется с вами для точного расчёта.
           </p>
         </div>
       </div>
 
       <div className="space-y-4">
-        {/* Name */}
-        <div>
-          <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
-            Ваше имя
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Как к вам обращаться"
-            className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3.5 text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200"
-          />
-        </div>
+        {/* ── Type-specific fields ── */}
 
-        {/* Phone */}
-        <div>
-          <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
-            Телефон <span className="text-[#E74C3C]">*</span>
-          </label>
-          <input
-            type="tel"
-            value={phone}
-            onChange={handlePhoneChange}
-            placeholder="+7 (___) ___-__-__"
-            className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3.5 text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200 font-mono"
-          />
-        </div>
-
-        {/* District */}
-        <div>
-          <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
-            Район / Населённый пункт
-          </label>
-          <select
-            value={district}
-            onChange={(e) => setDistrict(e.target.value)}
-            className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3.5 pr-10 text-[#1A2332] focus:border-[rgba(58,141,123,0.4)] focus:outline-none transition-all duration-200 appearance-none cursor-pointer"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 14px center",
-              backgroundSize: "16px",
-            }}
-          >
-            <option value="">Выберите район</option>
-            {EXPERT_DISTRICT_OPTIONS.map((g) => (
-              <optgroup key={g.group} label={g.group}>
-                {g.options.map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        </div>
-
-        {/* Address */}
-        <div>
-          <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
-            Адрес объекта
-          </label>
-          <input
-            type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Улица, дом, микрорайон"
-            className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3.5 text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200"
-          />
-        </div>
-
-        {/* Area */}
-        <div>
-          <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
-            {propertyType === "land" ? "Площадь, сотки" : "Площадь, м²"}
-          </label>
-          <input
-            type="number"
-            value={area}
-            onChange={(e) => setArea(e.target.value)}
-            placeholder={propertyType === "land" ? "Например: 6" : "Например: 120"}
-            min={1}
-            className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3.5 text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200 font-mono"
-          />
-          {propertyType === "land" && (
-            <p className="text-xs text-[#9CA3AF] mt-1.5">1 сотка = 100 м²</p>
-          )}
-        </div>
-
-        {/* Condition */}
-        {propertyType !== "land" && (
-          <div>
-            <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
-              Состояние
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {EXPERT_CONDITION_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setCondition(opt.value === condition ? "" : opt.value)}
-                  className={`rounded-full px-4 py-2 text-sm transition-all duration-200 cursor-pointer ${
-                    condition === opt.value
-                      ? "bg-[rgba(58,141,123,0.12)] text-[#3A8D7B] border border-[rgba(58,141,123,0.3)] font-medium"
-                      : "bg-white border border-[rgba(0,0,0,0.08)] text-[#6B7280] hover:border-[rgba(0,0,0,0.15)]"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+        {/* House: площадь дома + участок + год */}
+        {propertyType === "house" && (
+          <>
+            <div>
+              <label className={LABEL_CLS}>Площадь дома, м²</label>
+              <input type="number" value={houseArea} onChange={(e) => setHouseArea(e.target.value)} placeholder="Например: 150" min={1} className={`${INPUT_CLS} font-mono`} />
             </div>
-          </div>
+            <div>
+              <label className={LABEL_CLS}>Площадь участка, сотки</label>
+              <input type="number" value={landArea} onChange={(e) => setLandArea(e.target.value)} placeholder="Например: 6" min={0.5} step={0.5} className={`${INPUT_CLS} font-mono`} />
+              <p className="text-xs text-[#9CA3AF] mt-1.5">1 сотка = 100 м²</p>
+            </div>
+            <div>
+              <label className={LABEL_CLS}>Год постройки</label>
+              <input type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} placeholder="Например: 2005" min={1950} max={2026} className={`${INPUT_CLS} font-mono`} />
+            </div>
+          </>
         )}
 
-        {/* Description */}
+        {/* Land: площадь + коммуникации */}
+        {propertyType === "land" && (
+          <>
+            <div>
+              <label className={LABEL_CLS}>Площадь участка, сотки</label>
+              <input type="number" value={landArea} onChange={(e) => setLandArea(e.target.value)} placeholder="Например: 10" min={0.5} step={0.5} className={`${INPUT_CLS} font-mono`} />
+              <p className="text-xs text-[#9CA3AF] mt-1.5">1 сотка = 100 м²</p>
+            </div>
+            <div>
+              <label className={LABEL_CLS}>Коммуникации</label>
+              <div className="flex flex-wrap gap-2">
+                {UTILITY_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => toggleUtility(opt.value)}
+                    className={`rounded-full px-4 py-2 text-sm transition-all duration-200 cursor-pointer ${
+                      utilities.includes(opt.value)
+                        ? "bg-[rgba(58,141,123,0.12)] text-[#3A8D7B] border border-[rgba(58,141,123,0.3)] font-medium"
+                        : "bg-white border border-[rgba(0,0,0,0.08)] text-[#6B7280] hover:border-[rgba(0,0,0,0.15)]"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isFenced}
+                  onChange={(e) => setIsFenced(e.target.checked)}
+                  className="h-5 w-5 rounded border-[rgba(0,0,0,0.15)] text-[#3A8D7B] accent-[#3A8D7B] cursor-pointer"
+                />
+                <span className="text-[14px] text-[#1A2332]">Участок обгорожен</span>
+              </label>
+              <p className="text-xs text-[#9CA3AF] mt-1.5 ml-8">Если не отмечено — участок не обгорожен</p>
+            </div>
+          </>
+        )}
+
+        {/* Commercial: площадь + год */}
+        {propertyType === "commercial" && (
+          <>
+            <div>
+              <label className={LABEL_CLS}>Площадь помещения, м²</label>
+              <input type="number" value={commercialArea} onChange={(e) => setCommercialArea(e.target.value)} placeholder="Например: 200" min={1} className={`${INPUT_CLS} font-mono`} />
+            </div>
+            <div>
+              <label className={LABEL_CLS}>Год постройки</label>
+              <input type="number" value={yearBuilt} onChange={(e) => setYearBuilt(e.target.value)} placeholder="Например: 2010" min={1950} max={2026} className={`${INPUT_CLS} font-mono`} />
+            </div>
+          </>
+        )}
+
+        {/* ── Universal contact block (divider + 3 required fields) ── */}
+        <div className="pt-2">
+          <div className="h-px bg-[rgba(0,0,0,0.06)] mb-4" />
+          <div className="text-[12px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] mb-4">
+            Контактные данные
+          </div>
+        </div>
+
         <div>
-          <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
-            Дополнительная информация
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Особенности объекта, наличие долгов, документы, срочность..."
-            rows={3}
-            className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3.5 text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200 resize-none"
-          />
+          <label className={LABEL_CLS}>Имя <span className="text-[#E74C3C]">*</span></label>
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Как к вам обращаться" className={INPUT_CLS} />
+        </div>
+
+        <div>
+          <label className={LABEL_CLS}>Телефон <span className="text-[#E74C3C]">*</span></label>
+          <input type="tel" value={phone} onChange={handlePhoneChange} placeholder="+7 (___) ___-__-__" className={`${INPUT_CLS} font-mono`} />
+        </div>
+
+        <div>
+          <label className={LABEL_CLS}>Точный адрес объекта <span className="text-[#E74C3C]">*</span></label>
+          <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Улица, дом, участок / помещение" className={INPUT_CLS} />
         </div>
       </div>
 
