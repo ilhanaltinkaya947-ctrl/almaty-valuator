@@ -7,6 +7,7 @@ import type { WallMaterial, LeadIntent, FloorPosition } from "@/types/evaluation
 interface LeadCaptureFormProps {
   onSubmitted?: (phone: string) => void;
   complexId?: string;
+  complexName?: string;
   areaSqm?: number;
   floor?: number;
   estimatedPrice?: number;
@@ -21,6 +22,7 @@ interface LeadCaptureFormProps {
 export function LeadCaptureForm({
   onSubmitted,
   complexId,
+  complexName,
   areaSqm,
   floor,
   estimatedPrice,
@@ -32,6 +34,7 @@ export function LeadCaptureForm({
   intent = "ready",
 }: LeadCaptureFormProps) {
   const [phone, setPhone] = useState("+7");
+  const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -52,12 +55,15 @@ export function LeadCaptureForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           phone: rawPhone,
+          name: name.trim() || undefined,
           address: address || undefined,
           complex_id: complexId,
+          complex_name: complexName,
           area_sqm: areaSqm,
           floor,
           estimated_price: estimatedPrice,
           source: "landing",
+          property_type: "apartment",
           zone_id: zoneId,
           floor_position: floorPosition,
           year_built: yearBuilt,
@@ -108,6 +114,18 @@ export function LeadCaptureForm({
       </div>
 
       <div className="space-y-3 mb-4">
+        <div>
+          <label className="text-[12px] font-medium text-[#9CA3AF] uppercase tracking-[0.12em] block mb-1.5">
+            Ваше имя
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Как к вам обращаться"
+            className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3 text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200"
+          />
+        </div>
         <div>
           <label className="text-[12px] font-medium text-[#9CA3AF] uppercase tracking-[0.12em] block mb-1.5">
             Номер телефона <span className="text-[#E74C3C]">*</span>

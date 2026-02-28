@@ -130,6 +130,8 @@ export function ResultCard({ result, complexName, onBack, zoneId, floorPosition,
       {selectedIntent !== null && (
         <LeadCaptureForm
           estimatedPrice={result.totalPrice}
+          complexName={complexName}
+          areaSqm={result.totalPrice ? Math.round(result.totalPrice / result.pricePerSqm) : undefined}
           zoneId={zoneId}
           floorPosition={floorPosition}
           yearBuilt={yearBuilt}

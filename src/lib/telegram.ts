@@ -173,6 +173,7 @@ export async function notifyLeadInteractive(lead: {
   property_type?: string | null;
   complex_name?: string | null;
   estimated_price?: number | null;
+  area_sqm?: number | null;
   source?: string | null;
   needs_manual_review?: boolean;
   year_built?: number | null;
@@ -205,8 +206,11 @@ export async function notifyLeadInteractive(lead: {
   const typeLabel = PROPERTY_TYPE_LABELS[lead.property_type ?? ""] ?? lead.property_type ?? "—";
   const intentBadge = lead.intent === "negotiate" ? "Торг" : "Согласен";
 
+  // Determine if this is an auto-calc apartment lead:
+  // Has property_type=apartment OR has estimated_price (calculator always sets it)
+  const isAutoApartment = !isManual && (lead.property_type === "apartment" || lead.estimated_price != null);
   // Non-apartment manual review: use dedicated template
-  const isNonApartmentManual = isManual && lead.property_type !== "apartment";
+  const isNonApartmentManual = isManual && lead.property_type !== "apartment" && lead.property_type != null;
 
   let text: string;
 
@@ -237,9 +241,10 @@ export async function notifyLeadInteractive(lead: {
     lines.push("❗️ <i>Алгоритм отключен. Требуется ручной расчёт и звонок специалиста.</i>");
 
     text = lines.join("\n");
-  } else if (lead.property_type === "apartment" && !isManual) {
+  } else if (isAutoApartment) {
     // 🟢 Apartment template with price
     const paramParts: string[] = [];
+    if (lead.area_sqm) paramParts.push(`площадь: ${lead.area_sqm} м²`);
     if (lead.floor_position) paramParts.push(`этаж: ${FLOOR_POSITION_LABELS[lead.floor_position] ?? lead.floor_position}`);
     if (lead.wall_material) paramParts.push(`материал: ${WALL_MATERIAL_LABELS[lead.wall_material] ?? lead.wall_material}`);
     if (lead.year_built) paramParts.push(`год: ${lead.year_built}`);
@@ -329,6 +334,7 @@ export async function notifyNewLead(lead: {
   property_type?: string | null;
   complex_name?: string | null;
   estimated_price?: number | null;
+  area_sqm?: number | null;
   source?: string | null;
   needs_manual_review?: boolean;
   year_built?: number | null;
@@ -348,6 +354,7 @@ export async function notifyNewLead(lead: {
       property_type: lead.property_type,
       complex_name: lead.complex_name,
       estimated_price: lead.estimated_price,
+      area_sqm: lead.area_sqm,
       source: lead.source,
       needs_manual_review: lead.needs_manual_review,
       year_built: lead.year_built,
