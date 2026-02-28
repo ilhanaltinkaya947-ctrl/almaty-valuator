@@ -17,13 +17,13 @@
 
 html {
   scroll-behavior: smooth;
-  background-color: #F0F9F6 !important;
+  background-color: #FFFFFF !important;
   color-scheme: light;
   overflow-x: hidden;
 }
 
 body {
-  background-color: #F0F9F6 !important;
+  background-color: #FFFFFF !important;
   color: #1A2332;
   font-feature-settings: 'ss01', 'ss02', 'cv01';
   position: relative;
@@ -383,6 +383,65 @@ input[type="range"]::-moz-range-thumb {
   .scroll-indicator {
     display: none;
   }
+
+  /* Hide ambient bubbles on mobile for performance */
+  .ambient-bubble {
+    display: none;
+  }
+}
+
+/* ── Ambient floating bubbles ── */
+@keyframes floatBubble1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(80px, -60px) scale(1.05); }
+  50% { transform: translate(-40px, -120px) scale(0.95); }
+  75% { transform: translate(60px, -40px) scale(1.02); }
+}
+@keyframes floatBubble2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-70px, 50px) scale(0.97); }
+  50% { transform: translate(50px, -80px) scale(1.04); }
+  75% { transform: translate(-30px, 30px) scale(0.98); }
+}
+@keyframes floatBubble3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(50px, 70px) scale(1.03); }
+  66% { transform: translate(-60px, -50px) scale(0.96); }
+}
+
+.ambient-bubble {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ambient-bubble-1 {
+  width: 200px;
+  height: 200px;
+  top: 15%;
+  left: 10%;
+  background: radial-gradient(circle, rgba(58,141,123,0.06) 0%, transparent 70%);
+  filter: blur(70px);
+  animation: floatBubble1 40s ease-in-out infinite;
+}
+.ambient-bubble-2 {
+  width: 160px;
+  height: 160px;
+  top: 50%;
+  right: 8%;
+  background: radial-gradient(circle, rgba(76,175,80,0.05) 0%, transparent 70%);
+  filter: blur(60px);
+  animation: floatBubble2 35s ease-in-out infinite;
+}
+.ambient-bubble-3 {
+  width: 180px;
+  height: 180px;
+  bottom: 20%;
+  left: 30%;
+  background: radial-gradient(circle, rgba(58,141,123,0.04) 0%, transparent 70%);
+  filter: blur(80px);
+  animation: floatBubble3 45s ease-in-out infinite;
 }
 
 /* ── Reduced motion ── */
@@ -390,7 +449,7 @@ input[type="range"]::-moz-range-thumb {
   .reveal, .reveal-left, .reveal-right, .reveal-scale,
   .hero-animate-1, .hero-animate-2, .hero-animate-3, .hero-animate-4,
   .header-animate, .scroll-indicator, .wa-pulse,
-  .orb-1, .orb-2, .particle,
+  .orb-1, .orb-2, .particle, .ambient-bubble,
   .timeline-dot, .text-gold-gradient {
     animation: none !important;
     transition: none !important;

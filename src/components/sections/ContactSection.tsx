@@ -98,7 +98,13 @@ export function ContactSection() {
                     <select
                       value={propertyType}
                       onChange={(e) => setPropertyType(e.target.value)}
-                      className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-4 py-3.5 text-[15px] text-[#1A2332] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200"
+                      className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-4 py-3.5 pr-10 text-[15px] text-[#1A2332] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200 appearance-none cursor-pointer"
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "right 14px center",
+                        backgroundSize: "16px",
+                      }}
                     >
                       <option value="">Тип недвижимости</option>
                       <option value="apartment">Квартира</option>

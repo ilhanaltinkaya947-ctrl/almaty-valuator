@@ -53,7 +53,7 @@ export function ComplexSearch({ onSelect }: ComplexSearchProps) {
         )}
       </div>
 
-      <div className="mt-4 max-h-[380px] overflow-y-auto pr-1 space-y-1">
+      <div className="mt-4 max-h-[380px] overflow-y-auto pr-1 space-y-1" style={{ overscrollBehavior: "contain" }}>
         {filtered.map((complex) => (
           <div
             key={complex.name}

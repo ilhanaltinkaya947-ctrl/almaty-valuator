@@ -202,7 +202,7 @@ export function Calculator() {
             className={`rounded-full px-5 py-3 text-sm font-medium transition-all duration-300 cursor-pointer ${
               propertyType === pt.value
                 ? "bg-gradient-to-r from-[#66BB6A] to-[#26A69A] text-white"
-                : "bg-transparent border border-[rgba(0,0,0,0.08)] text-[#6B7280] hover:border-[rgba(0,0,0,0.15)] hover:text-[#1A2332]"
+                : "bg-white border border-[rgba(0,0,0,0.08)] text-[#6B7280] hover:border-[rgba(0,0,0,0.15)] hover:text-[#1A2332]"
             }`}
           >
             {pt.icon} {pt.label}
@@ -218,7 +218,7 @@ export function Calculator() {
             className={`rounded-full px-5 py-2.5 text-[13px] font-medium transition-all duration-300 cursor-pointer inline-flex items-center gap-1.5 ${
               calcMode === "complex"
                 ? "bg-[rgba(58,141,123,0.12)] text-[#3A8D7B] border border-[rgba(58,141,123,0.3)]"
-                : "bg-transparent border border-[rgba(0,0,0,0.06)] text-[#9CA3AF] hover:text-[#6B7280]"
+                : "bg-white border border-[rgba(0,0,0,0.06)] text-[#9CA3AF] hover:text-[#6B7280]"
             }`}
           >
             🏢 По ЖК
@@ -228,7 +228,7 @@ export function Calculator() {
             className={`rounded-full px-5 py-2.5 text-[13px] font-medium transition-all duration-300 cursor-pointer inline-flex items-center gap-1.5 ${
               calcMode === "zone"
                 ? "bg-[rgba(58,141,123,0.12)] text-[#3A8D7B] border border-[rgba(58,141,123,0.3)]"
-                : "bg-transparent border border-[rgba(0,0,0,0.06)] text-[#9CA3AF] hover:text-[#6B7280]"
+                : "bg-white border border-[rgba(0,0,0,0.06)] text-[#9CA3AF] hover:text-[#6B7280]"
             }`}
           >
             📍 По району
@@ -363,7 +363,7 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
           phone: rawPhone,
           name: name || undefined,
           property_type: propertyType,
-          area_sqm: parseFloat(area) || undefined,
+          area_sqm: propertyType === "land" ? (parseFloat(area) || 0) * 100 : (parseFloat(area) || undefined),
           source: "landing",
           needs_manual_review: true,
           status: "pending_review",
@@ -454,7 +454,13 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
           <select
             value={district}
             onChange={(e) => setDistrict(e.target.value)}
-            className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3.5 text-[#1A2332] focus:border-[rgba(58,141,123,0.4)] focus:outline-none transition-all duration-200 appearance-none"
+            className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3.5 pr-10 text-[#1A2332] focus:border-[rgba(58,141,123,0.4)] focus:outline-none transition-all duration-200 appearance-none cursor-pointer"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 14px center",
+              backgroundSize: "16px",
+            }}
           >
             <option value="">Выберите район</option>
             {DISTRICT_OPTIONS.map((d) => (
@@ -466,16 +472,19 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
         {/* Area */}
         <div>
           <label className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">
-            Площадь, м² <span className="text-[#E74C3C]">*</span>
+            {propertyType === "land" ? "Площадь, сотки" : "Площадь, м²"} <span className="text-[#E74C3C]">*</span>
           </label>
           <input
             type="number"
             value={area}
             onChange={(e) => setArea(e.target.value)}
-            placeholder="Например: 120"
+            placeholder={propertyType === "land" ? "Например: 6" : "Например: 120"}
             min={1}
             className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3.5 text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200 font-mono"
           />
+          {propertyType === "land" && (
+            <p className="text-xs text-[#9CA3AF] mt-1.5">1 сотка = 100 м²</p>
+          )}
         </div>
 
         {/* Condition */}
@@ -491,7 +500,7 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
                 className={`rounded-full px-4 py-2 text-sm transition-all duration-200 cursor-pointer ${
                   condition === opt.value
                     ? "bg-gradient-to-r from-[#66BB6A] to-[#26A69A] text-white font-medium"
-                    : "border border-[rgba(0,0,0,0.08)] text-[#6B7280] hover:border-[rgba(0,0,0,0.15)]"
+                    : "bg-white border border-[rgba(0,0,0,0.08)] text-[#6B7280] hover:border-[rgba(0,0,0,0.15)]"
                 }`}
               >
                 {opt.label}

@@ -31,7 +31,7 @@ export function ZoneSelect({ zones, selectedZoneId, onSelect }: ZoneSelectProps)
         Укажите зону в Алматы, где расположена ваша квартира
       </p>
 
-      <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1 custom-scrollbar">
+      <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1 custom-scrollbar" style={{ overscrollBehavior: "contain" }}>
         {DISTRICT_ORDER.map((district) => {
           const districtZones = grouped[district];
           if (!districtZones || districtZones.length === 0) return null;
