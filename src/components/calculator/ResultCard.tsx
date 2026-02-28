@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { AutoEvaluationResult, WallMaterial } from "@/types/evaluation";
+import type { AutoEvaluationResult, WallMaterial, FloorPosition, LeadIntent } from "@/types/evaluation";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { FactorChips } from "@/components/calculator/FactorChips";
 import { BenchmarkTeaser } from "@/components/calculator/BenchmarkTeaser";
@@ -13,14 +13,14 @@ interface ResultCardProps {
   complexName: string;
   onBack: () => void;
   zoneId?: string;
-  buildingSeries?: string;
+  floorPosition?: FloorPosition;
   yearBuilt?: number;
   wallMaterial?: WallMaterial;
   isPledged?: boolean;
 }
 
-export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries, yearBuilt, wallMaterial, isPledged }: ResultCardProps) {
-  const [negotiateMode, setNegotiateMode] = useState(false);
+export function ResultCard({ result, complexName, onBack, zoneId, floorPosition, yearBuilt, wallMaterial, isPledged }: ResultCardProps) {
+  const [selectedIntent, setSelectedIntent] = useState<LeadIntent | null>(null);
 
   return (
     <div className="fade-enter">
@@ -98,27 +98,46 @@ export function ResultCard({ result, complexName, onBack, zoneId, buildingSeries
         <BenchmarkTeaser />
       </div>
 
-      {/* Lead capture */}
-      <LeadCaptureForm
-        estimatedPrice={result.totalPrice}
-        zoneId={zoneId}
-        buildingSeries={buildingSeries}
-        yearBuilt={yearBuilt}
-        wallMaterial={wallMaterial}
-        isPledged={isPledged}
-        intent={negotiateMode ? "negotiate" : "ready"}
-      />
-
-      {/* Negotiate link */}
-      {!negotiateMode && (
-        <button
-          onClick={() => setNegotiateMode(true)}
-          className="mt-3 text-sm font-medium text-[#3A8D7B] hover:text-[#2D6B5F] transition-colors duration-200 cursor-pointer mx-auto block"
-        >
-          Хотите обсудить цену?
-        </button>
+      {/* Согласен / Торг buttons — shown before lead form */}
+      {selectedIntent === null && (
+        <div className="mb-6">
+          <div className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] mb-3">
+            Вас устраивает цена?
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setSelectedIntent("ready")}
+              className="rounded-2xl px-6 py-4 font-semibold text-white text-base transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(58,141,123,0.3)] cursor-pointer"
+              style={{ background: "linear-gradient(135deg, #66BB6A, #26A69A)" }}
+            >
+              Согласен
+            </button>
+            <button
+              onClick={() => setSelectedIntent("negotiate")}
+              className="rounded-2xl px-6 py-4 font-semibold text-[#3A8D7B] text-base transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+              style={{
+                border: "2px solid rgba(58,141,123,0.3)",
+                background: "rgba(58,141,123,0.04)",
+              }}
+            >
+              Торг
+            </button>
+          </div>
+        </div>
       )}
 
+      {/* Lead capture — shown after intent selection */}
+      {selectedIntent !== null && (
+        <LeadCaptureForm
+          estimatedPrice={result.totalPrice}
+          zoneId={zoneId}
+          floorPosition={floorPosition}
+          yearBuilt={yearBuilt}
+          wallMaterial={wallMaterial}
+          isPledged={isPledged}
+          intent={selectedIntent}
+        />
+      )}
     </div>
   );
 }

@@ -4,13 +4,15 @@ export type ConditionType = "renovated" | "rough";
 
 export type LeadIntent = "ready" | "negotiate";
 
-export type PropertyType = "apartment" | "townhouse" | "house" | "commercial" | "land" | "other";
+export type PropertyType = "apartment" | "house" | "commercial" | "land";
+
+export type FloorPosition = "first" | "middle" | "last";
 
 /** Types that support auto calculation */
-export const AUTO_CALC_TYPES: PropertyType[] = ["apartment", "townhouse"];
+export const AUTO_CALC_TYPES: PropertyType[] = ["apartment"];
 
 /** Types that require manual expert review */
-export const MANUAL_REVIEW_TYPES: PropertyType[] = ["house", "commercial", "land", "other"];
+export const MANUAL_REVIEW_TYPES: PropertyType[] = ["house", "commercial", "land"];
 
 export function isAutoCalcType(type: PropertyType): boolean {
   return AUTO_CALC_TYPES.includes(type);
@@ -25,6 +27,19 @@ export interface EvaluationInput {
   complexCoefficient: number;
   housingClass: string;
   propertyType?: PropertyType;
+  floorPosition: FloorPosition;
+}
+
+export interface VtorichkaEvaluationInput {
+  zoneId: string;
+  zoneName: string;
+  zoneSlug: string;
+  zoneCoefficient: number;
+  area: number;
+  yearBuilt: number;
+  wallMaterial: WallMaterial;
+  condition: ConditionType;
+  floorPosition: FloorPosition;
 }
 
 export interface CalculationParams {
@@ -33,7 +48,7 @@ export interface CalculationParams {
   kYear: number;
   kMaterial: number;
   kZone?: number;
-  kSeries?: number;
+  kFloor?: number;
 }
 
 /** Buyback discount structure (internal) */
@@ -44,7 +59,7 @@ export interface BuybackBreakdown {
   buybackCoefficient: number; // 0.70  (total -30%)
 }
 
-/** Result for auto-calculable properties (apartments, townhouses) */
+/** Result for auto-calculable properties (apartments) */
 export interface AutoEvaluationResult {
   needsManualReview: false;
 
@@ -69,25 +84,3 @@ export interface ManualReviewResult {
 }
 
 export type EvaluationResult = AutoEvaluationResult | ManualReviewResult;
-
-// ── Zone-based evaluation (Path B) ──
-
-export type BuildingSeries =
-  | "stalinka"
-  | "khrushchevka"
-  | "brezhnevka"
-  | "uluchshenka"
-  | "individual"
-  | "novostroyka";
-
-export interface ZoneEvaluationInput {
-  zoneId: string;
-  zoneName: string;
-  zoneCoefficient: number;
-  buildingSeries: BuildingSeries;
-  seriesModifier: number;
-  area: number;
-  yearBuilt: number;
-  wallMaterial: WallMaterial;
-  condition: ConditionType;
-}

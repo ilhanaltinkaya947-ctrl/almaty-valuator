@@ -2,17 +2,21 @@
 
 import { useState } from "react";
 import type { Complex } from "@/data/complexes";
-import type { WallMaterial, ConditionType } from "@/types/evaluation";
+import type { PriceZone } from "@/data/zones";
+import type { WallMaterial, ConditionType, FloorPosition } from "@/types/evaluation";
 import { Button } from "@/components/ui/Button";
 
 interface ParameterFormProps {
-  complex: Complex;
+  mode: "complex" | "vtorichka";
+  complex?: Complex;
+  zone?: PriceZone;
   onSubmit: (params: {
     area: number;
     yearBuilt: number;
     wallMaterial: WallMaterial;
     condition: ConditionType;
     isPledged: boolean;
+    floorPosition: FloorPosition;
   }) => void;
   onBack: () => void;
 }
@@ -28,16 +32,41 @@ const CONDITION_OPTIONS: { value: ConditionType; label: string }[] = [
   { value: "rough", label: "Черновая" },
 ];
 
+const FLOOR_OPTIONS: { value: FloorPosition; label: string }[] = [
+  { value: "first", label: "Первый" },
+  { value: "middle", label: "Средний" },
+  { value: "last", label: "Последний" },
+];
+
 export function ParameterForm({
+  mode,
   complex,
+  zone,
   onSubmit,
   onBack,
 }: ParameterFormProps) {
-  const [area, setArea] = useState(70);
-  const [yearBuilt, setYearBuilt] = useState(complex.yearBuilt);
-  const [wallMaterial, setWallMaterial] = useState<WallMaterial>("monolith");
+  const [area, setArea] = useState(mode === "complex" ? 70 : 60);
+  const [yearBuilt, setYearBuilt] = useState(mode === "complex" && complex ? complex.yearBuilt : 2000);
+  const [wallMaterial, setWallMaterial] = useState<WallMaterial>(
+    mode === "complex" && complex ? complex.wallMaterial : "panel",
+  );
   const [condition, setCondition] = useState<ConditionType>("renovated");
   const [isPledged, setIsPledged] = useState(false);
+  const [floorPosition, setFloorPosition] = useState<FloorPosition>("middle");
+
+  const title = mode === "complex" && complex
+    ? `${complex.name} · ${complex.district}`
+    : zone
+      ? `${zone.name} · ${zone.district}`
+      : "";
+
+  const coefficient = mode === "complex" && complex
+    ? complex.coefficient
+    : zone
+      ? zone.coefficient
+      : 1;
+
+  const backLabel = mode === "complex" ? "Назад к выбору ЖК" : "Назад к выбору района";
 
   return (
     <div className="fade-enter">
@@ -48,21 +77,19 @@ export function ParameterForm({
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-        Назад к выбору ЖК
+        {backLabel}
       </button>
 
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-semibold text-[#1A2332] mb-0.5">Параметры квартиры</h3>
-          <p className="text-[#6B7280] text-[13px]">
-            {complex.name} &middot; {complex.district}
-          </p>
+          <p className="text-[#6B7280] text-[13px]">{title}</p>
         </div>
         <span
           className="rounded-full px-3 py-1 text-[11px] font-mono font-medium"
           style={{ background: "rgba(58,141,123,0.08)", color: "#3A8D7B" }}
         >
-          &times;{complex.coefficient.toFixed(2)}
+          &times;{coefficient.toFixed(2)}
         </span>
       </div>
 
@@ -92,49 +119,27 @@ export function ParameterForm({
         </div>
       </div>
 
-      {/* Year built input */}
-      <div className="mb-6">
-        <div className="flex justify-between mb-2">
-          <span className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em]">Год постройки</span>
-          <span className="text-sm font-bold text-[#3A8D7B] font-mono">{yearBuilt}</span>
-        </div>
-        <input
-          type="number"
-          min={1950}
-          max={2026}
-          value={yearBuilt}
-          onChange={(e) => {
-            const v = Number(e.target.value);
-            if (v >= 1950 && v <= 2026) setYearBuilt(v);
-          }}
-          className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3 text-[#1A2332] text-center font-mono text-base focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200"
-        />
-        <p className="text-[12px] text-[#9CA3AF] mt-1.5">
-          Год ЖК: {complex.yearBuilt}
-        </p>
-      </div>
-
-      {/* Wall material — 3 button selector */}
+      {/* Floor position — 3 pill buttons */}
       <div className="mb-6">
         <span className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-3">
-          Материал стен
+          Этаж
         </span>
         <div className="grid grid-cols-3 gap-2">
-          {WALL_MATERIAL_OPTIONS.map((opt) => (
+          {FLOOR_OPTIONS.map((opt) => (
             <button
               key={opt.value}
-              onClick={() => setWallMaterial(opt.value)}
+              onClick={() => setFloorPosition(opt.value)}
               className={`rounded-xl p-3 text-center text-sm font-medium transition-all duration-300 cursor-pointer ${
-                wallMaterial === opt.value
+                floorPosition === opt.value
                   ? "text-[#1A2332]"
                   : "text-[#6B7280] hover:border-[rgba(0,0,0,0.15)]"
               }`}
               style={{
-                border: `1px solid ${wallMaterial === opt.value ? "#3A8D7B" : "rgba(0,0,0,0.06)"}`,
-                background: wallMaterial === opt.value
+                border: `1px solid ${floorPosition === opt.value ? "#3A8D7B" : "rgba(0,0,0,0.06)"}`,
+                background: floorPosition === opt.value
                   ? "rgba(58,141,123,0.06)"
                   : "#FFFFFF",
-                boxShadow: wallMaterial === opt.value
+                boxShadow: floorPosition === opt.value
                   ? "0 0 20px rgba(58,141,123,0.08)"
                   : "none",
               }}
@@ -144,6 +149,61 @@ export function ParameterForm({
           ))}
         </div>
       </div>
+
+      {/* Vtorichka only: year built + wall material */}
+      {mode === "vtorichka" && (
+        <>
+          {/* Year built input */}
+          <div className="mb-6">
+            <div className="flex justify-between mb-2">
+              <span className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em]">Год постройки</span>
+              <span className="text-sm font-bold text-[#3A8D7B] font-mono">{yearBuilt}</span>
+            </div>
+            <input
+              type="number"
+              min={1950}
+              max={2026}
+              value={yearBuilt}
+              onChange={(e) => {
+                const v = Number(e.target.value);
+                if (v >= 1950 && v <= 2026) setYearBuilt(v);
+              }}
+              className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3 text-[#1A2332] text-center font-mono text-base focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200"
+            />
+          </div>
+
+          {/* Wall material — 3 button selector */}
+          <div className="mb-6">
+            <span className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-3">
+              Материал стен
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              {WALL_MATERIAL_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setWallMaterial(opt.value)}
+                  className={`rounded-xl p-3 text-center text-sm font-medium transition-all duration-300 cursor-pointer ${
+                    wallMaterial === opt.value
+                      ? "text-[#1A2332]"
+                      : "text-[#6B7280] hover:border-[rgba(0,0,0,0.15)]"
+                  }`}
+                  style={{
+                    border: `1px solid ${wallMaterial === opt.value ? "#3A8D7B" : "rgba(0,0,0,0.06)"}`,
+                    background: wallMaterial === opt.value
+                      ? "rgba(58,141,123,0.06)"
+                      : "#FFFFFF",
+                    boxShadow: wallMaterial === opt.value
+                      ? "0 0 20px rgba(58,141,123,0.08)"
+                      : "none",
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Condition — 2-option toggle */}
       <div className="mb-6">
@@ -198,7 +258,7 @@ export function ParameterForm({
 
       <Button
         variant="primary"
-        onClick={() => onSubmit({ area, yearBuilt, wallMaterial, condition, isPledged })}
+        onClick={() => onSubmit({ area, yearBuilt, wallMaterial, condition, isPledged, floorPosition })}
         className="w-full text-lg py-4"
       >
         Рассчитать стоимость

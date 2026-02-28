@@ -7,29 +7,26 @@ import type {
   WallMaterial,
   AutoEvaluationResult,
   PropertyType,
-  BuildingSeries,
+  FloorPosition,
 } from "@/types/evaluation";
 import { isAutoCalcType } from "@/types/evaluation";
-import { evaluateAuto, evaluateZone } from "@/lib/smart-value";
-import { PRICE_ZONES, BUILDING_SERIES } from "@/data/zones";
-import type { PriceZone, BuildingSeriesInfo } from "@/data/zones";
+import { evaluateAuto, evaluateVtorichka } from "@/lib/smart-value";
+import { PRICE_ZONES } from "@/data/zones";
+import type { PriceZone } from "@/data/zones";
 import { ComplexSearch } from "./ComplexSearch";
 import { ParameterForm } from "./ParameterForm";
 import { ResultCard } from "./ResultCard";
 import { ZoneSelect } from "./ZoneSelect";
-import { BuildingSeriesSelect } from "./BuildingSeriesSelect";
-import { ZoneParameterForm } from "./ZoneParameterForm";
 import { formatPhone, unformatPhone } from "@/lib/utils";
 
-type CalcStep = 1 | 2 | 3 | 4;
-type CalcMode = "complex" | "zone";
+type CalcStep = 1 | 2 | 3;
+type CalcMode = "complex" | "vtorichka";
 
 const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
   { value: "apartment", label: "Квартира" },
   { value: "house", label: "Частный дом" },
+  { value: "land", label: "Земельный участок" },
   { value: "commercial", label: "Коммерция" },
-  { value: "land", label: "Участок" },
-  { value: "other", label: "Другое" },
 ];
 
 export function Calculator() {
@@ -41,16 +38,15 @@ export function Calculator() {
   const [selectedComplex, setSelectedComplex] = useState<Complex | null>(null);
   const [result, setResult] = useState<AutoEvaluationResult | null>(null);
 
-  // Shared new fields
+  // Shared fields
   const [lastYearBuilt, setLastYearBuilt] = useState<number | undefined>();
   const [lastWallMaterial, setLastWallMaterial] = useState<WallMaterial | undefined>();
   const [lastIsPledged, setLastIsPledged] = useState<boolean>(false);
+  const [lastFloorPosition, setLastFloorPosition] = useState<FloorPosition | undefined>();
 
   // Path B state
   const [zones, setZones] = useState<PriceZone[]>(PRICE_ZONES);
-  const [seriesList, setSeriesList] = useState<BuildingSeriesInfo[]>(BUILDING_SERIES);
   const [selectedZone, setSelectedZone] = useState<PriceZone | null>(null);
-  const [selectedSeries, setSelectedSeries] = useState<BuildingSeriesInfo | null>(null);
 
   // Fetch zones from API on mount
   useEffect(() => {
@@ -70,20 +66,6 @@ export function Calculator() {
           }));
           setZones(mapped);
         }
-        if (data.series?.length) {
-          const mapped: BuildingSeriesInfo[] = data.series.map((s: Record<string, unknown>) => ({
-            series: s.series as BuildingSeries,
-            labelRu: s.label_ru as string,
-            descriptionRu: (s.description_ru as string) ?? "",
-            yearMin: s.year_min as number,
-            yearMax: s.year_max as number,
-            floorMin: (s.floor_min as number) ?? 1,
-            floorMax: (s.floor_max as number) ?? 16,
-            modifier: Number(s.modifier),
-            sortOrder: s.sort_order as number,
-          }));
-          setSeriesList(mapped);
-        }
       })
       .catch(() => {
         // Keep static fallback
@@ -102,21 +84,24 @@ export function Calculator() {
     wallMaterial: WallMaterial;
     condition: ConditionType;
     isPledged: boolean;
+    floorPosition: FloorPosition;
   }) {
     if (!selectedComplex) return;
 
     setLastYearBuilt(params.yearBuilt);
     setLastWallMaterial(params.wallMaterial);
     setLastIsPledged(params.isPledged);
+    setLastFloorPosition(params.floorPosition);
 
     const evalResult = evaluateAuto({
       complexName: selectedComplex.name,
       area: params.area,
-      yearBuilt: params.yearBuilt,
-      wallMaterial: params.wallMaterial,
+      yearBuilt: selectedComplex.yearBuilt,
+      wallMaterial: selectedComplex.wallMaterial,
       condition: params.condition,
       complexCoefficient: selectedComplex.coefficient,
       housingClass: selectedComplex.class,
+      floorPosition: params.floorPosition,
     });
 
     setResult(evalResult);
@@ -129,38 +114,35 @@ export function Calculator() {
     setStep(2);
   }
 
-  function handleSelectSeries(series: BuildingSeriesInfo) {
-    setSelectedSeries(series);
-    setStep(3);
-  }
-
-  function handleZoneCalculate(params: {
+  function handleVtorichkaCalculate(params: {
     area: number;
     yearBuilt: number;
     wallMaterial: WallMaterial;
     condition: ConditionType;
     isPledged: boolean;
+    floorPosition: FloorPosition;
   }) {
-    if (!selectedZone || !selectedSeries) return;
+    if (!selectedZone) return;
 
     setLastYearBuilt(params.yearBuilt);
     setLastWallMaterial(params.wallMaterial);
     setLastIsPledged(params.isPledged);
+    setLastFloorPosition(params.floorPosition);
 
-    const evalResult = evaluateZone({
+    const evalResult = evaluateVtorichka({
       zoneId: selectedZone.id,
       zoneName: selectedZone.name,
+      zoneSlug: selectedZone.slug,
       zoneCoefficient: selectedZone.coefficient,
-      buildingSeries: selectedSeries.series,
-      seriesModifier: selectedSeries.modifier,
       area: params.area,
       yearBuilt: params.yearBuilt,
       wallMaterial: params.wallMaterial,
       condition: params.condition,
+      floorPosition: params.floorPosition,
     });
 
     setResult(evalResult);
-    setStep(4);
+    setStep(3);
   }
 
   function handlePropertyTypeChange(type: PropertyType) {
@@ -177,18 +159,18 @@ export function Calculator() {
     setStep(1);
     setSelectedComplex(null);
     setSelectedZone(null);
-    setSelectedSeries(null);
     setResult(null);
     setLastYearBuilt(undefined);
     setLastWallMaterial(undefined);
     setLastIsPledged(false);
+    setLastFloorPosition(undefined);
   }
 
   const isAuto = isAutoCalcType(propertyType);
 
   // Build result label for zone path
-  const zoneResultLabel = selectedZone && selectedSeries
-    ? `${selectedZone.name} · ${selectedSeries.labelRu}`
+  const vtorichkaResultLabel = selectedZone
+    ? `Вторичка, район: ${selectedZone.name}`
     : "";
 
   return (
@@ -215,7 +197,7 @@ export function Calculator() {
         </div>
       </div>
 
-      {/* Sub-toggle: ЖК vs Район — only for apartment/townhouse */}
+      {/* Sub-toggle: В новом ЖК vs Обычный дом (Вторичка) — only for apartment */}
       {isAuto && (
         <div className="flex gap-2 mb-8">
           <button
@@ -226,17 +208,17 @@ export function Calculator() {
                 : "bg-white border border-[rgba(0,0,0,0.06)] text-[#9CA3AF] hover:text-[#6B7280]"
             }`}
           >
-            🏢 По ЖК
+            🏢 В новом ЖК
           </button>
           <button
-            onClick={() => handleModeChange("zone")}
+            onClick={() => handleModeChange("vtorichka")}
             className={`rounded-full px-5 py-2.5 text-[13px] font-medium transition-all duration-300 cursor-pointer inline-flex items-center gap-1.5 ${
-              calcMode === "zone"
+              calcMode === "vtorichka"
                 ? "bg-[rgba(58,141,123,0.12)] text-[#3A8D7B] border border-[rgba(58,141,123,0.3)]"
                 : "bg-white border border-[rgba(0,0,0,0.06)] text-[#9CA3AF] hover:text-[#6B7280]"
             }`}
           >
-            📍 По району
+            🏠 Обычный дом (Вторичка)
           </button>
         </div>
       )}
@@ -247,6 +229,7 @@ export function Calculator() {
           {step === 1 && <ComplexSearch onSelect={handleSelectComplex} />}
           {step === 2 && selectedComplex && (
             <ParameterForm
+              mode="complex"
               complex={selectedComplex}
               onSubmit={handleCalculate}
               onBack={() => setStep(1)}
@@ -257,6 +240,7 @@ export function Calculator() {
               result={result}
               complexName={selectedComplex.name}
               onBack={() => setStep(2)}
+              floorPosition={lastFloorPosition}
               yearBuilt={lastYearBuilt}
               wallMaterial={lastWallMaterial}
               isPledged={lastIsPledged}
@@ -265,8 +249,8 @@ export function Calculator() {
         </>
       )}
 
-      {/* Path B: Zone-based calculation */}
-      {isAuto && calcMode === "zone" && (
+      {/* Path B: Vtorichka (zone-based) calculation — 3 steps */}
+      {isAuto && calcMode === "vtorichka" && (
         <>
           {step === 1 && (
             <ZoneSelect
@@ -276,28 +260,20 @@ export function Calculator() {
             />
           )}
           {step === 2 && selectedZone && (
-            <BuildingSeriesSelect
-              seriesList={seriesList}
-              selectedSeries={selectedSeries?.series ?? null}
-              onSelect={handleSelectSeries}
+            <ParameterForm
+              mode="vtorichka"
+              zone={selectedZone}
+              onSubmit={handleVtorichkaCalculate}
               onBack={() => setStep(1)}
             />
           )}
-          {step === 3 && selectedZone && selectedSeries && (
-            <ZoneParameterForm
-              zone={selectedZone}
-              series={selectedSeries}
-              onSubmit={handleZoneCalculate}
-              onBack={() => setStep(2)}
-            />
-          )}
-          {step === 4 && result && (
+          {step === 3 && result && (
             <ResultCard
               result={result}
-              complexName={zoneResultLabel}
-              onBack={() => setStep(3)}
+              complexName={vtorichkaResultLabel}
+              onBack={() => setStep(2)}
               zoneId={selectedZone?.id}
-              buildingSeries={selectedSeries?.series}
+              floorPosition={lastFloorPosition}
               yearBuilt={lastYearBuilt}
               wallMaterial={lastWallMaterial}
               isPledged={lastIsPledged}
@@ -313,13 +289,6 @@ export function Calculator() {
 }
 
 // ── Branch C: Non-apartment — type-specific fields + universal contact ──
-
-const PROPERTY_TYPE_LABELS_RU: Record<string, string> = {
-  house: "Частный дом",
-  commercial: "Коммерческая недвижимость",
-  land: "Земельный участок",
-  other: "Другое",
-};
 
 const UTILITY_OPTIONS = [
   { value: "electricity", label: "Свет" },

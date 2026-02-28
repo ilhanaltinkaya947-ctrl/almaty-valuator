@@ -225,13 +225,10 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
       ? new Intl.NumberFormat("ru-RU").format(lead.estimated_price) + " ₸"
       : "—";
 
-    const leadRecord = lead as LeadRow & { zone_id?: string | null; building_series?: string | null };
+    const leadRecord = lead as LeadRow & { zone_id?: string | null };
     const locationLine = leadRecord.zone_id
       ? `📍 <b>Зона:</b> ${leadRecord.zone_id}`
       : `🏢 <b>ЖК:</b> ${lead.complex_id ?? "—"}`;
-    const seriesLine = leadRecord.building_series
-      ? `\n🏠 <b>Серия:</b> ${leadRecord.building_series}`
-      : "";
 
     const updatedText = [
       `📢 <b>Лид</b> — ${STATUS_LABELS[newStatus] ?? newStatus}`,
@@ -240,11 +237,10 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
       locationLine,
       `💰 <b>Оценка:</b> ${price}`,
       `📞 <b>Телефон:</b> ${lead.phone}`,
-      seriesLine,
       "",
       `👷 <b>Ответственный:</b> ${agent.name}`,
       `🕐 ${new Date().toLocaleString("ru-RU", { timeZone: "Asia/Almaty" })}`,
-    ].filter(Boolean).join("\n");
+    ].join("\n");
 
     // Keep WhatsApp button, update status buttons
     const waPhone = lead.phone.replace(/\D/g, "");

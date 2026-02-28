@@ -6,7 +6,8 @@ import type {
   BuybackBreakdown,
   WallMaterial,
   ConditionType,
-  ZoneEvaluationInput,
+  FloorPosition,
+  VtorichkaEvaluationInput,
 } from "@/types/evaluation";
 import { isAutoCalcType } from "@/types/evaluation";
 
@@ -49,9 +50,28 @@ export function getAdjustedBase(baseRate: number, condition: ConditionType): num
   return condition === "rough" ? baseRate - ROUGH_DEDUCTION : baseRate;
 }
 
-/** Class-based buyback multiplier for Path A (ЖК) */
-export function getBuybackMultiplier(housingClass: string): number {
-  switch (housingClass) {
+/** Floor position coefficient: first/last → 0.95, middle → 1.0 */
+export function getFloorCoefficient(position: FloorPosition): number {
+  return position === "middle" ? 1.0 : 0.95;
+}
+
+/** Buyback multiplier with panel/вторичка/Золотой квадрат logic */
+export function getBuybackMultiplier(opts: {
+  housingClass: string;
+  wallMaterial: WallMaterial;
+  isVtorichka: boolean;
+  zoneSlug?: string;
+}): number {
+  const isPanel = opts.wallMaterial === "panel";
+  const isZolotoyKvadrat = opts.zoneSlug === "zolotoy-kvadrat";
+
+  // Panel OR вторичка path: 0.70, exception: Золотой квадрат → 0.80
+  if (isPanel || opts.isVtorichka) {
+    return isZolotoyKvadrat ? 0.80 : 0.70;
+  }
+
+  // ЖК non-panel path
+  switch (opts.housingClass) {
     case "elite":
     case "business_plus":
     case "business":
@@ -83,11 +103,11 @@ export function evaluatePrice(
     };
   }
 
-  // Branch A: auto calculation for apartments & townhouses
+  // Branch A: auto calculation for apartments
   return evaluateAuto(input, baseRate);
 }
 
-/** Auto calculation for apartments and townhouses (Path A) */
+/** Auto calculation for apartments (Path A — ЖК) */
 export function evaluateAuto(
   input: EvaluationInput,
   baseRate: number = DEFAULT_BASE_RATE,
@@ -95,14 +115,20 @@ export function evaluateAuto(
   const kComplex = input.complexCoefficient;
   const kYear = getYearCoefficient(input.yearBuilt);
   const kMaterial = getMaterialCoefficient(input.wallMaterial);
+  const kFloor = getFloorCoefficient(input.floorPosition);
   const adjustedBase = getAdjustedBase(baseRate, input.condition);
-  const buybackCoefficient = getBuybackMultiplier(input.housingClass);
+  const buybackCoefficient = getBuybackMultiplier({
+    housingClass: input.housingClass,
+    wallMaterial: input.wallMaterial,
+    isVtorichka: false,
+  });
 
   const params: CalculationParams = {
     baseRate: adjustedBase,
     kComplex,
     kYear,
     kMaterial,
+    kFloor: kFloor !== 1.0 ? kFloor : undefined,
   };
 
   // Market price (100%)
@@ -111,8 +137,8 @@ export function evaluateAuto(
   );
   const marketPricePerSqm = Math.round(marketPrice / input.area);
 
-  // Offer price (buyback: market × buybackMultiplier)
-  const totalPrice = Math.round(marketPrice * buybackCoefficient);
+  // Offer price (buyback: market × buybackMultiplier × kFloor)
+  const totalPrice = Math.round(marketPrice * buybackCoefficient * kFloor);
   const pricePerSqm = Math.round(totalPrice / input.area);
 
   // Negotiation limit (-20% from market, the max we agree to pay)
@@ -139,30 +165,34 @@ export function evaluateAuto(
   };
 }
 
-// ── Zone-based Evaluation (Path B: non-ЖК apartments) ──
+// ── Vtorichka Evaluation (Path B: non-ЖК apartments) ──
 
-/** Evaluate price for non-ЖК apartments using zone + building series coefficients.
- *  Buyback is always 0.70 for zone path.
+/** Evaluate price for non-ЖК apartments using zone coefficient.
+ *  Buyback uses isVtorichka: true logic.
  */
-export function evaluateZone(
-  input: ZoneEvaluationInput,
+export function evaluateVtorichka(
+  input: VtorichkaEvaluationInput,
   baseRate: number = DEFAULT_BASE_RATE,
 ): AutoEvaluationResult {
-  const kZone = input.zoneCoefficient;
-  const kSeries = input.seriesModifier;
-  const kComplex = kZone * kSeries;
+  const kComplex = input.zoneCoefficient;
   const kYear = getYearCoefficient(input.yearBuilt);
   const kMaterial = getMaterialCoefficient(input.wallMaterial);
+  const kFloor = getFloorCoefficient(input.floorPosition);
   const adjustedBase = getAdjustedBase(baseRate, input.condition);
-  const buybackCoefficient = 0.70; // always 0.70 for zone path
+  const buybackCoefficient = getBuybackMultiplier({
+    housingClass: "",
+    wallMaterial: input.wallMaterial,
+    isVtorichka: true,
+    zoneSlug: input.zoneSlug,
+  });
 
   const params: CalculationParams = {
     baseRate: adjustedBase,
     kComplex,
     kYear,
     kMaterial,
-    kZone,
-    kSeries,
+    kZone: input.zoneCoefficient,
+    kFloor: kFloor !== 1.0 ? kFloor : undefined,
   };
 
   const marketPrice = Math.round(
@@ -170,7 +200,7 @@ export function evaluateZone(
   );
   const marketPricePerSqm = Math.round(marketPrice / input.area);
 
-  const totalPrice = Math.round(marketPrice * buybackCoefficient);
+  const totalPrice = Math.round(marketPrice * buybackCoefficient * kFloor);
   const pricePerSqm = Math.round(totalPrice / input.area);
 
   const negotiationLimit = Math.round(marketPrice * NEGOTIATION_LIMIT_COEFFICIENT);

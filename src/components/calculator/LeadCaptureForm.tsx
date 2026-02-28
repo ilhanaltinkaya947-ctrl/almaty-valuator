@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { formatPhone, unformatPhone } from "@/lib/utils";
-import type { WallMaterial, LeadIntent } from "@/types/evaluation";
+import type { WallMaterial, LeadIntent, FloorPosition } from "@/types/evaluation";
 
 interface LeadCaptureFormProps {
   onSubmitted?: (phone: string) => void;
@@ -11,7 +11,7 @@ interface LeadCaptureFormProps {
   floor?: number;
   estimatedPrice?: number;
   zoneId?: string;
-  buildingSeries?: string;
+  floorPosition?: FloorPosition;
   yearBuilt?: number;
   wallMaterial?: WallMaterial;
   isPledged?: boolean;
@@ -25,7 +25,7 @@ export function LeadCaptureForm({
   floor,
   estimatedPrice,
   zoneId,
-  buildingSeries,
+  floorPosition,
   yearBuilt,
   wallMaterial,
   isPledged,
@@ -59,7 +59,7 @@ export function LeadCaptureForm({
           estimated_price: estimatedPrice,
           source: "landing",
           zone_id: zoneId,
-          building_series: buildingSeries,
+          floor_position: floorPosition,
           year_built: yearBuilt,
           wall_material: wallMaterial,
           is_pledged: isPledged ?? false,

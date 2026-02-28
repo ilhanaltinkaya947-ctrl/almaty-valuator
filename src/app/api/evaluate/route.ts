@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { evaluationInputSchema } from "@/lib/validation";
-import { evaluatePrice, evaluateZone } from "@/lib/smart-value";
+import { evaluatePrice, evaluateVtorichka } from "@/lib/smart-value";
 import { getSystemSettings } from "@/lib/settings";
 
-const zoneEvaluationSchema = z.object({
+const vtorichkaEvaluationSchema = z.object({
   zoneId: z.string().min(1),
   zoneName: z.string().min(1),
+  zoneSlug: z.string().min(1),
   zoneCoefficient: z.number().min(0.1).max(5.0),
-  buildingSeries: z.enum(["stalinka", "khrushchevka", "brezhnevka", "uluchshenka", "individual", "novostroyka"]),
-  seriesModifier: z.number().min(0.5).max(2.0),
   area: z.number().min(10).max(500),
   yearBuilt: z.number().int().min(1950).max(2026),
   wallMaterial: z.enum(["panel", "brick", "monolith"]),
   condition: z.enum(["renovated", "rough"]),
+  floorPosition: z.enum(["first", "middle", "last"]),
 });
 
 export async function POST(request: Request) {
@@ -21,16 +21,16 @@ export async function POST(request: Request) {
     const body = await request.json();
     const settings = await getSystemSettings();
 
-    // Zone-based evaluation (Path B)
+    // Zone-based evaluation (Path B — Vtorichka)
     if (body.zoneId) {
-      const parsed = zoneEvaluationSchema.safeParse(body);
+      const parsed = vtorichkaEvaluationSchema.safeParse(body);
       if (!parsed.success) {
         return NextResponse.json(
           { error: "Некорректные данные", details: parsed.error.flatten() },
           { status: 400 },
         );
       }
-      const result = evaluateZone(parsed.data, settings.baseRate);
+      const result = evaluateVtorichka(parsed.data, settings.baseRate);
       return NextResponse.json(result);
     }
 

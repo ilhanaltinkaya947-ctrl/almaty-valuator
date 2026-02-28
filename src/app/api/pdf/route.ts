@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
       condition: input.condition as ConditionType,
       complexCoefficient: complex.coefficient,
       housingClass: complex.class,
+      floorPosition: "middle",
     });
 
     // Find 3-4 benchmark complexes (same district or similar class)

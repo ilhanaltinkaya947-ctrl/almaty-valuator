@@ -8,7 +8,8 @@ export const evaluationInputSchema = z.object({
   condition: z.enum(["renovated", "rough"]),
   complexCoefficient: z.number().min(0.5).max(3.0),
   housingClass: z.string().min(1),
-  propertyType: z.enum(["apartment", "townhouse", "house", "commercial", "land"]).optional(),
+  propertyType: z.enum(["apartment", "house", "commercial", "land"]).optional(),
+  floorPosition: z.enum(["first", "middle", "last"]).default("middle"),
 });
 
 export const phoneSchema = z

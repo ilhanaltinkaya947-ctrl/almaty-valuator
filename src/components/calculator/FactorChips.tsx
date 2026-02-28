@@ -14,16 +14,20 @@ interface ChipDef {
 export function FactorChips({ params }: FactorChipsProps) {
   const chips: ChipDef[] = [];
 
-  // Zone path: show zone + series chips instead of single ЖК chip
-  if (params.kZone != null && params.kSeries != null) {
-    chips.push({ key: "kZone",   label: "Район", color: "#4A8FD4", value: params.kZone });
-    chips.push({ key: "kSeries", label: "Серия",  color: "#3A8D7B", value: params.kSeries });
+  // Zone path: show zone chip instead of ЖК chip
+  if (params.kZone != null) {
+    chips.push({ key: "kZone", label: "Район", color: "#4A8FD4", value: params.kZone });
   } else {
     chips.push({ key: "kComplex", label: "ЖК", color: "#3A8D7B", value: params.kComplex });
   }
 
   chips.push({ key: "kYear",     label: "Год",      color: "#7BC67E", value: params.kYear });
   chips.push({ key: "kMaterial", label: "Материал", color: "#D9904A", value: params.kMaterial });
+
+  // Floor chip — only when ≠ 1.0
+  if (params.kFloor != null) {
+    chips.push({ key: "kFloor", label: "Этаж", color: "#9B59B6", value: params.kFloor });
+  }
 
   return (
     <div className="flex flex-wrap gap-2">

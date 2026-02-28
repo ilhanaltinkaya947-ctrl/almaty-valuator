@@ -3,6 +3,8 @@
 // Base rate: 738,300 tg/m² (secondary market avg, BNS Dec 2025)
 // Coefficient = estimated avg price per m² in ЖК / base rate
 
+import type { WallMaterial } from "@/types/evaluation";
+
 export type HousingClass = "elite" | "business_plus" | "business" | "comfort_plus" | "comfort" | "standard";
 
 export interface Complex {
@@ -18,6 +20,8 @@ export interface Complex {
   liquidityIndex: number;
   avgPriceSqm: number; // last known from krisha.kz
   krishaUrl: string;
+  wallMaterial: WallMaterial;
+  zoneSlug: string;
 }
 
 export const COMPLEXES: Complex[] = [
@@ -35,6 +39,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.92,
     avgPriceSqm: 1624000,
     krishaUrl: "https://krisha.kz/complex/esentai-city",
+    wallMaterial: "monolith",
+    zoneSlug: "dostyk-koridor",
   },
   {
     name: "Ritz Carlton Residences",
@@ -49,6 +55,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.85,
     avgPriceSqm: 1476600,
     krishaUrl: "https://krisha.kz/complex/ritz-carlton-residences",
+    wallMaterial: "monolith",
+    zoneSlug: "dostyk-koridor",
   },
   {
     name: "Almaty Towers",
@@ -63,6 +71,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.86,
     avgPriceSqm: 1402770,
     krishaUrl: "https://krisha.kz/complex/almaty-towers",
+    wallMaterial: "monolith",
+    zoneSlug: "samal-zholdasbekova",
   },
 
   // ══════════════ BUSINESS+ ══════════════
@@ -79,6 +89,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.85,
     avgPriceSqm: 1328940,
     krishaUrl: "https://krisha.kz/complex/metropole",
+    wallMaterial: "monolith",
+    zoneSlug: "bostandyk-verhniy",
   },
   {
     name: "AFD Riviera",
@@ -93,6 +105,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.80,
     avgPriceSqm: 1255110,
     krishaUrl: "https://krisha.kz/complex/afd-riviera",
+    wallMaterial: "monolith",
+    zoneSlug: "almagul-kazakhfilm",
   },
   {
     name: "Тенгри Тауэр",
@@ -107,6 +121,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.84,
     avgPriceSqm: 1255110,
     krishaUrl: "https://krisha.kz/complex/tengri-tower",
+    wallMaterial: "monolith",
+    zoneSlug: "samal-zholdasbekova",
   },
   {
     name: "Premium Tower",
@@ -121,6 +137,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.78,
     avgPriceSqm: 1218195,
     krishaUrl: "https://krisha.kz/complex/premium-tower",
+    wallMaterial: "monolith",
+    zoneSlug: "samal-zholdasbekova",
   },
   {
     name: "Park Avenue",
@@ -135,6 +153,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.82,
     avgPriceSqm: 1181280,
     krishaUrl: "https://krisha.kz/complex/park-avenue",
+    wallMaterial: "monolith",
+    zoneSlug: "almagul-kazakhfilm",
   },
   {
     name: "Golden Square",
@@ -149,6 +169,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.81,
     avgPriceSqm: 1181280,
     krishaUrl: "https://krisha.kz/complex/golden-square",
+    wallMaterial: "monolith",
+    zoneSlug: "zolotoy-kvadrat",
   },
   {
     name: "Botanical Garden Residence",
@@ -163,6 +185,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.75,
     avgPriceSqm: 1144365,
     krishaUrl: "https://krisha.kz/complex/botanical-garden-residence",
+    wallMaterial: "monolith",
+    zoneSlug: "almagul-kazakhfilm",
   },
 
   // ══════════════ BUSINESS ══════════════
@@ -179,6 +203,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.90,
     avgPriceSqm: 1107450,
     krishaUrl: "https://krisha.kz/complex/orion",
+    wallMaterial: "monolith",
+    zoneSlug: "centr-arbat",
   },
   {
     name: "Clover House",
@@ -193,6 +219,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.83,
     avgPriceSqm: 1070535,
     krishaUrl: "https://krisha.kz/complex/clover-house",
+    wallMaterial: "monolith",
+    zoneSlug: "almagul-kazakhfilm",
   },
   {
     name: "Highvill",
@@ -207,6 +235,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.87,
     avgPriceSqm: 1033620,
     krishaUrl: "https://krisha.kz/complex/highvill",
+    wallMaterial: "monolith",
+    zoneSlug: "nurlytau-remizovka",
   },
   {
     name: "Nova Residence",
@@ -221,6 +251,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.73,
     avgPriceSqm: 1033620,
     krishaUrl: "https://krisha.kz/complex/nova-residence",
+    wallMaterial: "monolith",
+    zoneSlug: "almagul-kazakhfilm",
   },
   {
     name: "Baiseitova 104",
@@ -235,6 +267,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.77,
     avgPriceSqm: 996705,
     krishaUrl: "https://krisha.kz/complex/baiseitova-104",
+    wallMaterial: "brick",
+    zoneSlug: "zolotoy-kvadrat",
   },
   {
     name: "Манхэттен",
@@ -249,6 +283,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.85,
     avgPriceSqm: 996705,
     krishaUrl: "https://krisha.kz/complex/manhattan",
+    wallMaterial: "monolith",
+    zoneSlug: "almagul-kazakhfilm",
   },
 
   // ══════════════ COMFORT+ ══════════════
@@ -265,6 +301,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.91,
     avgPriceSqm: 959790,
     krishaUrl: "https://krisha.kz/complex/manhattan-astana",
+    wallMaterial: "monolith",
+    zoneSlug: "centr-arbat",
   },
   {
     name: "Green Park",
@@ -279,6 +317,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.80,
     avgPriceSqm: 922875,
     krishaUrl: "https://krisha.kz/complex/green-park",
+    wallMaterial: "monolith",
+    zoneSlug: "almagul-kazakhfilm",
   },
 
   // ══════════════ COMFORT ══════════════
@@ -295,6 +335,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.88,
     avgPriceSqm: 849045,
     krishaUrl: "https://krisha.kz/complex/sky-city",
+    wallMaterial: "monolith",
+    zoneSlug: "mamyr-saina",
   },
   {
     name: "Асыл Арман",
@@ -309,6 +351,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.85,
     avgPriceSqm: 812130,
     krishaUrl: "https://krisha.kz/complex/asyl-arman",
+    wallMaterial: "panel",
+    zoneSlug: "alatau-verhniy",
   },
 
   // ══════════════ STANDARD ══════════════
@@ -325,6 +369,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.70,
     avgPriceSqm: 738300,
     krishaUrl: "https://krisha.kz/complex/sauran-palas",
+    wallMaterial: "panel",
+    zoneSlug: "mamyr-saina",
   },
   {
     name: "Жетысу-2",
@@ -339,6 +385,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.75,
     avgPriceSqm: 664470,
     krishaUrl: "https://krisha.kz/map/almaty",
+    wallMaterial: "panel",
+    zoneSlug: "zhetysu",
   },
   {
     name: "Аксай-3",
@@ -353,6 +401,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.78,
     avgPriceSqm: 627555,
     krishaUrl: "https://krisha.kz/map/almaty",
+    wallMaterial: "panel",
+    zoneSlug: "aksay",
   },
   {
     name: "Орбита-1",
@@ -367,6 +417,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.82,
     avgPriceSqm: 775215,
     krishaUrl: "https://krisha.kz/map/almaty",
+    wallMaterial: "panel",
+    zoneSlug: "orbita-sayran",
   },
   {
     name: "Самал-2",
@@ -381,6 +433,8 @@ export const COMPLEXES: Complex[] = [
     liquidityIndex: 0.80,
     avgPriceSqm: 849045,
     krishaUrl: "https://krisha.kz/map/almaty",
+    wallMaterial: "panel",
+    zoneSlug: "samal-zholdasbekova",
   },
 ];
 
