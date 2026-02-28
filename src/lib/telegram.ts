@@ -172,6 +172,7 @@ export async function notifyLeadInteractive(lead: {
   wall_material?: string | null;
   is_pledged?: boolean | null;
   intent?: string | null;
+  notes?: string | null;
 }) {
   const isManual = lead.needs_manual_review === true;
   const price = lead.estimated_price
@@ -183,9 +184,10 @@ export async function notifyLeadInteractive(lead: {
   const PROPERTY_TYPE_LABELS: Record<string, string> = {
     apartment: "Квартира",
     townhouse: "Таунхаус",
-    house: "Дом",
+    house: "Частный дом",
     commercial: "Коммерция",
-    land: "Участок",
+    land: "Земельный участок",
+    other: "Другое",
   };
 
   const WALL_MATERIAL_LABELS: Record<string, string> = {
@@ -197,39 +199,74 @@ export async function notifyLeadInteractive(lead: {
   const typeLabel = PROPERTY_TYPE_LABELS[lead.property_type ?? ""] ?? lead.property_type ?? "—";
   const intentBadge = lead.intent === "negotiate" ? "🔄 ТОРГ" : "✅ ГОТОВ";
 
-  // Build extra info lines
-  const extraLines: string[] = [];
-  if (lead.address) extraLines.push(`📌 <b>Адрес:</b> ${lead.address}`);
-  if (lead.year_built) extraLines.push(`🏗 <b>Год:</b> ${lead.year_built}`);
-  if (lead.wall_material) extraLines.push(`🧱 <b>Материал:</b> ${WALL_MATERIAL_LABELS[lead.wall_material] ?? lead.wall_material}`);
-  if (lead.is_pledged != null) extraLines.push(`🔒 <b>Залог:</b> ${lead.is_pledged ? "Да" : "Нет"}`);
+  // Non-apartment manual review: use dedicated template
+  const isNonApartmentManual = isManual && lead.property_type !== "apartment" && lead.property_type !== "townhouse";
 
-  const text = isManual
-    ? [
-        "🚨 <b>Сложный объект — требуется ручной расчёт!</b>",
-        "",
-        `🏠 <b>Тип:</b> ${typeLabel}`,
-        `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
-        `📞 <b>Телефон:</b> ${maskedPhone}`,
-        ...(lead.address ? [`📌 <b>Адрес:</b> ${lead.address}`] : []),
-        `📍 <b>Источник:</b> ${lead.source ?? "website"}`,
-        "",
-        "⚠️ <i>Автоматический расчёт невозможен.</i>",
-        "<i>Требуется экспертная оценка и ручной ввод цены.</i>",
-      ].join("\n")
-    : [
-        `📢 <b>Новый лид!</b> ${intentBadge}`,
-        "",
-        `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
-        `🏢 <b>ЖК:</b> ${lead.complex_name ?? "—"}`,
-        `💰 <b>Оценка:</b> ${price}`,
-        `📞 <b>Телефон:</b> ${maskedPhone}`,
-        `🏠 <b>Тип:</b> ${typeLabel}`,
-        ...extraLines,
-        `📍 <b>Источник:</b> ${lead.source ?? "website"}`,
-        "",
-        "⬇️ <i>Выберите действие:</i>",
-      ].join("\n");
+  let text: string;
+
+  if (isNonApartmentManual) {
+    // ⚠️ ИНДИВИДУАЛЬНАЯ ОЦЕНКА template
+    const lines = [
+      `⚠️ <b>ИНДИВИДУАЛЬНАЯ ОЦЕНКА</b> | ${typeLabel}`,
+      "",
+      `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
+      `📞 <b>Телефон:</b> ${maskedPhone}`,
+      `📍 <b>Точный адрес:</b> ${lead.address ?? "—"}`,
+    ];
+
+    // Add type-specific params from notes
+    if (lead.notes) {
+      lines.push("");
+      lines.push("⚙️ <b>Параметры объекта:</b>");
+      const params = lead.notes.split("; ");
+      for (const p of params) {
+        if (p.startsWith("Адрес:")) continue; // Already shown above
+        lines.push(`  • ${p}`);
+      }
+    }
+
+    lines.push("");
+    lines.push(`📍 <b>Источник:</b> ${lead.source ?? "website"}`);
+    lines.push("");
+    lines.push("❗️ <i>Алгоритм отключен. Требуется ручной расчёт и звонок специалиста.</i>");
+
+    text = lines.join("\n");
+  } else if (isManual) {
+    // Apartment/townhouse manual review (original template)
+    text = [
+      "🚨 <b>Сложный объект — требуется ручной расчёт!</b>",
+      "",
+      `🏠 <b>Тип:</b> ${typeLabel}`,
+      `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
+      `📞 <b>Телефон:</b> ${maskedPhone}`,
+      ...(lead.address ? [`📌 <b>Адрес:</b> ${lead.address}`] : []),
+      `📍 <b>Источник:</b> ${lead.source ?? "website"}`,
+      "",
+      "⚠️ <i>Автоматический расчёт невозможен.</i>",
+      "<i>Требуется экспертная оценка и ручной ввод цены.</i>",
+    ].join("\n");
+  } else {
+    // Standard apartment lead with price
+    const extraLines: string[] = [];
+    if (lead.address) extraLines.push(`📌 <b>Адрес:</b> ${lead.address}`);
+    if (lead.year_built) extraLines.push(`🏗 <b>Год:</b> ${lead.year_built}`);
+    if (lead.wall_material) extraLines.push(`🧱 <b>Материал:</b> ${WALL_MATERIAL_LABELS[lead.wall_material] ?? lead.wall_material}`);
+    if (lead.is_pledged != null) extraLines.push(`🔒 <b>Залог:</b> ${lead.is_pledged ? "Да" : "Нет"}`);
+
+    text = [
+      `📢 <b>Новый лид!</b> ${intentBadge}`,
+      "",
+      `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
+      `🏢 <b>ЖК:</b> ${lead.complex_name ?? "—"}`,
+      `💰 <b>Оценка:</b> ${price}`,
+      `📞 <b>Телефон:</b> ${maskedPhone}`,
+      `🏠 <b>Тип:</b> ${typeLabel}`,
+      ...extraLines,
+      `📍 <b>Источник:</b> ${lead.source ?? "website"}`,
+      "",
+      "⬇️ <i>Выберите действие:</i>",
+    ].join("\n");
+  }
 
   const keyboard = isManual
     ? buildManualReviewKeyboard(lead.id, lead.phone)
@@ -292,6 +329,7 @@ export async function notifyNewLead(lead: {
   wall_material?: string | null;
   is_pledged?: boolean | null;
   intent?: string | null;
+  notes?: string | null;
 }) {
   // If we have a lead ID, send interactive card
   if (lead.id) {
@@ -309,6 +347,7 @@ export async function notifyNewLead(lead: {
       wall_material: lead.wall_material,
       is_pledged: lead.is_pledged,
       intent: lead.intent,
+      notes: lead.notes,
     });
   }
 

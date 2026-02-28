@@ -86,6 +86,7 @@ export async function POST(req: NextRequest) {
           wall_material: data.wall_material,
           is_pledged: data.is_pledged,
           intent: data.intent,
+          notes: combinedNotes,
         }).catch((err) => console.error("Telegram notify error:", err))
       );
     }
