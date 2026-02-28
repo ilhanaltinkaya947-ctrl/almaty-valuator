@@ -48,10 +48,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" style={{ backgroundColor: "#0F1722" }} suppressHydrationWarning>
+    <html lang="ru" style={{ backgroundColor: "#F0F9F6" }} suppressHydrationWarning>
       <body
         className={`${inter.variable} ${jetbrains.variable} font-sans antialiased`}
-        style={{ backgroundColor: "#0F1722", color: "#1A2332" }}
+        style={{ backgroundColor: "#F0F9F6", color: "#1A2332" }}
       >
         {/* Ambient floating bubbles — luxury background effect */}
         <div className="ambient-bubble ambient-bubble-1" />

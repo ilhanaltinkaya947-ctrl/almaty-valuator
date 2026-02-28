@@ -1,6 +1,7 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
+import { OverscrollColor } from "@/components/layout/OverscrollColor";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { TrustBar } from "@/components/sections/TrustBar";
 import { CalculatorSection } from "@/components/sections/CalculatorSection";
@@ -17,6 +18,7 @@ import { ScrollReveal } from "@/components/ui/ScrollReveal";
 export default function HomePage() {
   return (
     <>
+      <OverscrollColor />
       <Header />
       <HeroSection />
       <ScrollReveal>

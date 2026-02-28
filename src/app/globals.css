@@ -17,13 +17,13 @@
 
 html {
   scroll-behavior: smooth;
-  background-color: #0F1722 !important;
+  background-color: #F0F9F6;
   color-scheme: light;
   overflow-x: hidden;
 }
 
 body {
-  background-color: #0F1722 !important;
+  background-color: #F0F9F6;
   color: #1A2332;
   font-feature-settings: 'ss01', 'ss02', 'cv01';
   position: relative;
