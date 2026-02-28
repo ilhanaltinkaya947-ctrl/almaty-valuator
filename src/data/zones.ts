@@ -68,6 +68,40 @@ export const PRICE_ZONES: PriceZone[] = [
   // Алатауский
   { id: "z-alatau-verhniy",      name: "Алатау верхний",         slug: "alatau-verhniy",       district: "Алатауский",    description: "Верхняя часть Алатауского района",                                avgPriceSqm:  580000, coefficient: 0.72, sortOrder: 24 },
   { id: "z-alatau-nizhniy",      name: "Алатау нижний",          slug: "alatau-nizhniy",       district: "Алатауский",    description: "Нижняя часть Алатауского района",                                 avgPriceSqm:  500000, coefficient: 0.62, sortOrder: 25 },
+  { id: "z-shanyrak",            name: "Шанырак",                slug: "shanyrak",             district: "Алатауский",    description: "Микрорайон Шанырак, частный сектор",                               avgPriceSqm:  450000, coefficient: 0.56, sortOrder: 26 },
+
+  // Дополнительные микрорайоны Ауэзовского
+  { id: "z-koshkarbayeva",       name: "Кошкарбаева",            slug: "koshkarbayeva",        district: "Ауэзовский",   description: "Район улицы Кошкарбаева",                                         avgPriceSqm:  650000, coefficient: 0.81, sortOrder: 27 },
+
+  // Дополнительные Жетысуский
+  { id: "z-kulgyny",             name: "Кулгыны — Шамгон",       slug: "kulgyny-shamgon",      district: "Жетысуский",    description: "Район Кулгыны, Шамгон",                                           avgPriceSqm:  500000, coefficient: 0.62, sortOrder: 28 },
+
+  // Дополнительные Медеуский
+  { id: "z-gornyy-gigant",       name: "Горный Гигант",          slug: "gornyy-gigant",        district: "Медеуский",     description: "Элитный район Горный Гигант",                                     avgPriceSqm: 1400000, coefficient: 1.74, sortOrder: 29 },
+
+  // Дополнительные Бостандыкский
+  { id: "z-baganashyl",          name: "Баганашыл",              slug: "baganashyl",           district: "Бостандыкский", description: "Предгорный район Баганашыл",                                      avgPriceSqm: 1000000, coefficient: 1.24, sortOrder: 30 },
+  { id: "z-koktem",              name: "Коктем",                 slug: "koktem",               district: "Бостандыкский", description: "Микрорайоны Коктем 1-3",                                           avgPriceSqm:  900000, coefficient: 1.12, sortOrder: 31 },
+
+  // Дополнительные Алмалинский
+  { id: "z-tole-bi",             name: "Толе Би — Сейфуллина",   slug: "tole-bi-seyfullina",   district: "Алмалинский",   description: "Район пересечения Толе Би и Сейфуллина",                          avgPriceSqm:  850000, coefficient: 1.06, sortOrder: 32 },
+
+  // Дополнительные Турксибский
+  { id: "z-tastak-turksib",      name: "Тастак (Турксиб)",       slug: "tastak-turksib",       district: "Турксибский",   description: "Район Тастак в составе Турксибского",                             avgPriceSqm:  550000, coefficient: 0.68, sortOrder: 33 },
+
+  // ── Алматинская область ──
+  { id: "z-talgar",              name: "Талгар",                 slug: "talgar",               district: "Алматинская обл.", description: "Город Талгар, 25 км от Алматы",                                  avgPriceSqm:  350000, coefficient: 0.43, sortOrder: 34 },
+  { id: "z-talgarskiy-trakt",    name: "Талгарский тракт",       slug: "talgarskiy-trakt",     district: "Алматинская обл.", description: "Трасса Алматы — Талгар, придорожные посёлки",                     avgPriceSqm:  380000, coefficient: 0.47, sortOrder: 35 },
+  { id: "z-kaskelen",            name: "Каскелен",               slug: "kaskelen",             district: "Алматинская обл.", description: "Город Каскелен, западное направление",                           avgPriceSqm:  370000, coefficient: 0.46, sortOrder: 36 },
+  { id: "z-issyk",               name: "Иссык (Есик)",           slug: "issyk",                district: "Алматинская обл.", description: "Город Иссык, 60 км от Алматы",                                   avgPriceSqm:  300000, coefficient: 0.37, sortOrder: 37 },
+  { id: "z-kapshagay",           name: "Капшагай (Конаев)",      slug: "kapshagay",            district: "Алматинская обл.", description: "Город Конаев (Капшагай), 80 км от Алматы",                       avgPriceSqm:  280000, coefficient: 0.35, sortOrder: 38 },
+  { id: "z-kuldzhinskiy-trakt",  name: "Кульджинский тракт",     slug: "kuldzhinskiy-trakt",   district: "Алматинская обл.", description: "Трасса в восточном направлении, посёлки",                        avgPriceSqm:  350000, coefficient: 0.43, sortOrder: 39 },
+  { id: "z-otegen-batyr",        name: "Отеген батыр",           slug: "otegen-batyr",         district: "Алматинская обл.", description: "Посёлок Отеген батыр, юг Алматы",                                avgPriceSqm:  320000, coefficient: 0.40, sortOrder: 40 },
+  { id: "z-burundai",            name: "Бурундай",               slug: "burundai",             district: "Алматинская обл.", description: "Посёлок Бурундай, западное направление",                         avgPriceSqm:  300000, coefficient: 0.37, sortOrder: 41 },
+  { id: "z-tuzdybastau",         name: "Туздыбастау",            slug: "tuzdybastau",          district: "Алматинская обл.", description: "Посёлок Туздыбастау, Талгарский район",                          avgPriceSqm:  280000, coefficient: 0.35, sortOrder: 42 },
+  { id: "z-uzynagash",           name: "Узынагаш",               slug: "uzynagash",            district: "Алматинская обл.", description: "Посёлок Узынагаш, Жамбылский район",                             avgPriceSqm:  250000, coefficient: 0.31, sortOrder: 43 },
+  { id: "z-besagash",            name: "Бесагаш",               slug: "besagash",             district: "Алматинская обл.", description: "Посёлок Бесагаш, Талгарский район",                              avgPriceSqm:  320000, coefficient: 0.40, sortOrder: 44 },
+  { id: "z-raiymbek",            name: "Райымбек",               slug: "raiymbek",             district: "Алматинская обл.", description: "Посёлок Райымбек, восточное направление",                        avgPriceSqm:  300000, coefficient: 0.37, sortOrder: 45 },
 ];
 
 export const BUILDING_SERIES: BuildingSeriesInfo[] = [

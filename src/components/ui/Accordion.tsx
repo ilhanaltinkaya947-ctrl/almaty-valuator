@@ -26,7 +26,7 @@ export function Accordion({ items, defaultOpen }: AccordionProps) {
           >
             <button
               onClick={() => setOpenIndex(isOpen ? null : i)}
-              className="w-full flex items-center justify-between py-5 text-left cursor-pointer group"
+              className="w-full flex items-center justify-between py-3.5 text-left cursor-pointer group"
             >
               <span
                 className="font-medium text-base pr-4"
@@ -54,8 +54,8 @@ export function Accordion({ items, defaultOpen }: AccordionProps) {
               </svg>
             </button>
             {isOpen && (
-              <div className="pb-5">
-                <p className="text-[#6B7280] text-base leading-[1.7]">
+              <div className="pb-3.5">
+                <p className="text-[#6B7280] text-sm leading-[1.6]">
                   {item.answer}
                 </p>
               </div>

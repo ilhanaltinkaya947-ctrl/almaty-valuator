@@ -4,13 +4,13 @@ export type ConditionType = "renovated" | "rough";
 
 export type LeadIntent = "ready" | "negotiate";
 
-export type PropertyType = "apartment" | "townhouse" | "house" | "commercial" | "land";
+export type PropertyType = "apartment" | "townhouse" | "house" | "commercial" | "land" | "other";
 
 /** Types that support auto calculation */
 export const AUTO_CALC_TYPES: PropertyType[] = ["apartment", "townhouse"];
 
 /** Types that require manual expert review */
-export const MANUAL_REVIEW_TYPES: PropertyType[] = ["house", "commercial", "land"];
+export const MANUAL_REVIEW_TYPES: PropertyType[] = ["house", "commercial", "land", "other"];
 
 export function isAutoCalcType(type: PropertyType): boolean {
   return AUTO_CALC_TYPES.includes(type);

@@ -30,9 +30,9 @@ const FAQ_ITEMS = [
 
 export function FAQSection() {
   return (
-    <section id="faq" className="py-14 sm:py-24" style={{ backgroundColor: "#FFFFFF" }}>
+    <section id="faq" className="py-10 sm:py-24" style={{ backgroundColor: "#FFFFFF" }}>
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8 lg:gap-14 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 lg:gap-14 items-start">
           {/* Left — sticky heading + CTA */}
           <div className="lg:sticky lg:top-28">
             <SectionLabel>Вопросы и ответы</SectionLabel>

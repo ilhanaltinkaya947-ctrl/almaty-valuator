@@ -19,16 +19,24 @@ export function Header() {
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
-  // Prevent body scroll when menu is open
+  // Prevent body scroll when menu is open (iOS-safe)
   useEffect(() => {
     if (menuOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
+      return () => {
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        document.body.style.overflow = "";
+        window.scrollTo(0, scrollY);
+      };
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
   }, [menuOpen]);
 
   return (
@@ -116,20 +124,23 @@ export function Header() {
         </div>
       </header>
 
-      {/* Mobile fullscreen overlay — rendered as sibling for z-index reliability */}
+      {/* Mobile overlay — rendered as sibling for z-index reliability */}
       {menuOpen && (
         <div
           className="lg:hidden fixed inset-0 z-[49]"
-          style={{ backgroundColor: "#FFFFFF" }}
+          style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
           onClick={() => setMenuOpen(false)}
         >
+          {/* Menu panel */}
+          <div
+            className="absolute top-0 left-0 right-0"
+            style={{ backgroundColor: "#FFFFFF" }}
+            onClick={(e) => e.stopPropagation()}
+          >
           {/* Spacer for header height */}
           <div className="h-[56px] sm:h-[64px]" />
 
-          <nav
-            className="flex flex-col px-6 pt-6 gap-2"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <nav className="flex flex-col px-5 pt-4 pb-6 gap-2">
             {NAV_LINKS.map((link, i) => (
               <a
                 key={link.href}
@@ -189,6 +200,7 @@ export function Header() {
               WhatsApp
             </a>
           </nav>
+          </div>
         </div>
       )}
     </>
