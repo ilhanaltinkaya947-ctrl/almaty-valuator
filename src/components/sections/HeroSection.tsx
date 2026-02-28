@@ -63,7 +63,7 @@ export function HeroSection() {
 
       {/* Main content */}
       <div className="relative flex-1 flex items-center">
-        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 w-full py-10 sm:py-32">
+        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 w-full pt-20 pb-6 sm:py-32">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-10 lg:gap-16 items-center">
             <div className="max-w-[640px]">
               <div
