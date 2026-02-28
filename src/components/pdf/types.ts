@@ -23,11 +23,16 @@ export interface ReportData {
   marketPrice: number;       // full market value
   marketPricePerSqm: number;
 
+  // Labels
+  floorPositionLabel: string;
+  intentLabel: string;
+
   // Coefficients
   baseRate: number;
   kComplex: number;
   kYear: number;
   kMaterial: number;
+  kFloor?: number;
 
   // Analytics
   liquidityIndex: number;

@@ -12,6 +12,7 @@ export function PriceAnalysis({ data }: { data: ReportData }) {
     { label: "K комплекс", value: `×${data.kComplex.toFixed(2)}` },
     { label: "K год", value: `×${data.kYear.toFixed(2)}` },
     { label: "K материал", value: `×${data.kMaterial.toFixed(2)}` },
+    ...(data.kFloor != null ? [{ label: "K этаж", value: `×${data.kFloor.toFixed(2)}` }] : []),
   ];
 
   return (

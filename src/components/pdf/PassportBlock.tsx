@@ -11,9 +11,10 @@ export function PassportBlock({ data }: { data: ReportData }) {
     { label: "Год постройки", value: String(data.yearBuilt) },
     { label: "Этажность", value: `${data.totalFloors} этажей` },
     { label: "Площадь квартиры", value: `${data.area} м²` },
-    { label: "Этаж", value: `${data.floor} из ${data.totalFloors}` },
+    { label: "Этаж", value: data.floorPositionLabel },
     { label: "Вид из окна", value: data.viewLabel },
     { label: "Состояние", value: data.conditionLabel },
+    { label: "Статус клиента", value: data.intentLabel },
   ];
 
   return (

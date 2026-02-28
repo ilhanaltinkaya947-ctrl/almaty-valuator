@@ -14,6 +14,16 @@ interface Lead {
   needs_manual_review: boolean;
   created_at: string;
   contacted_at: string | null;
+  floor: number | null;
+  area_sqm: number | null;
+  zone_id: string | null;
+  complex_id: string | null;
+  year_built: number | null;
+  wall_material: string | null;
+  notes: string | null;
+  intent: string;
+  building_series: string | null;
+  is_pledged: boolean;
 }
 
 interface SettingRow {
@@ -54,6 +64,23 @@ const STATUS_COLORS: Record<string, string> = {
   in_progress: "#E8A838",
   closed_won: "#25D366",
   closed_lost: "#5A6478",
+};
+
+const INTENT_LABELS: Record<string, string> = {
+  ready: "Согласен",
+  negotiate: "Торг",
+};
+
+const INTENT_COLORS: Record<string, string> = {
+  ready: "#25D366",
+  negotiate: "#E8A838",
+};
+
+const PROPERTY_TYPE_LABELS: Record<string, string> = {
+  apartment: "Квартира",
+  house: "Дом",
+  commercial: "Коммерция",
+  land: "Участок",
 };
 
 export default function LeadsPage() {
@@ -332,7 +359,24 @@ function LeadCard({
       <div onClick={() => setExpanded(!expanded)} style={{ cursor: "pointer" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ fontWeight: 600, fontSize: 15 }}>{lead.name ?? "Без имени"}</span>
-          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+            {lead.property_type && PROPERTY_TYPE_LABELS[lead.property_type] && (
+              <span style={{
+                fontSize: 10, padding: "2px 6px", borderRadius: 8,
+                background: "#4A8FD420", color: "#4A8FD4", fontWeight: 600,
+              }}>
+                {PROPERTY_TYPE_LABELS[lead.property_type]}
+              </span>
+            )}
+            {lead.intent && INTENT_LABELS[lead.intent] && (
+              <span style={{
+                fontSize: 10, padding: "2px 6px", borderRadius: 8,
+                background: (INTENT_COLORS[lead.intent] ?? "#5A6478") + "20",
+                color: INTENT_COLORS[lead.intent] ?? "#5A6478", fontWeight: 600,
+              }}>
+                {INTENT_LABELS[lead.intent]}
+              </span>
+            )}
             {margin !== null && !lead.needs_manual_review && (
               <span style={{
                 fontSize: 10, padding: "2px 6px", borderRadius: 8,
@@ -374,12 +418,61 @@ function LeadCard({
         )}
 
         <div style={{ fontSize: 11, color: "#5A6478", marginTop: 4 }}>
-          {formatDate(lead.created_at)} · {lead.phone} {lead.property_type ? `· ${lead.property_type}` : ""}
+          {formatDate(lead.created_at)} · {lead.phone}
+          {lead.area_sqm ? ` · ${lead.area_sqm} м²` : ""}
+          {lead.floor ? ` · ${lead.floor} эт.` : ""}
         </div>
       </div>
 
       {expanded && (
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #1E2A3A" }}>
+          {/* Detail rows */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10, fontSize: 12 }}>
+            {lead.area_sqm && (
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#5A6478" }}>Площадь</span>
+                <span style={{ color: "#8B95A8" }}>{lead.area_sqm} м²</span>
+              </div>
+            )}
+            {lead.intent && INTENT_LABELS[lead.intent] && (
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#5A6478" }}>Статус клиента</span>
+                <span style={{ color: INTENT_COLORS[lead.intent] ?? "#8B95A8", fontWeight: 600 }}>
+                  {INTENT_LABELS[lead.intent]}
+                </span>
+              </div>
+            )}
+            {lead.floor && (
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#5A6478" }}>Этаж</span>
+                <span style={{ color: "#8B95A8" }}>{lead.floor}</span>
+              </div>
+            )}
+            {lead.year_built && (
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#5A6478" }}>Год постройки</span>
+                <span style={{ color: "#8B95A8" }}>{lead.year_built}</span>
+              </div>
+            )}
+            {lead.wall_material && (
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#5A6478" }}>Материал стен</span>
+                <span style={{ color: "#8B95A8" }}>{lead.wall_material}</span>
+              </div>
+            )}
+            {lead.is_pledged && (
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#5A6478" }}>В залоге</span>
+                <span style={{ color: "#E74C3C", fontWeight: 600 }}>Да</span>
+              </div>
+            )}
+            {lead.notes && (
+              <div style={{ marginTop: 4, color: "#5A6478", fontSize: 11, lineHeight: 1.4 }}>
+                {lead.notes}
+              </div>
+            )}
+          </div>
+
           {/* Manual price input for manual review leads */}
           {lead.needs_manual_review && !lead.offer_price && (
             <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>

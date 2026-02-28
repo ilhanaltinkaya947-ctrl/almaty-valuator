@@ -199,7 +199,7 @@ export function Calculator() {
 
       {/* Sub-toggle: В новом ЖК vs Обычный дом (Вторичка) — only for apartment */}
       {isAuto && (
-        <div className="flex gap-2 mb-8">
+        <div className="flex gap-2 flex-wrap mb-8">
           <button
             onClick={() => handleModeChange("complex")}
             className={`rounded-full px-5 py-2.5 text-[13px] font-medium transition-all duration-300 cursor-pointer inline-flex items-center gap-1.5 ${

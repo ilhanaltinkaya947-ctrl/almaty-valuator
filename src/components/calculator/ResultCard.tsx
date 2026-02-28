@@ -104,17 +104,17 @@ export function ResultCard({ result, complexName, onBack, zoneId, floorPosition,
           <div className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] mb-3">
             Вас устраивает цена?
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <button
               onClick={() => setSelectedIntent("ready")}
-              className="rounded-2xl px-6 py-4 font-semibold text-white text-base transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(58,141,123,0.3)] cursor-pointer"
+              className="rounded-2xl px-4 sm:px-6 py-3 sm:py-4 font-semibold text-white text-base transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(58,141,123,0.3)] cursor-pointer"
               style={{ background: "linear-gradient(135deg, #66BB6A, #26A69A)" }}
             >
               Согласен
             </button>
             <button
               onClick={() => setSelectedIntent("negotiate")}
-              className="rounded-2xl px-6 py-4 font-semibold text-[#3A8D7B] text-base transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+              className="rounded-2xl px-4 sm:px-6 py-3 sm:py-4 font-semibold text-[#3A8D7B] text-base transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
               style={{
                 border: "2px solid rgba(58,141,123,0.3)",
                 background: "rgba(58,141,123,0.04)",

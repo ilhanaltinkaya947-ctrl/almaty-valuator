@@ -12,12 +12,25 @@ const CONDITION_LABELS: Record<ConditionType, string> = {
   rough: "Черновая",
 };
 
+const FLOOR_POSITION_LABELS: Record<string, string> = {
+  first: "Первый этаж",
+  middle: "Средний этаж",
+  last: "Последний этаж",
+};
+
+const INTENT_LABELS: Record<string, string> = {
+  ready: "Согласен",
+  negotiate: "Торг",
+};
+
 const pdfRequestSchema = z.object({
   complexName: z.string().min(1),
   area: z.number().min(20).max(300),
   yearBuilt: z.number().int().min(1950).max(2026),
   wallMaterial: z.enum(["panel", "brick", "monolith"]),
   condition: z.enum(["renovated", "rough"]),
+  floorPosition: z.enum(["first", "middle", "last"]).optional(),
+  intent: z.enum(["ready", "negotiate"]).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -32,6 +45,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Evaluate price
+    const floorPosition = input.floorPosition ?? "middle";
     const result = evaluateAuto({
       complexName: complex.name,
       area: input.area,
@@ -40,8 +54,14 @@ export async function POST(req: NextRequest) {
       condition: input.condition as ConditionType,
       complexCoefficient: complex.coefficient,
       housingClass: complex.class,
-      floorPosition: "middle",
+      floorPosition,
     });
+
+    // Derive display floor number from position
+    const floorNumber =
+      floorPosition === "first" ? 1 :
+      floorPosition === "last" ? complex.totalFloors :
+      Math.round(complex.totalFloors / 2);
 
     // Find 3-4 benchmark complexes (same district or similar class)
     const benchmarks: BenchmarkComplex[] = COMPLEXES
@@ -64,9 +84,11 @@ export async function POST(req: NextRequest) {
       yearBuilt: complex.yearBuilt,
       totalFloors: complex.totalFloors,
       area: input.area,
-      floor: 0,
+      floor: floorNumber,
       viewLabel: "—",
       conditionLabel: CONDITION_LABELS[input.condition as ConditionType],
+      floorPositionLabel: FLOOR_POSITION_LABELS[floorPosition],
+      intentLabel: INTENT_LABELS[input.intent ?? "ready"],
       totalPrice: result.totalPrice,
       pricePerSqm: result.pricePerSqm,
       marketPrice: result.marketPrice,
@@ -75,6 +97,7 @@ export async function POST(req: NextRequest) {
       kComplex: result.params.kComplex,
       kYear: result.params.kYear,
       kMaterial: result.params.kMaterial,
+      kFloor: result.params.kFloor,
       liquidityIndex: complex.liquidityIndex,
       benchmarks,
       generatedAt: new Date().toLocaleDateString("ru-RU", {
