@@ -162,6 +162,7 @@ export async function notifyLeadInteractive(lead: {
   id: string;
   name?: string | null;
   phone: string;
+  address?: string | null;
   property_type?: string | null;
   complex_name?: string | null;
   estimated_price?: number | null;
@@ -198,6 +199,7 @@ export async function notifyLeadInteractive(lead: {
 
   // Build extra info lines
   const extraLines: string[] = [];
+  if (lead.address) extraLines.push(`📌 <b>Адрес:</b> ${lead.address}`);
   if (lead.year_built) extraLines.push(`🏗 <b>Год:</b> ${lead.year_built}`);
   if (lead.wall_material) extraLines.push(`🧱 <b>Материал:</b> ${WALL_MATERIAL_LABELS[lead.wall_material] ?? lead.wall_material}`);
   if (lead.is_pledged != null) extraLines.push(`🔒 <b>Залог:</b> ${lead.is_pledged ? "Да" : "Нет"}`);
@@ -209,6 +211,7 @@ export async function notifyLeadInteractive(lead: {
         `🏠 <b>Тип:</b> ${typeLabel}`,
         `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
         `📞 <b>Телефон:</b> ${maskedPhone}`,
+        ...(lead.address ? [`📌 <b>Адрес:</b> ${lead.address}`] : []),
         `📍 <b>Источник:</b> ${lead.source ?? "website"}`,
         "",
         "⚠️ <i>Автоматический расчёт невозможен.</i>",
@@ -279,6 +282,7 @@ export async function notifyNewLead(lead: {
   id?: string;
   name?: string | null;
   phone: string;
+  address?: string | null;
   property_type?: string | null;
   complex_name?: string | null;
   estimated_price?: number | null;
@@ -295,6 +299,7 @@ export async function notifyNewLead(lead: {
       id: lead.id,
       name: lead.name,
       phone: lead.phone,
+      address: lead.address,
       property_type: lead.property_type,
       complex_name: lead.complex_name,
       estimated_price: lead.estimated_price,
@@ -317,6 +322,7 @@ export async function notifyNewLead(lead: {
     "",
     `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
     `📞 <b>Телефон:</b> ${lead.phone}`,
+    ...(lead.address ? [`📌 <b>Адрес:</b> ${lead.address}`] : []),
     `🏠 <b>Тип:</b> ${lead.property_type ?? "—"}`,
     `🏢 <b>ЖК:</b> ${lead.complex_name ?? "—"}`,
     `💰 <b>Оценка:</b> ${price}`,

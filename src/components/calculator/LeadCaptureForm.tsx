@@ -31,8 +31,8 @@ export function LeadCaptureForm({
   isPledged,
   intent = "ready",
 }: LeadCaptureFormProps) {
-  const [name, setName] = useState("");
   const [phone, setPhone] = useState("+7");
+  const [address, setAddress] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -52,7 +52,7 @@ export function LeadCaptureForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           phone: rawPhone,
-          name: name || undefined,
+          address: address || undefined,
           complex_id: complexId,
           area_sqm: areaSqm,
           floor,
@@ -108,20 +108,30 @@ export function LeadCaptureForm({
       </div>
 
       <div className="space-y-3 mb-4">
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Ваше имя"
-          className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3 text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200"
-        />
-        <input
-          type="tel"
-          value={phone}
-          onChange={handlePhoneChange}
-          placeholder="+7 (___) ___-__-__"
-          className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3 text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200 font-mono"
-        />
+        <div>
+          <label className="text-[12px] font-medium text-[#9CA3AF] uppercase tracking-[0.12em] block mb-1.5">
+            Номер телефона <span className="text-[#E74C3C]">*</span>
+          </label>
+          <input
+            type="tel"
+            value={phone}
+            onChange={handlePhoneChange}
+            placeholder="+7 (___) ___-__-__"
+            className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3 text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200 font-mono"
+          />
+        </div>
+        <div>
+          <label className="text-[12px] font-medium text-[#9CA3AF] uppercase tracking-[0.12em] block mb-1.5">
+            Точный адрес квартиры
+          </label>
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Улица, дом, квартира"
+            className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3 text-[#1A2332] placeholder:text-[#9CA3AF] focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200"
+          />
+        </div>
       </div>
 
       <button

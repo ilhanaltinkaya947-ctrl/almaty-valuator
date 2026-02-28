@@ -6,6 +6,7 @@ import type { Database } from "@/types/database";
 const createLeadSchema = z.object({
   phone: z.string().regex(/^\+7\d{10}$/),
   name: z.string().optional(),
+  address: z.string().optional(),
   complex_id: z.string().uuid().optional(),
   area_sqm: z.number().positive().optional(),
   floor: z.number().int().positive().optional(),
@@ -30,6 +31,12 @@ export async function POST(req: NextRequest) {
 
     const supabase = createAdminClient();
 
+    // Merge address into notes if provided
+    const noteParts: string[] = [];
+    if (data.address) noteParts.push(`Адрес: ${data.address}`);
+    if (data.notes) noteParts.push(data.notes);
+    const combinedNotes = noteParts.length > 0 ? noteParts.join("; ") : null;
+
     const { data: lead, error } = await supabase
       .from("leads")
       .insert({
@@ -43,7 +50,7 @@ export async function POST(req: NextRequest) {
         property_type: data.property_type ?? null,
         needs_manual_review: data.needs_manual_review ?? false,
         status: data.status ?? "new",
-        notes: data.notes ?? null,
+        notes: combinedNotes,
         zone_id: data.zone_id ?? null,
         building_series: data.building_series ?? null,
         year_built: data.year_built ?? null,
@@ -70,6 +77,7 @@ export async function POST(req: NextRequest) {
           id: leadRecord.id as string,
           name: data.name,
           phone: data.phone,
+          address: data.address,
           property_type: data.property_type,
           estimated_price: data.estimated_price,
           source: data.source,
