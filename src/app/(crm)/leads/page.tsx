@@ -98,7 +98,8 @@ export default function LeadsPage() {
       });
       if (!res.ok) {
         setLeads(previousLeads);
-        toast.error("Ошибка сохранения");
+        const errData = await res.json().catch(() => ({}));
+        toast.error(errData.error ?? "Ошибка сохранения");
       } else {
         toast.success(`Статус → ${label}`);
       }
@@ -127,7 +128,8 @@ export default function LeadsPage() {
       });
       if (!res.ok) {
         setLeads(previousLeads);
-        toast.error("Ошибка сохранения цены");
+        const errData = await res.json().catch(() => ({}));
+        toast.error(errData.error ?? "Ошибка сохранения цены");
       } else {
         toast.success("Цена обновлена");
       }

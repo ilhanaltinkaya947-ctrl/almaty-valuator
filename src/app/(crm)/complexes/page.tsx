@@ -22,12 +22,30 @@ interface Complex {
   avg_price_sqm: number | null;
 }
 
-const CLASS_OPTIONS = ["Elite", "Business+", "Business", "Comfort+", "Comfort", "Standard"];
+// DB enum values → display labels
+const CLASS_OPTIONS: { value: string; label: string }[] = [
+  { value: "elite", label: "Elite" },
+  { value: "business_plus", label: "Business+" },
+  { value: "business", label: "Business" },
+  { value: "comfort_plus", label: "Comfort+" },
+  { value: "comfort", label: "Comfort" },
+  { value: "standard", label: "Standard" },
+];
+
+const CLASS_COLORS: Record<string, string> = {
+  elite: "#C8A44E",
+  business_plus: "#9B59B6",
+  business: "#4A8FD4",
+  comfort_plus: "#3498DB",
+  comfort: "#25D366",
+  standard: "#8B95A8",
+};
 
 export default function ComplexesPage() {
   const [complexes, setComplexes] = useState<Complex[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [editingCoeff, setEditingCoeff] = useState<Record<string, string>>({});
 
   const getTg = () => (window as unknown as { Telegram?: { WebApp: TelegramWebApp } }).Telegram?.WebApp;
   const getInitData = () => getTg()?.initData ?? "";
@@ -62,7 +80,8 @@ export default function ComplexesPage() {
       });
       if (!res.ok) {
         setComplexes(prev);
-        toast.error("Ошибка сохранения");
+        const errData = await res.json().catch(() => ({}));
+        toast.error(errData.error ?? "Ошибка сохранения");
       } else {
         toast.success("Сохранено");
       }
@@ -70,6 +89,20 @@ export default function ComplexesPage() {
       setComplexes(prev);
       toast.error("Ошибка сети");
     }
+  };
+
+  const handleCoeffBlur = (id: string) => {
+    const val = editingCoeff[id];
+    if (val === undefined) return;
+    const num = parseFloat(val);
+    if (!isNaN(num) && num >= 0.5 && num <= 3.0) {
+      patchComplex(id, "coefficient", num);
+    }
+    setEditingCoeff((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   };
 
   const filtered = complexes.filter((c) =>
@@ -86,9 +119,12 @@ export default function ComplexesPage() {
       maxWidth: 1100,
       margin: "0 auto",
     }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#C8A44E", margin: "0 0 16px" }}>
-        🏢 База ЖК
-      </h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: "#C8A44E", margin: 0 }}>
+          🏢 База ЖК
+        </h1>
+        <span style={{ fontSize: 12, color: "#5A6478" }}>{complexes.length} объектов</span>
+      </div>
 
       <input
         type="text"
@@ -126,38 +162,55 @@ export default function ComplexesPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((c) => (
-                <tr key={c.id} style={{ borderBottom: "1px solid #1E2A3A10" }}>
-                  <td style={{ padding: "10px 8px", fontWeight: 600, color: "#F1F3F7" }}>{c.name}</td>
-                  <td style={{ padding: "10px 8px", color: "#8B95A8" }}>{c.district}</td>
-                  <td style={{ padding: "10px 8px", color: "#C8A44E", fontWeight: 700 }}>{c.coefficient?.toFixed(2)}</td>
-                  <td style={{ padding: "10px 8px", color: "#8B95A8" }}>{formatPrice(c.avg_price_sqm)}</td>
-                  <td style={{ padding: "10px 8px" }}>
-                    <select
-                      value={c.class ?? ""}
-                      onChange={(e) => patchComplex(c.id, "class", e.target.value)}
-                      style={{
-                        background: "#111827", color: "#F1F3F7", border: "1px solid #1E2A3A",
-                        borderRadius: 6, padding: "4px 8px", fontSize: 12, cursor: "pointer",
-                        outline: "none",
-                      }}
-                    >
-                      <option value="">—</option>
-                      {CLASS_OPTIONS.map((cls) => (
-                        <option key={cls} value={cls}>{cls}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td style={{ padding: "10px 8px", textAlign: "center" }}>
-                    <input
-                      type="checkbox"
-                      checked={c.is_golden_square ?? false}
-                      onChange={(e) => patchComplex(c.id, "is_golden_square", e.target.checked)}
-                      style={{ width: 18, height: 18, cursor: "pointer", accentColor: "#C8A44E" }}
-                    />
-                  </td>
-                </tr>
-              ))}
+              {filtered.map((c) => {
+                const classColor = CLASS_COLORS[c.class ?? ""] ?? "#8B95A8";
+                return (
+                  <tr key={c.id} style={{ borderBottom: "1px solid #1E2A3A10" }}>
+                    <td style={{ padding: "10px 8px", fontWeight: 600, color: "#F1F3F7" }}>{c.name}</td>
+                    <td style={{ padding: "10px 8px", color: "#8B95A8" }}>{c.district}</td>
+                    <td style={{ padding: "10px 8px" }}>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editingCoeff[c.id] ?? c.coefficient?.toFixed(2) ?? ""}
+                        onChange={(e) => setEditingCoeff((p) => ({ ...p, [c.id]: e.target.value }))}
+                        onBlur={() => handleCoeffBlur(c.id)}
+                        onKeyDown={(e) => { if (e.key === "Enter") handleCoeffBlur(c.id); }}
+                        style={{
+                          width: 65, padding: "4px 6px", background: "#0A0D14",
+                          border: "1px solid #1E2A3A", borderRadius: 6, color: "#C8A44E",
+                          fontSize: 13, fontWeight: 700, outline: "none", textAlign: "right",
+                        }}
+                      />
+                    </td>
+                    <td style={{ padding: "10px 8px", color: "#8B95A8" }}>{formatPrice(c.avg_price_sqm)}</td>
+                    <td style={{ padding: "10px 8px" }}>
+                      <select
+                        value={c.class ?? ""}
+                        onChange={(e) => patchComplex(c.id, "class", e.target.value)}
+                        style={{
+                          background: "#111827", color: classColor, border: "1px solid #1E2A3A",
+                          borderRadius: 6, padding: "4px 8px", fontSize: 12, cursor: "pointer",
+                          outline: "none", fontWeight: 600,
+                        }}
+                      >
+                        <option value="">—</option>
+                        {CLASS_OPTIONS.map((cls) => (
+                          <option key={cls.value} value={cls.value}>{cls.label}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td style={{ padding: "10px 8px", textAlign: "center" }}>
+                      <input
+                        type="checkbox"
+                        checked={c.is_golden_square ?? false}
+                        onChange={(e) => patchComplex(c.id, "is_golden_square", e.target.checked)}
+                        style={{ width: 18, height: 18, cursor: "pointer", accentColor: "#C8A44E" }}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           {filtered.length === 0 && (

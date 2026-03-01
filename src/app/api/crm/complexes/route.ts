@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 const updateComplexSchema = z.object({
   complex_id: z.string(),
   coefficient: z.number().min(0.5).max(3.0).optional(),
-  class: z.enum(["Elite", "Business+", "Business", "Comfort+", "Comfort", "Standard"]).optional(),
+  class: z.enum(["elite", "business_plus", "business", "comfort_plus", "comfort", "standard"]).optional(),
   is_golden_square: z.boolean().optional(),
 });
 
