@@ -24,42 +24,42 @@ const MAX_PAGES = 3; // scrape first 3 pages per district (~60 listings)
 const DISTRICT_MAP: { district: string; krishaSlug: string; zoneSlugs: string[] }[] = [
   {
     district: "Алмалинский",
-    krishaSlug: "almaty-almalinskij-rajon",
+    krishaSlug: "almaty-almalinskij",
     zoneSlugs: ["centr-arbat", "ploshchad-respubliki", "almaly-zhibek-zholy"],
   },
   {
     district: "Бостандыкский",
-    krishaSlug: "almaty-bostandykskij-rajon",
+    krishaSlug: "almaty-bostandykskij",
     zoneSlugs: ["bostandyk-verhniy", "almagul-kazakhfilm", "orbita-sayran", "tastak"],
   },
   {
     district: "Ауэзовский",
-    krishaSlug: "almaty-auezovskij-rajon",
+    krishaSlug: "almaty-aujezovskij",
     zoneSlugs: ["mamyr-saina", "orbita-auezov", "aksay", "zhetysu", "mikrorayony"],
   },
   {
     district: "Медеуский",
-    krishaSlug: "almaty-medeusskij-rajon",
+    krishaSlug: "almaty-medeuskij",
     zoneSlugs: ["medeu-verhniy", "dostyk-koridor", "samal-zholdasbekova", "koktobe-remizovka"],
   },
   {
     district: "Наурызбайский",
-    krishaSlug: "almaty-nauryzbajskij-rajon",
+    krishaSlug: "almaty-nauryzbajskiy",
     zoneSlugs: ["nurlytau-remizovka", "nauryzbay", "kalkaman-duman"],
   },
   {
     district: "Жетысуский",
-    krishaSlug: "almaty-zhetysuskij-rajon",
+    krishaSlug: "almaty-zhetysuskij",
     zoneSlugs: ["taugul-zhandosova", "ainabulak"],
   },
   {
     district: "Турксибский",
-    krishaSlug: "almaty-turksibskij-rajon",
+    krishaSlug: "almaty-turksibskij",
     zoneSlugs: ["turksib", "altyn-orda"],
   },
   {
     district: "Алатауский",
-    krishaSlug: "almaty-alatauskij-rajon",
+    krishaSlug: "almaty-alatauskij",
     zoneSlugs: ["alatau-verhniy", "alatau-nizhniy"],
   },
 ];
