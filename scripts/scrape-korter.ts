@@ -92,11 +92,12 @@ function mapClass(raw: string | null): string | null {
   if (lower.includes("бизнес+") || lower.includes("бизнес +")) return "business_plus";
   if (lower.includes("комфорт+") || lower.includes("комфорт +")) return "comfort_plus";
 
-  // Standard class mappings
-  if (lower.includes("элит") || lower.includes("i класс") || lower.includes("премиум")) return "elite";
-  if (lower.includes("бизнес") || lower.includes("ii класс")) return "business";
-  if (lower.includes("комфорт") || lower.includes("iii класс")) return "comfort";
+  // Roman numeral classes — check longest first to avoid substring matches
+  // ("i класс" would match "ii класс", "iii класс", "iv класс" if checked first)
   if (lower.includes("эконом") || lower.includes("iv класс")) return "standard";
+  if (lower.includes("комфорт") || lower.includes("iii класс")) return "comfort";
+  if (lower.includes("бизнес") || lower.includes("ii класс")) return "business";
+  if (lower.includes("элит") || lower.includes("i класс") || lower.includes("премиум")) return "elite";
 
   return null;
 }

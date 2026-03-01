@@ -147,18 +147,39 @@ function similarity(a: string, b: string): number {
   return 1 - levenshtein(a, b) / maxLen;
 }
 
-// ─── Map raw Krisha class to our enum ────────────────────────────────────────
+// ─── Map raw class string to our enum ────────────────────────────────────────
 
-function mapKrishaClass(raw: string | null): HousingClass {
-  if (!raw) return "comfort";
+/**
+ * Map a raw class string (from Krisha or Korter) to our HousingClass enum.
+ * Roman numeral checks go from longest to shortest to avoid substring bugs
+ * (e.g. "i класс" matching "iii класс").
+ */
+function mapClassRaw(raw: string | null, fallback: HousingClass = "comfort"): HousingClass {
+  if (!raw) return fallback;
   const lower = raw.toLowerCase();
-  if (lower.includes("бизнес+")) return "business_plus";
-  if (lower.includes("комфорт+")) return "comfort_plus";
-  if (lower.includes("элит")) return "elite";
-  if (lower.includes("бизнес")) return "business";
-  if (lower.includes("комфорт")) return "comfort";
+
+  // Check + variants first (more specific)
+  if (lower.includes("бизнес+") || lower.includes("бизнес +")) return "business_plus";
+  if (lower.includes("комфорт+") || lower.includes("комфорт +")) return "comfort_plus";
+
+  // Roman numeral classes — check longest first to avoid substring matches
+  if (lower.includes("iv класс")) return "standard";
+  if (lower.includes("iii класс") || lower.includes("iii (")) return "comfort";
+  if (lower.includes("ii класс")) return "business";
+  if (lower.includes("i класс")) return "elite";
+
+  // Text-based class names
   if (lower.includes("эконом")) return "standard";
-  return "comfort";
+  if (lower.includes("комфорт")) return "comfort";
+  if (lower.includes("бизнес")) return "business";
+  if (lower.includes("элит") || lower.includes("премиум")) return "elite";
+
+  return fallback;
+}
+
+/** Alias for backward compatibility */
+function mapKrishaClass(raw: string | null): HousingClass {
+  return mapClassRaw(raw);
 }
 
 // ─── Map raw wall material ───────────────────────────────────────────────────
@@ -260,7 +281,8 @@ function main() {
       matched++;
 
       // Merge: District from Krisha, class + wall_material from Korter
-      const cls = (c.class as HousingClass) ?? mapKrishaClass(k.class_raw);
+      // Always re-map from class_raw to avoid stale pre-mapped values
+      const cls = mapClassRaw(c.class_raw, mapClassRaw(k.class_raw));
       const wall = (c.wall_material as "panel" | "brick" | "monolith" | null) ?? mapWall(k.wall_material);
 
       merged.push({
@@ -320,7 +342,7 @@ function main() {
     if (!c.name) continue;
     korterOnly++;
 
-    const cls = (c.class as HousingClass) ?? "comfort";
+    const cls = mapClassRaw(c.class_raw);
 
     merged.push({
       name: c.name,
