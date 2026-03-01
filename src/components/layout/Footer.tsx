@@ -49,11 +49,11 @@ export function Footer() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo-icon.svg"
-                alt=""
+                alt="Алмавыкуп"
                 className="h-8 w-8 brightness-0 invert opacity-90"
               />
               <span className="text-[16px] font-semibold tracking-tight">
-                <span className="text-[#3A8D7B]">Алма</span>
+                <span className="text-[#5DB83D]">Алма</span>
                 <span className="text-white/90">выкуп</span>
               </span>
             </div>

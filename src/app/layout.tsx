@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     "выкуп недвижимости алматы, срочный выкуп квартиры, продать квартиру быстро алматы, скупка недвижимости",
   icons: {
     icon: "/logo-icon.svg",
-    apple: "/logo-icon.svg",
+    apple: "/logo-512.svg",
   },
   openGraph: {
     title: "Алмавыкуп — Срочный выкуп недвижимости в Алматы",

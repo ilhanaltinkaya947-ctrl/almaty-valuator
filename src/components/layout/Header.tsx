@@ -59,12 +59,12 @@ export function Header() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo-icon.svg"
-                alt=""
+                alt="Алмавыкуп"
                 className="h-7 w-7 sm:h-8 sm:w-8"
               />
               <span className="text-[15px] font-semibold tracking-tight">
-                <span style={{ color: "#3A8D7B" }}>Алма</span>
-                <span className="text-[#1A2332]">выкуп</span>
+                <span className="text-[#0F5A45]">Алма</span>
+                <span className="text-[#5DB83D]">выкуп</span>
               </span>
             </a>
 
