@@ -55,22 +55,19 @@ export function getFloorCoefficient(position: FloorPosition): number {
   return position === "middle" ? 1.0 : 0.95;
 }
 
-/** Buyback multiplier with panel/вторичка/Золотой квадрат logic */
+/** Buyback multiplier — separate logic for ЖК vs Вторичка paths */
 export function getBuybackMultiplier(opts: {
   housingClass: string;
   wallMaterial: WallMaterial;
   isVtorichka: boolean;
   zoneSlug?: string;
 }): number {
-  const isPanel = opts.wallMaterial === "panel";
-  const isZolotoyKvadrat = opts.zoneSlug === "zolotoy-kvadrat";
-
-  // Panel OR вторичка path: 0.70, exception: Золотой квадрат → 0.80
-  if (isPanel || opts.isVtorichka) {
-    return isZolotoyKvadrat ? 0.80 : 0.70;
+  // Вторичка path: always 0.70, exception: Золотой квадрат → 0.80
+  if (opts.isVtorichka) {
+    return opts.zoneSlug === "zolotoy-kvadrat" ? 0.80 : 0.70;
   }
 
-  // ЖК non-panel path
+  // ЖК path: strictly by housing class, wall material is irrelevant
   switch (opts.housingClass) {
     case "elite":
     case "business_plus":
@@ -79,7 +76,7 @@ export function getBuybackMultiplier(opts: {
     case "comfort_plus":
       return 0.85;
     case "comfort":
-      return 0.90;
+      return 0.80;
     case "standard":
     default:
       return 0.70;
