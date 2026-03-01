@@ -1,0 +1,130 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import {
+  Lead,
+  PIPELINE_STATUSES,
+  TERMINAL_STATUSES,
+  formatPrice,
+} from "@/lib/crm-constants";
+import KanbanColumn from "./KanbanColumn";
+import LeadDetailPanel from "./LeadDetailPanel";
+
+export default function KanbanBoard({
+  leads,
+  buybackDiscount,
+  search,
+  onStatusChange,
+  onSetPrice,
+}: {
+  leads: Lead[];
+  buybackDiscount: number;
+  search: string;
+  onStatusChange: (id: string, status: string) => void;
+  onSetPrice: (id: string, price: number) => void;
+}) {
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+
+  const filtered = useMemo(() => {
+    if (!search) return leads;
+    const q = search.toLowerCase();
+    return leads.filter(
+      (l) =>
+        (l.name?.toLowerCase().includes(q) ?? false) ||
+        l.phone.includes(search)
+    );
+  }, [leads, search]);
+
+  const grouped = useMemo(() => {
+    const map: Record<string, Lead[]> = {};
+    for (const s of PIPELINE_STATUSES) {
+      map[s] = [];
+    }
+    for (const lead of filtered) {
+      if (map[lead.status]) {
+        map[lead.status].push(lead);
+      }
+    }
+    return map;
+  }, [filtered]);
+
+  const totalActive = filtered.filter(
+    (l) => !(TERMINAL_STATUSES as readonly string[]).includes(l.status)
+  ).length;
+  const totalOfferSum = filtered.reduce(
+    (sum, l) => sum + (l.offer_price ?? l.estimated_price ?? 0),
+    0
+  );
+
+  const handleStatusChange = (id: string, status: string) => {
+    onStatusChange(id, status);
+    if (selectedLead && selectedLead.id === id) {
+      setSelectedLead({ ...selectedLead, status });
+    }
+  };
+
+  const handleSetPrice = (id: string, price: number) => {
+    onSetPrice(id, price);
+    if (selectedLead && selectedLead.id === id) {
+      setSelectedLead({ ...selectedLead, offer_price: price });
+    }
+  };
+
+  return (
+    <div>
+      {/* Summary bar */}
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          marginBottom: 12,
+          padding: "8px 12px",
+          background: "#111827",
+          borderRadius: 8,
+          border: "1px solid #1E2A3A",
+          fontSize: 12,
+        }}
+      >
+        <span style={{ color: "#8B95A8" }}>
+          Активных: <span style={{ color: "#F1F3F7", fontWeight: 700 }}>{totalActive}</span>
+        </span>
+        <span style={{ color: "#8B95A8" }}>
+          Сумма оферт: <span style={{ color: "#C8A44E", fontWeight: 700 }}>{formatPrice(totalOfferSum || null)}</span>
+        </span>
+      </div>
+
+      {/* Kanban columns */}
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          overflowX: "auto",
+          height: "calc(100vh - 160px)",
+          paddingBottom: 8,
+        }}
+      >
+        {PIPELINE_STATUSES.map((status) => (
+          <KanbanColumn
+            key={status}
+            status={status}
+            leads={grouped[status]}
+            defaultCollapsed={(TERMINAL_STATUSES as readonly string[]).includes(status)}
+            onCardClick={setSelectedLead}
+            onStatusChange={handleStatusChange}
+          />
+        ))}
+      </div>
+
+      {/* Detail panel */}
+      {selectedLead && (
+        <LeadDetailPanel
+          lead={selectedLead}
+          buybackDiscount={buybackDiscount}
+          onClose={() => setSelectedLead(null)}
+          onStatusChange={handleStatusChange}
+          onSetPrice={handleSetPrice}
+        />
+      )}
+    </div>
+  );
+}

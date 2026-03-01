@@ -1,0 +1,149 @@
+export interface Lead {
+  id: string;
+  phone: string;
+  name: string | null;
+  status: string;
+  source: string;
+  property_type: string | null;
+  estimated_price: number | null;
+  offer_price: number | null;
+  needs_manual_review: boolean;
+  created_at: string;
+  contacted_at: string | null;
+  floor: number | null;
+  area_sqm: number | null;
+  zone_id: string | null;
+  complex_id: string | null;
+  complex_name?: string | null;
+  year_built: number | null;
+  wall_material: string | null;
+  notes: string | null;
+  intent: string;
+  building_series: string | null;
+  is_pledged: boolean;
+}
+
+export interface SettingRow {
+  key: string;
+  value_numeric: number;
+  description?: string | null;
+}
+
+export const PIPELINE_STATUSES = [
+  "new",
+  "in_progress",
+  "price_approved",
+  "jurist_approved",
+  "director_approved",
+  "deal_progress",
+  "paid",
+  "rejected",
+] as const;
+
+export const ACTIVE_STATUSES = [
+  "new",
+  "in_progress",
+  "price_approved",
+  "jurist_approved",
+  "director_approved",
+  "deal_progress",
+] as const;
+
+export const TERMINAL_STATUSES = ["paid", "rejected"] as const;
+
+export const STATUS_OPTIONS: readonly { value: string; label: string; color?: string }[] = [
+  { value: "all", label: "Все" },
+  { value: "new", label: "Новые", color: "#C8A44E" },
+  { value: "in_progress", label: "В обработке", color: "#4A8FD4" },
+  { value: "price_approved", label: "Оценка", color: "#E8A838" },
+  { value: "jurist_approved", label: "Юрист", color: "#9B59B6" },
+  { value: "director_approved", label: "Директор", color: "#3498DB" },
+  { value: "deal_progress", label: "Сделка", color: "#F39C12" },
+  { value: "paid", label: "Выдано", color: "#25D366" },
+  { value: "rejected", label: "Отказ", color: "#5A6478" },
+];
+
+export const STATUS_LABELS: Record<string, string> = {
+  new: "Новый",
+  in_progress: "В обработке",
+  price_approved: "Оценка \u2713",
+  jurist_approved: "Юрист \u2713",
+  director_approved: "Директор \u2713",
+  deal_progress: "На сделке",
+  paid: "Выдано \u2713",
+  rejected: "Отказ",
+};
+
+export const STATUS_COLORS: Record<string, string> = {
+  new: "#C8A44E",
+  in_progress: "#4A8FD4",
+  price_approved: "#E8A838",
+  jurist_approved: "#9B59B6",
+  director_approved: "#3498DB",
+  deal_progress: "#F39C12",
+  paid: "#25D366",
+  rejected: "#5A6478",
+};
+
+export const NEXT_STATUS: Record<string, string> = {
+  new: "in_progress",
+  in_progress: "price_approved",
+  price_approved: "jurist_approved",
+  jurist_approved: "director_approved",
+  director_approved: "deal_progress",
+  deal_progress: "paid",
+};
+
+export const NEXT_STATUS_LABELS: Record<string, string> = {
+  new: "Взять в работу",
+  in_progress: "Оценка \u2713",
+  price_approved: "Юрист \u2713",
+  jurist_approved: "Директор \u2713",
+  director_approved: "На сделку",
+  deal_progress: "Выдано \u2713",
+};
+
+export const INTENT_LABELS: Record<string, string> = {
+  ready: "Согласен",
+  negotiate: "Торг",
+};
+
+export const INTENT_COLORS: Record<string, string> = {
+  ready: "#25D366",
+  negotiate: "#E8A838",
+};
+
+export const PROPERTY_TYPE_LABELS: Record<string, string> = {
+  apartment: "Квартира",
+  house: "Дом",
+  commercial: "Коммерция",
+  land: "Участок",
+};
+
+export function formatPrice(price: number | null): string {
+  return price ? new Intl.NumberFormat("ru-RU").format(price) + " \u20B8" : "\u2014";
+}
+
+export function formatDate(date: string): string {
+  return new Date(date).toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export function timeAgo(date: string): string {
+  const now = Date.now();
+  const then = new Date(date).getTime();
+  const diffMs = now - then;
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return "только что";
+  if (diffMin < 60) return `${diffMin} мин`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `${diffHours} ч`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 30) return `${diffDays} д`;
+  const diffMonths = Math.floor(diffDays / 30);
+  return `${diffMonths} мес`;
+}

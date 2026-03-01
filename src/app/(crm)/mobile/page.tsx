@@ -1,21 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-
-interface Lead {
-  id: string;
-  phone: string;
-  name: string | null;
-  status: string;
-  source: string;
-  property_type: string | null;
-  estimated_price: number | null;
-  offer_price: number | null;
-  needs_manual_review: boolean;
-  created_at: string;
-  contacted_at: string | null;
-  complex_name?: string | null;
-}
+import {
+  Lead,
+  SettingRow,
+  STATUS_OPTIONS,
+  STATUS_COLORS,
+  STATUS_LABELS,
+  formatPrice as sharedFormatPrice,
+  formatDate as sharedFormatDate,
+} from "@/lib/crm-constants";
 
 interface TelegramWebApp {
   initData: string;
@@ -38,23 +32,6 @@ interface TelegramWebApp {
     button_color?: string;
     button_text_color?: string;
   };
-}
-
-const STATUS_OPTIONS = [
-  { value: "all", label: "Все" },
-  { value: "new", label: "Новые", color: "#C8A44E" },
-  { value: "in_progress", label: "В обработке", color: "#4A8FD4" },
-  { value: "price_approved", label: "Оценка", color: "#E8A838" },
-  { value: "jurist_approved", label: "Юрист", color: "#9B59B6" },
-  { value: "director_approved", label: "Директор", color: "#3498DB" },
-  { value: "deal_progress", label: "Сделка", color: "#F39C12" },
-  { value: "paid", label: "Выдано", color: "#25D366" },
-  { value: "rejected", label: "Отказ", color: "#5A6478" },
-];
-
-interface SettingRow {
-  key: string;
-  value_numeric: number;
 }
 
 export default function MobileCRM() {
@@ -342,27 +319,8 @@ function LeadCard({
   const limitPrice = marketPrice ? Math.round(marketPrice * 0.80) : null;
   const margin = marketPrice && offerPrice ? Math.round((1 - offerPrice / marketPrice) * 100) : null;
 
-  const statusColor: Record<string, string> = {
-    new: "#C8A44E",
-    in_progress: "#4A8FD4",
-    price_approved: "#E8A838",
-    jurist_approved: "#9B59B6",
-    director_approved: "#3498DB",
-    deal_progress: "#F39C12",
-    paid: "#25D366",
-    rejected: "#5A6478",
-  };
-
-  const statusLabel: Record<string, string> = {
-    new: "Новый",
-    in_progress: "В обработке",
-    price_approved: "Оценка ✓",
-    jurist_approved: "Юрист ✓",
-    director_approved: "Директор ✓",
-    deal_progress: "На сделке",
-    paid: "Выдано ✓",
-    rejected: "Отказ",
-  };
+  const statusColor = STATUS_COLORS;
+  const statusLabel = STATUS_LABELS;
 
   return (
     <div

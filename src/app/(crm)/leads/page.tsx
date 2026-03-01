@@ -1,93 +1,22 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-
-interface Lead {
-  id: string;
-  phone: string;
-  name: string | null;
-  status: string;
-  source: string;
-  property_type: string | null;
-  estimated_price: number | null;
-  offer_price: number | null;
-  needs_manual_review: boolean;
-  created_at: string;
-  contacted_at: string | null;
-  floor: number | null;
-  area_sqm: number | null;
-  zone_id: string | null;
-  complex_id: string | null;
-  year_built: number | null;
-  wall_material: string | null;
-  notes: string | null;
-  intent: string;
-  building_series: string | null;
-  is_pledged: boolean;
-}
-
-interface SettingRow {
-  key: string;
-  value_numeric: number;
-  description: string | null;
-}
+import {
+  Lead,
+  SettingRow,
+  STATUS_OPTIONS,
+  formatPrice,
+  formatDate,
+} from "@/lib/crm-constants";
+import ViewToggle from "./components/ViewToggle";
+import LeadCard from "./components/LeadCard";
+import KanbanBoard from "./components/KanbanBoard";
 
 interface TelegramWebApp {
   initData: string;
   ready: () => void;
   expand: () => void;
 }
-
-const STATUS_OPTIONS = [
-  { value: "all", label: "Все" },
-  { value: "new", label: "Новые", color: "#C8A44E" },
-  { value: "in_progress", label: "В обработке", color: "#4A8FD4" },
-  { value: "price_approved", label: "Оценка", color: "#E8A838" },
-  { value: "jurist_approved", label: "Юрист", color: "#9B59B6" },
-  { value: "director_approved", label: "Директор", color: "#3498DB" },
-  { value: "deal_progress", label: "Сделка", color: "#F39C12" },
-  { value: "paid", label: "Выдано", color: "#25D366" },
-  { value: "rejected", label: "Отказ", color: "#5A6478" },
-];
-
-const STATUS_LABELS: Record<string, string> = {
-  new: "Новый",
-  in_progress: "В обработке",
-  price_approved: "Оценка ✓",
-  jurist_approved: "Юрист ✓",
-  director_approved: "Директор ✓",
-  deal_progress: "На сделке",
-  paid: "Выдано ✓",
-  rejected: "Отказ",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  new: "#C8A44E",
-  in_progress: "#4A8FD4",
-  price_approved: "#E8A838",
-  jurist_approved: "#9B59B6",
-  director_approved: "#3498DB",
-  deal_progress: "#F39C12",
-  paid: "#25D366",
-  rejected: "#5A6478",
-};
-
-const INTENT_LABELS: Record<string, string> = {
-  ready: "Согласен",
-  negotiate: "Торг",
-};
-
-const INTENT_COLORS: Record<string, string> = {
-  ready: "#25D366",
-  negotiate: "#E8A838",
-};
-
-const PROPERTY_TYPE_LABELS: Record<string, string> = {
-  apartment: "Квартира",
-  house: "Дом",
-  commercial: "Коммерция",
-  land: "Участок",
-};
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -96,6 +25,17 @@ export default function LeadsPage() {
   const [search, setSearch] = useState("");
   const [buybackDiscount, setBuybackDiscount] = useState(0.7);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "kanban">(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("crm-view-mode") as "list" | "kanban") ?? "list";
+    }
+    return "list";
+  });
+
+  const handleViewChange = (v: "list" | "kanban") => {
+    setViewMode(v);
+    localStorage.setItem("crm-view-mode", v);
+  };
 
   const getTg = () => (window as unknown as { Telegram?: { WebApp: TelegramWebApp } }).Telegram?.WebApp;
   const getInitData = () => getTg()?.initData ?? "";
@@ -167,9 +107,7 @@ export default function LeadsPage() {
       if (res.ok) {
         setLeads((prev) =>
           prev.map((l) =>
-            l.id === leadId
-              ? { ...l, offer_price: price }
-              : l
+            l.id === leadId ? { ...l, offer_price: price } : l
           )
         );
       }
@@ -185,17 +123,8 @@ export default function LeadsPage() {
     return matchesFilter && matchesSearch;
   });
 
-  // Split into auto vs manual
   const autoLeads = filteredLeads.filter((l) => !l.needs_manual_review);
   const manualLeads = filteredLeads.filter((l) => l.needs_manual_review);
-
-  const formatPrice = (price: number | null) =>
-    price ? new Intl.NumberFormat("ru-RU").format(price) + " ₸" : "—";
-
-  const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString("ru-RU", {
-      day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
-    });
 
   return (
     <div style={{
@@ -204,12 +133,16 @@ export default function LeadsPage() {
       color: "#F1F3F7",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       padding: "16px",
-      maxWidth: 900,
+      maxWidth: viewMode === "kanban" ? "100%" : 900,
       margin: "0 auto",
     }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#C8A44E", margin: "0 0 16px" }}>
-        Лиды
-      </h1>
+      {/* Header with title + toggle */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: "#C8A44E", margin: 0 }}>
+          Лиды
+        </h1>
+        <ViewToggle view={viewMode} onChange={handleViewChange} />
+      </div>
 
       {/* Search */}
       <input
@@ -224,25 +157,6 @@ export default function LeadsPage() {
         }}
       />
 
-      {/* Filter pills */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 16, overflowX: "auto", paddingBottom: 4 }}>
-        {STATUS_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => setFilter(opt.value)}
-            style={{
-              padding: "6px 12px", borderRadius: 16,
-              border: `1px solid ${filter === opt.value ? (opt.color ?? "#C8A44E") : "#1E2A3A"}`,
-              background: filter === opt.value ? (opt.color ?? "#C8A44E") + "20" : "transparent",
-              color: filter === opt.value ? (opt.color ?? "#C8A44E") : "#8B95A8",
-              fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap",
-            }}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-
       {loading ? (
         <div style={{ textAlign: "center", color: "#8B95A8", padding: 40 }}>Загрузка...</div>
       ) : error ? (
@@ -254,8 +168,35 @@ export default function LeadsPage() {
             color: "#0A0D14", border: "none", borderRadius: 6, cursor: "pointer",
           }}>Повторить</button>
         </div>
+      ) : viewMode === "kanban" ? (
+        <KanbanBoard
+          leads={leads}
+          buybackDiscount={buybackDiscount}
+          search={search}
+          onStatusChange={updateLeadStatus}
+          onSetPrice={setOfferPrice}
+        />
       ) : (
         <>
+          {/* Filter pills (list view only) */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 16, overflowX: "auto", paddingBottom: 4 }}>
+            {STATUS_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setFilter(opt.value)}
+                style={{
+                  padding: "6px 12px", borderRadius: 16,
+                  border: `1px solid ${filter === opt.value ? (opt.color ?? "#C8A44E") : "#1E2A3A"}`,
+                  background: filter === opt.value ? (opt.color ?? "#C8A44E") + "20" : "transparent",
+                  color: filter === opt.value ? (opt.color ?? "#C8A44E") : "#8B95A8",
+                  fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap",
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
           {/* Auto-buyback section */}
           <SectionHeader title="Авто-выкуп" subtitle="Квартиры и таунхаусы" color="#25D366" count={autoLeads.length} />
           {autoLeads.length === 0 ? (
@@ -269,8 +210,6 @@ export default function LeadsPage() {
                   buybackDiscount={buybackDiscount}
                   onStatusChange={updateLeadStatus}
                   onSetPrice={setOfferPrice}
-                  formatPrice={formatPrice}
-                  formatDate={formatDate}
                 />
               ))}
             </div>
@@ -289,8 +228,6 @@ export default function LeadsPage() {
                   buybackDiscount={buybackDiscount}
                   onStatusChange={updateLeadStatus}
                   onSetPrice={setOfferPrice}
-                  formatPrice={formatPrice}
-                  formatDate={formatDate}
                 />
               ))}
             </div>
@@ -317,305 +254,4 @@ function SectionHeader({ title, subtitle, color, count }: { title: string; subti
 
 function EmptyState({ text }: { text: string }) {
   return <div style={{ textAlign: "center", color: "#5A6478", padding: 20, fontSize: 13 }}>{text}</div>;
-}
-
-function LeadCard({
-  lead,
-  buybackDiscount,
-  onStatusChange,
-  onSetPrice,
-  formatPrice,
-  formatDate,
-}: {
-  lead: Lead;
-  buybackDiscount: number;
-  onStatusChange: (id: string, status: string) => void;
-  onSetPrice: (id: string, price: number) => void;
-  formatPrice: (p: number | null) => string;
-  formatDate: (d: string) => string;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const [priceInput, setPriceInput] = useState("");
-
-  const color = STATUS_COLORS[lead.status] ?? "#1E2A3A";
-
-  // Derive 3 prices for auto-calc leads
-  const offerPrice = lead.estimated_price;
-  const marketPrice = offerPrice && buybackDiscount > 0
-    ? Math.round(offerPrice / buybackDiscount)
-    : null;
-  const limitPrice = marketPrice ? Math.round(marketPrice * 0.80) : null;
-  const margin = marketPrice && offerPrice
-    ? Math.round((1 - offerPrice / marketPrice) * 100)
-    : null;
-
-  const waPhone = lead.phone.replace(/\D/g, "");
-  const offerText = offerPrice
-    ? `Наше предложение по срочному выкупу: ${new Intl.NumberFormat("ru-RU").format(offerPrice)} тенге.`
-    : "";
-  const waMessage = encodeURIComponent(
-    `Здравствуйте${lead.name ? `, ${lead.name}` : ""}! Я менеджер из Алмавыкуп. ${offerText}`
-  );
-
-  return (
-    <div style={{
-      background: "#111827", border: "1px solid #1E2A3A", borderRadius: 10,
-      padding: 14, borderLeft: `3px solid ${color}`,
-    }}>
-      <div onClick={() => setExpanded(!expanded)} style={{ cursor: "pointer" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontWeight: 600, fontSize: 15 }}>{lead.name ?? "Без имени"}</span>
-          <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
-            {lead.property_type && PROPERTY_TYPE_LABELS[lead.property_type] && (
-              <span style={{
-                fontSize: 10, padding: "2px 6px", borderRadius: 8,
-                background: "#4A8FD420", color: "#4A8FD4", fontWeight: 600,
-              }}>
-                {PROPERTY_TYPE_LABELS[lead.property_type]}
-              </span>
-            )}
-            {lead.intent && INTENT_LABELS[lead.intent] && (
-              <span style={{
-                fontSize: 10, padding: "2px 6px", borderRadius: 8,
-                background: (INTENT_COLORS[lead.intent] ?? "#5A6478") + "20",
-                color: INTENT_COLORS[lead.intent] ?? "#5A6478", fontWeight: 600,
-              }}>
-                {INTENT_LABELS[lead.intent]}
-              </span>
-            )}
-            {margin !== null && !lead.needs_manual_review && (
-              <span style={{
-                fontSize: 10, padding: "2px 6px", borderRadius: 8,
-                background: "#25D36620", color: "#25D366", fontWeight: 700,
-              }}>
-                {margin}%
-              </span>
-            )}
-            <span style={{
-              fontSize: 11, padding: "2px 8px", borderRadius: 10,
-              background: color + "25", color, fontWeight: 600,
-            }}>
-              {STATUS_LABELS[lead.status] ?? lead.status}
-            </span>
-          </div>
-        </div>
-
-        {/* 3-price display for auto-calc leads */}
-        {!lead.needs_manual_review && offerPrice ? (
-          <div style={{ display: "flex", gap: 12, marginTop: 8, fontSize: 12 }}>
-            <div>
-              <div style={{ color: "#5A6478", fontSize: 10 }}>Рынок</div>
-              <div style={{ color: "#8B95A8", fontWeight: 600 }}>{formatPrice(marketPrice)}</div>
-            </div>
-            <div>
-              <div style={{ color: "#5A6478", fontSize: 10 }}>Оферта</div>
-              <div style={{ color: "#C8A44E", fontWeight: 700 }}>{formatPrice(offerPrice)}</div>
-            </div>
-            <div>
-              <div style={{ color: "#5A6478", fontSize: 10 }}>Лимит</div>
-              <div style={{ color: "#E74C3C", fontWeight: 600 }}>{formatPrice(limitPrice)}</div>
-            </div>
-          </div>
-        ) : (
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 13, color: "#8B95A8" }}>
-            <span>{lead.phone}</span>
-            <span>{lead.offer_price ? formatPrice(lead.offer_price) : "Ожидает оценки"}</span>
-          </div>
-        )}
-
-        <div style={{ fontSize: 11, color: "#5A6478", marginTop: 4 }}>
-          {formatDate(lead.created_at)} · {lead.phone}
-          {lead.area_sqm ? ` · ${lead.area_sqm} м²` : ""}
-          {lead.floor ? ` · ${lead.floor} эт.` : ""}
-        </div>
-      </div>
-
-      {expanded && (
-        <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #1E2A3A" }}>
-          {/* Detail rows */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10, fontSize: 12 }}>
-            {lead.area_sqm && (
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#5A6478" }}>Площадь</span>
-                <span style={{ color: "#8B95A8" }}>{lead.area_sqm} м²</span>
-              </div>
-            )}
-            {lead.intent && INTENT_LABELS[lead.intent] && (
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#5A6478" }}>Статус клиента</span>
-                <span style={{ color: INTENT_COLORS[lead.intent] ?? "#8B95A8", fontWeight: 600 }}>
-                  {INTENT_LABELS[lead.intent]}
-                </span>
-              </div>
-            )}
-            {lead.floor && (
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#5A6478" }}>Этаж</span>
-                <span style={{ color: "#8B95A8" }}>{lead.floor}</span>
-              </div>
-            )}
-            {lead.year_built && (
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#5A6478" }}>Год постройки</span>
-                <span style={{ color: "#8B95A8" }}>{lead.year_built}</span>
-              </div>
-            )}
-            {lead.wall_material && (
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#5A6478" }}>Материал стен</span>
-                <span style={{ color: "#8B95A8" }}>{lead.wall_material}</span>
-              </div>
-            )}
-            {lead.is_pledged && (
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#5A6478" }}>В залоге</span>
-                <span style={{ color: "#E74C3C", fontWeight: 600 }}>Да</span>
-              </div>
-            )}
-            {lead.notes && (
-              <div style={{ marginTop: 4, color: "#5A6478", fontSize: 11, lineHeight: 1.4 }}>
-                {lead.notes}
-              </div>
-            )}
-          </div>
-
-          {/* Manual price input for manual review leads */}
-          {lead.needs_manual_review && !lead.offer_price && (
-            <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-              <input
-                type="number"
-                placeholder="Цена выкупа"
-                value={priceInput}
-                onChange={(e) => setPriceInput(e.target.value)}
-                style={{
-                  flex: 1, padding: "6px 10px", borderRadius: 6,
-                  background: "#0A0D14", border: "1px solid #E74C3C",
-                  color: "#F1F3F7", fontSize: 13, outline: "none",
-                }}
-              />
-              <button
-                onClick={() => {
-                  const p = parseInt(priceInput);
-                  if (p > 0) { onSetPrice(lead.id, p); setPriceInput(""); }
-                }}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#E74C3C",
-                  color: "#fff", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
-                }}
-              >
-                Назначить
-              </button>
-            </div>
-          )}
-
-          {lead.needs_manual_review && lead.offer_price && (
-            <div style={{ fontSize: 13, color: "#25D366", fontWeight: 600, marginBottom: 10 }}>
-              Оферта: {formatPrice(lead.offer_price)}
-            </div>
-          )}
-
-          {/* Action buttons */}
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <a
-              href={`https://wa.me/${waPhone}?text=${waMessage}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                padding: "6px 12px", borderRadius: 6, background: "#25D366",
-                color: "#fff", fontSize: 12, fontWeight: 600, textDecoration: "none",
-              }}
-            >
-              WhatsApp
-            </a>
-            <a
-              href={`tel:${lead.phone}`}
-              style={{
-                padding: "6px 12px", borderRadius: 6, background: "#4A8FD4",
-                color: "#fff", fontSize: 12, fontWeight: 600, textDecoration: "none",
-              }}
-            >
-              Позвонить
-            </a>
-            {lead.status === "new" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "in_progress")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#C8A44E",
-                  color: "#0A0D14", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
-                }}
-              >
-                Взять в работу
-              </button>
-            )}
-            {lead.status === "in_progress" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "price_approved")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#E8A838",
-                  color: "#0A0D14", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
-                }}
-              >
-                Оценка ✓
-              </button>
-            )}
-            {lead.status === "price_approved" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "jurist_approved")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#9B59B6",
-                  color: "#fff", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
-                }}
-              >
-                Юрист ✓
-              </button>
-            )}
-            {lead.status === "jurist_approved" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "director_approved")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#3498DB",
-                  color: "#fff", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
-                }}
-              >
-                Директор ✓
-              </button>
-            )}
-            {lead.status === "director_approved" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "deal_progress")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#F39C12",
-                  color: "#0A0D14", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
-                }}
-              >
-                На сделку
-              </button>
-            )}
-            {lead.status === "deal_progress" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "paid")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#25D366",
-                  color: "#fff", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
-                }}
-              >
-                Выдано ✓
-              </button>
-            )}
-            {lead.status !== "paid" && lead.status !== "rejected" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "rejected")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#1A2332",
-                  color: "#5A6478", fontSize: 12, fontWeight: 600, border: "1px solid #5A6478", cursor: "pointer",
-                }}
-              >
-                Отказ
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }
