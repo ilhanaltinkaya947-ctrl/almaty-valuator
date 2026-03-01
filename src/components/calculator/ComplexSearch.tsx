@@ -137,20 +137,15 @@ export function ComplexSearch({ onSelect }: ComplexSearchProps) {
                     {complex.district} &middot; {complex.developer}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className="rounded-full px-2.5 py-0.5 text-xs font-medium"
-                    style={{
-                      backgroundColor: CLASS_COLORS[complex.class] + "20",
-                      color: CLASS_COLORS[complex.class],
-                    }}
-                  >
-                    {CLASS_LABELS[complex.class]}
-                  </span>
-                  <span className="text-[#6B7280] font-mono font-bold text-sm">
-                    &times;{complex.coefficient.toFixed(2)}
-                  </span>
-                </div>
+                <span
+                  className="rounded-full px-2.5 py-0.5 text-xs font-medium"
+                  style={{
+                    backgroundColor: CLASS_COLORS[complex.class] + "20",
+                    color: CLASS_COLORS[complex.class],
+                  }}
+                >
+                  {CLASS_LABELS[complex.class]}
+                </span>
               </div>
             ))}
             {filtered.length === 0 && (

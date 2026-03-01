@@ -64,12 +64,6 @@ export function ParameterForm({
       ? `${zone.name} · ${zone.district}`
       : "";
 
-  const coefficient = mode === "complex" && complex
-    ? complex.coefficient
-    : zone
-      ? zone.coefficient
-      : 1;
-
   const backLabel = mode === "complex" ? "Назад к выбору ЖК" : "Назад к выбору района";
 
   return (
@@ -84,17 +78,9 @@ export function ParameterForm({
         {backLabel}
       </button>
 
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-lg font-semibold text-[#1A2332] mb-0.5">Параметры квартиры</h3>
-          <p className="text-[#6B7280] text-[13px]">{title}</p>
-        </div>
-        <span
-          className="rounded-full px-3 py-1 text-[11px] font-mono font-medium"
-          style={{ background: "rgba(58,141,123,0.08)", color: "#3A8D7B" }}
-        >
-          &times;{coefficient.toFixed(2)}
-        </span>
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-[#1A2332] mb-0.5">Параметры квартиры</h3>
+        <p className="text-[#6B7280] text-[13px]">{title}</p>
       </div>
 
       {/* Area slider */}
