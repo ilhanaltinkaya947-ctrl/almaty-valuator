@@ -47,7 +47,9 @@ export function ParameterForm({
   onBack,
 }: ParameterFormProps) {
   const [area, setArea] = useState(mode === "complex" ? 70 : 60);
+  const [areaInput, setAreaInput] = useState(String(mode === "complex" ? 70 : 60));
   const [yearBuilt, setYearBuilt] = useState(mode === "complex" && complex ? complex.yearBuilt : 2000);
+  const [yearInput, setYearInput] = useState(String(mode === "complex" && complex ? complex.yearBuilt : 2000));
   const [wallMaterial, setWallMaterial] = useState<WallMaterial>(
     mode === "complex" && complex ? complex.wallMaterial : "panel",
   );
@@ -102,19 +104,38 @@ export function ParameterForm({
           <div className="flex items-center gap-1">
             <input
               type="number"
+              inputMode="numeric"
               min={20}
               max={300}
-              value={area}
+              value={areaInput}
               onChange={(e) => {
+                setAreaInput(e.target.value);
                 const v = Number(e.target.value);
                 if (v >= 20 && v <= 300) setArea(v);
               }}
-              className="w-16 rounded-lg border border-[rgba(0,0,0,0.08)] bg-white px-2 py-1 text-sm font-bold text-[#3A8D7B] font-mono text-center focus:border-[rgba(58,141,123,0.4)] focus:outline-none transition-all duration-200"
+              onBlur={() => {
+                const v = Number(areaInput);
+                const clamped = Math.max(20, Math.min(300, isNaN(v) ? 20 : v));
+                setArea(clamped);
+                setAreaInput(String(clamped));
+              }}
+              className="w-16 rounded-lg border border-[rgba(0,0,0,0.08)] bg-white px-2 py-1 text-base font-bold text-[#3A8D7B] font-mono text-center focus:border-[rgba(58,141,123,0.4)] focus:outline-none transition-all duration-200"
             />
             <span className="text-sm text-[#9CA3AF]">м²</span>
           </div>
         </div>
-        <input type="range" min={20} max={300} value={area} onChange={(e) => setArea(Number(e.target.value))} className="w-full" />
+        <input
+          type="range"
+          min={20}
+          max={300}
+          value={area}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            setArea(v);
+            setAreaInput(String(v));
+          }}
+          className="w-full"
+        />
         <div className="flex justify-between text-xs text-[#9CA3AF] mt-1">
           <span>20 м²</span>
           <span>300 м²</span>
@@ -157,19 +178,25 @@ export function ParameterForm({
         <>
           {/* Year built input */}
           <div className="mb-6">
-            <div className="flex justify-between mb-2">
-              <span className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em]">Год постройки</span>
-              <span className="text-sm font-bold text-[#3A8D7B] font-mono">{yearBuilt}</span>
-            </div>
+            <span className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] block mb-2">Год постройки</span>
             <input
               type="number"
+              inputMode="numeric"
               min={1950}
               max={2026}
-              value={yearBuilt}
+              value={yearInput}
               onChange={(e) => {
+                setYearInput(e.target.value);
                 const v = Number(e.target.value);
                 if (v >= 1950 && v <= 2026) setYearBuilt(v);
               }}
+              onBlur={() => {
+                const v = Number(yearInput);
+                const clamped = Math.max(1950, Math.min(2026, isNaN(v) ? 2000 : v));
+                setYearBuilt(clamped);
+                setYearInput(String(clamped));
+              }}
+              placeholder="Например: 1985"
               className="w-full rounded-xl border border-[rgba(0,0,0,0.08)] bg-white px-5 py-3 text-[#1A2332] text-center font-mono text-base focus:border-[rgba(58,141,123,0.4)] focus:shadow-[0_0_0_3px_rgba(58,141,123,0.1)] focus:outline-none transition-all duration-200"
             />
           </div>
