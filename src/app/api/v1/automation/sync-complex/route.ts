@@ -16,6 +16,8 @@ const syncComplexSchema = z.object({
   liquidity_index: z.number().min(0).max(1).optional(),
   avg_price_sqm: z.number().int().optional(),
   krisha_url: z.string().url().optional(),
+  wall_material: z.enum(["panel", "brick", "monolith"]).optional(),
+  krisha_complex_id: z.number().int().optional(),
 });
 
 /**
@@ -49,6 +51,8 @@ export async function POST(req: NextRequest) {
           liquidity_index: data.liquidity_index ?? null,
           avg_price_sqm: data.avg_price_sqm ?? null,
           krisha_url: data.krisha_url ?? null,
+          wall_material: data.wall_material ?? null,
+          krisha_complex_id: data.krisha_complex_id ?? null,
         },
         { onConflict: "name" },
       )
