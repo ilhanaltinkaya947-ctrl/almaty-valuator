@@ -58,8 +58,8 @@ export async function GET(req: NextRequest) {
     // Aggregate
     const totalLeads = leads.length;
     const newLeads = leads.filter((l) => l.status === "new").length;
-    const contactedLeads = leads.filter((l) => l.status === "contacted").length;
-    const closedWon = leads.filter((l) => l.status === "closed_won").length;
+    const inProgressLeads = leads.filter((l) => l.status === "in_progress").length;
+    const paidLeads = leads.filter((l) => l.status === "paid").length;
 
     const totalEvaluations = evaluations.length;
     const totalEstimatedValue = leads.reduce(
@@ -81,8 +81,8 @@ export async function GET(req: NextRequest) {
       stats: {
         total_leads: totalLeads,
         new_leads: newLeads,
-        contacted_leads: contactedLeads,
-        closed_won: closedWon,
+        in_progress_leads: inProgressLeads,
+        paid: paidLeads,
         total_evaluations: totalEvaluations,
         total_estimated_value: totalEstimatedValue,
         total_complexes: complexesResult ?? 0,

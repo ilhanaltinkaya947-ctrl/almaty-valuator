@@ -56,7 +56,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "lead_id required" }, { status: 400 });
     }
 
-    const validStatuses = ["new", "pending_review", "contacted", "in_progress", "closed_won", "closed_lost"];
+    const validStatuses = ["new", "in_progress", "price_approved", "jurist_approved", "director_approved", "deal_progress", "paid", "rejected"];
     if (status && !validStatuses.includes(status)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
@@ -67,24 +67,11 @@ export async function PATCH(req: NextRequest) {
     if (status) {
       updateData.status = status;
     }
-    if (status === "contacted") {
+    if (status === "in_progress") {
       updateData.contacted_at = new Date().toISOString();
     }
     if (typeof offer_price === "number" && offer_price > 0) {
       updateData.offer_price = offer_price;
-      // Auto-transition from pending_review to contacted when price is set
-      if (!status) {
-        const { data: rawLead } = await supabase
-          .from("leads")
-          .select("status")
-          .eq("id", lead_id)
-          .single();
-        const currentLead = rawLead as { status: string } | null;
-        if (currentLead?.status === "pending_review" || currentLead?.status === "new") {
-          updateData.status = "contacted";
-          updateData.contacted_at = new Date().toISOString();
-        }
-      }
     }
 
     if (Object.keys(updateData).length === 0) {

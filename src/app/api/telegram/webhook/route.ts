@@ -44,11 +44,13 @@ interface TelegramUpdate {
 
 const STATUS_LABELS: Record<string, string> = {
   new: "🆕 Новый",
-  pending_review: "🚨 Ожидает оценки",
-  contacted: "📞 На связи",
-  in_progress: "🔄 В работе",
-  closed_won: "🏆 Закрыт (выиграно)",
-  closed_lost: "📦 Архив",
+  in_progress: "📞 В обработке",
+  price_approved: "💰 Оценка утверждена",
+  jurist_approved: "⚖️ Проверено юристом",
+  director_approved: "✅ Утверждено директором",
+  deal_progress: "📝 На сделке",
+  paid: "🏆 Выдано",
+  rejected: "📦 Отказ",
 };
 
 /**
@@ -189,20 +191,20 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
 
   switch (action) {
     case "claim":
-      newStatus = "contacted";
+      newStatus = "in_progress";
       notification = `✅ ${agent.name} взял в работу`;
       break;
     case "progress":
-      newStatus = "in_progress";
-      notification = `🔄 ${agent.name} перевёл в работу`;
+      newStatus = "price_approved";
+      notification = `💰 ${agent.name} утвердил оценку`;
       break;
     case "won":
-      newStatus = "closed_won";
-      notification = `🏆 ${agent.name} закрыл (выиграно)`;
+      newStatus = "paid";
+      notification = `🏆 ${agent.name} — выдано`;
       break;
     case "lost":
-      newStatus = "closed_lost";
-      notification = `📦 ${agent.name} отправил в архив`;
+      newStatus = "rejected";
+      notification = `📦 ${agent.name} — отказ`;
       break;
     default:
       await answerCallback(query.id, "Неизвестное действие");
@@ -250,10 +252,10 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
     ];
 
     // If not archived/closed, keep action buttons
-    if (newStatus !== "closed_won" && newStatus !== "closed_lost") {
+    if (newStatus !== "paid" && newStatus !== "rejected") {
       keyboard.push([
-        { text: "📋 В работу", callback_data: `lead:progress:${leadId}` },
-        { text: "🏆 Закрыть", callback_data: `lead:won:${leadId}` },
+        { text: "📋 Далее", callback_data: `lead:progress:${leadId}` },
+        { text: "🏆 Выдано", callback_data: `lead:won:${leadId}` },
         { text: "📦 Архив", callback_data: `lead:lost:${leadId}` },
       ]);
     }
@@ -310,10 +312,13 @@ async function handleStats(chatId: string) {
 
   const byStatus = {
     new: leads.filter((l) => l.status === "new").length,
-    contacted: leads.filter((l) => l.status === "contacted").length,
     in_progress: leads.filter((l) => l.status === "in_progress").length,
-    closed_won: leads.filter((l) => l.status === "closed_won").length,
-    closed_lost: leads.filter((l) => l.status === "closed_lost").length,
+    price_approved: leads.filter((l) => l.status === "price_approved").length,
+    jurist_approved: leads.filter((l) => l.status === "jurist_approved").length,
+    director_approved: leads.filter((l) => l.status === "director_approved").length,
+    deal_progress: leads.filter((l) => l.status === "deal_progress").length,
+    paid: leads.filter((l) => l.status === "paid").length,
+    rejected: leads.filter((l) => l.status === "rejected").length,
   };
 
   const totalValue = leads.reduce(
@@ -328,10 +333,13 @@ async function handleStats(chatId: string) {
     `📋 Всего лидов: <b>${leads.length}</b>`,
     "",
     `🆕 Новые: ${byStatus.new}`,
-    `📞 На связи: ${byStatus.contacted}`,
-    `🔄 В работе: ${byStatus.in_progress}`,
-    `🎉 Закрытые (выиграно): ${byStatus.closed_won}`,
-    `❌ Закрытые (проиграно): ${byStatus.closed_lost}`,
+    `📞 В обработке: ${byStatus.in_progress}`,
+    `💰 Оценка: ${byStatus.price_approved}`,
+    `⚖️ Юрист: ${byStatus.jurist_approved}`,
+    `✅ Директор: ${byStatus.director_approved}`,
+    `📝 На сделке: ${byStatus.deal_progress}`,
+    `🏆 Выдано: ${byStatus.paid}`,
+    `📦 Отказ: ${byStatus.rejected}`,
     "",
     `💰 Общая оценка: <b>${new Intl.NumberFormat("ru-RU").format(totalValue)} ₸</b>`,
   ].join("\n");
@@ -535,7 +543,7 @@ async function handlePendingReview(chatId: string) {
     .from("leads")
     .select("*")
     .eq("needs_manual_review", true)
-    .in("status", ["pending_review", "new", "contacted"])
+    .in("status", ["new", "in_progress"])
     .order("created_at", { ascending: false })
     .limit(10);
 
@@ -607,12 +615,12 @@ async function handleSetPrice(chatId: string, agent: AgentRow, args: string[]) {
     return;
   }
 
-  // Update offer_price and move to contacted if pending_review
+  // Update offer_price and move to in_progress if new
   const updateData: Record<string, unknown> = {
     offer_price: price,
   };
-  if (lead.status === "pending_review" || lead.status === "new") {
-    updateData.status = "contacted";
+  if (lead.status === "new") {
+    updateData.status = "in_progress";
     updateData.contacted_at = new Date().toISOString();
   }
 

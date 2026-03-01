@@ -14,7 +14,7 @@ const createLeadSchema = z.object({
   source: z.enum(["landing", "telegram", "direct", "manual"]).default("landing"),
   property_type: z.string().optional(),
   needs_manual_review: z.boolean().optional(),
-  status: z.enum(["new", "pending_review"]).optional(),
+  status: z.enum(["new", "in_progress"]).optional(),
   notes: z.string().optional(),
   complex_name: z.string().optional(),
   zone_id: z.string().uuid().optional(),

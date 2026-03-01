@@ -373,7 +373,7 @@ function ExpertRequestForm({ propertyType }: { propertyType: PropertyType }) {
             : undefined,
           source: "landing",
           needs_manual_review: true,
-          status: "pending_review",
+          status: "new",
           notes: paramLines.length > 0 ? paramLines.join("; ") : undefined,
         }),
       });

@@ -8,15 +8,19 @@ export type HousingClass =
 
 export type LeadStatus =
   | "new"
-  | "pending_review"
-  | "contacted"
   | "in_progress"
-  | "closed_won"
-  | "closed_lost";
+  | "price_approved"
+  | "jurist_approved"
+  | "director_approved"
+  | "deal_progress"
+  | "paid"
+  | "rejected";
 
 export type LeadSource = "landing" | "telegram" | "direct" | "manual";
 
 export type AgentRole = "admin" | "broker";
+
+export type UserRole = "admin" | "manager" | "jurist" | "director" | "cashier";
 
 export type BuildingSeriesEnum =
   | "stalinka"
@@ -102,6 +106,7 @@ export type Database = {
           status: LeadStatus;
           source: LeadSource;
           broker_id: string | null;
+          assigned_to: string | null;
           notes: string | null;
           property_type: string | null;
           zone_id: string | null;
@@ -126,6 +131,7 @@ export type Database = {
           status?: LeadStatus;
           source?: LeadSource;
           broker_id?: string | null;
+          assigned_to?: string | null;
           notes?: string | null;
           property_type?: string | null;
           zone_id?: string | null;
@@ -148,6 +154,7 @@ export type Database = {
           status?: LeadStatus;
           source?: LeadSource;
           broker_id?: string | null;
+          assigned_to?: string | null;
           notes?: string | null;
           property_type?: string | null;
           zone_id?: string | null;
@@ -370,6 +377,26 @@ export type Database = {
           },
         ];
       };
+      profiles: {
+        Row: {
+          id: string;
+          role: UserRole;
+          full_name: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          role?: UserRole;
+          full_name?: string;
+        };
+        Update: {
+          id?: string;
+          role?: UserRole;
+          full_name?: string;
+        };
+        Relationships: [];
+      };
       authorized_agents: {
         Row: {
           id: string;
@@ -403,6 +430,7 @@ export type Database = {
       housing_class: HousingClass;
       lead_status: LeadStatus;
       lead_source: LeadSource;
+      user_role: UserRole;
       building_series: BuildingSeriesEnum;
     };
     CompositeTypes: Record<string, never>;

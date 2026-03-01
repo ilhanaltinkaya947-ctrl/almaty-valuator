@@ -43,11 +43,13 @@ interface TelegramWebApp {
 const STATUS_OPTIONS = [
   { value: "all", label: "Все" },
   { value: "new", label: "Новые", color: "#C8A44E" },
-  { value: "pending_review", label: "На оценку", color: "#E74C3C" },
-  { value: "contacted", label: "На связи", color: "#4A8FD4" },
-  { value: "in_progress", label: "В работе", color: "#E8A838" },
-  { value: "closed_won", label: "Закрыто ✓", color: "#25D366" },
-  { value: "closed_lost", label: "Архив", color: "#5A6478" },
+  { value: "in_progress", label: "В обработке", color: "#4A8FD4" },
+  { value: "price_approved", label: "Оценка", color: "#E8A838" },
+  { value: "jurist_approved", label: "Юрист", color: "#9B59B6" },
+  { value: "director_approved", label: "Директор", color: "#3498DB" },
+  { value: "deal_progress", label: "Сделка", color: "#F39C12" },
+  { value: "paid", label: "Выдано", color: "#25D366" },
+  { value: "rejected", label: "Отказ", color: "#5A6478" },
 ];
 
 interface SettingRow {
@@ -149,7 +151,7 @@ export default function MobileCRM() {
         setLeads((prev) =>
           prev.map((l) =>
             l.id === leadId
-              ? { ...l, offer_price: price, status: l.status === "pending_review" ? "contacted" : l.status }
+              ? { ...l, offer_price: price }
               : l
           ),
         );
@@ -210,8 +212,8 @@ export default function MobileCRM() {
           {[
             { label: "Всего", value: leads.length, color: "#F1F3F7" },
             { label: "Новые", value: leads.filter((l) => l.status === "new").length, color: "#C8A44E" },
-            { label: "В работе", value: leads.filter((l) => l.status === "in_progress" || l.status === "contacted").length, color: "#4A8FD4" },
-            { label: "Закрыто", value: leads.filter((l) => l.status === "closed_won").length, color: "#25D366" },
+            { label: "В работе", value: leads.filter((l) => ["in_progress", "price_approved", "jurist_approved", "director_approved", "deal_progress"].includes(l.status)).length, color: "#4A8FD4" },
+            { label: "Выдано", value: leads.filter((l) => l.status === "paid").length, color: "#25D366" },
           ].map((s) => (
             <div key={s.label} style={{
               background: "#111827",
@@ -342,20 +344,24 @@ function LeadCard({
 
   const statusColor: Record<string, string> = {
     new: "#C8A44E",
-    pending_review: "#E74C3C",
-    contacted: "#4A8FD4",
-    in_progress: "#E8A838",
-    closed_won: "#25D366",
-    closed_lost: "#5A6478",
+    in_progress: "#4A8FD4",
+    price_approved: "#E8A838",
+    jurist_approved: "#9B59B6",
+    director_approved: "#3498DB",
+    deal_progress: "#F39C12",
+    paid: "#25D366",
+    rejected: "#5A6478",
   };
 
   const statusLabel: Record<string, string> = {
     new: "Новый",
-    pending_review: "На оценку",
-    contacted: "На связи",
-    in_progress: "В работе",
-    closed_won: "Закрыт ✓",
-    closed_lost: "Архив",
+    in_progress: "В обработке",
+    price_approved: "Оценка ✓",
+    jurist_approved: "Юрист ✓",
+    director_approved: "Директор ✓",
+    deal_progress: "На сделке",
+    paid: "Выдано ✓",
+    rejected: "Отказ",
   };
 
   return (
@@ -484,51 +490,83 @@ function LeadCard({
             >
               Позвонить
             </a>
-            {(lead.status === "new" || lead.status === "pending_review") && (
+            {lead.status === "new" && (
               <button
-                onClick={() => onStatusChange(lead.id, "contacted")}
+                onClick={() => onStatusChange(lead.id, "in_progress")}
                 style={{
                   padding: "6px 12px", borderRadius: 6, background: "#C8A44E",
                   color: "#0A0D14", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
                 }}
               >
-                Взять
+                Взять в работу
               </button>
             )}
-            {(lead.status === "contacted" || lead.status === "new" || lead.status === "pending_review") && (
+            {lead.status === "in_progress" && (
               <button
-                onClick={() => onStatusChange(lead.id, "in_progress")}
+                onClick={() => onStatusChange(lead.id, "price_approved")}
                 style={{
                   padding: "6px 12px", borderRadius: 6, background: "#E8A838",
                   color: "#0A0D14", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
                 }}
               >
-                В работу
+                Оценка ✓
               </button>
             )}
-            {lead.status !== "closed_won" && lead.status !== "closed_lost" && (
-              <>
-                <button
-                  onClick={() => onStatusChange(lead.id, "closed_won")}
-                  style={{
-                    padding: "6px 12px", borderRadius: 6, background: "#1A2332",
-                    color: "#25D366", fontSize: 12, fontWeight: 600, border: "1px solid #25D366",
-                    cursor: "pointer",
-                  }}
-                >
-                  Закрыть ✓
-                </button>
-                <button
-                  onClick={() => onStatusChange(lead.id, "closed_lost")}
-                  style={{
-                    padding: "6px 12px", borderRadius: 6, background: "#1A2332",
-                    color: "#5A6478", fontSize: 12, fontWeight: 600, border: "1px solid #5A6478",
-                    cursor: "pointer",
-                  }}
-                >
-                  Архив
-                </button>
-              </>
+            {lead.status === "price_approved" && (
+              <button
+                onClick={() => onStatusChange(lead.id, "jurist_approved")}
+                style={{
+                  padding: "6px 12px", borderRadius: 6, background: "#9B59B6",
+                  color: "#fff", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
+                }}
+              >
+                Юрист ✓
+              </button>
+            )}
+            {lead.status === "jurist_approved" && (
+              <button
+                onClick={() => onStatusChange(lead.id, "director_approved")}
+                style={{
+                  padding: "6px 12px", borderRadius: 6, background: "#3498DB",
+                  color: "#fff", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
+                }}
+              >
+                Директор ✓
+              </button>
+            )}
+            {lead.status === "director_approved" && (
+              <button
+                onClick={() => onStatusChange(lead.id, "deal_progress")}
+                style={{
+                  padding: "6px 12px", borderRadius: 6, background: "#F39C12",
+                  color: "#0A0D14", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
+                }}
+              >
+                На сделку
+              </button>
+            )}
+            {lead.status === "deal_progress" && (
+              <button
+                onClick={() => onStatusChange(lead.id, "paid")}
+                style={{
+                  padding: "6px 12px", borderRadius: 6, background: "#25D366",
+                  color: "#fff", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
+                }}
+              >
+                Выдано ✓
+              </button>
+            )}
+            {lead.status !== "paid" && lead.status !== "rejected" && (
+              <button
+                onClick={() => onStatusChange(lead.id, "rejected")}
+                style={{
+                  padding: "6px 12px", borderRadius: 6, background: "#1A2332",
+                  color: "#5A6478", fontSize: 12, fontWeight: 600, border: "1px solid #5A6478",
+                  cursor: "pointer",
+                }}
+              >
+                Отказ
+              </button>
             )}
           </div>
         </div>

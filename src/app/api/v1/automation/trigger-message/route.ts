@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
     if (lead.status === "new") {
       await supabase
         .from("leads")
-        .update({ status: "contacted", contacted_at: new Date().toISOString() })
+        .update({ status: "in_progress", contacted_at: new Date().toISOString() })
         .eq("id", lead.id);
     }
 
