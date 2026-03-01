@@ -53,7 +53,7 @@ export function Footer() {
                 className="h-8 w-8 brightness-0 invert opacity-90"
               />
               <span className="text-[16px] font-semibold tracking-tight">
-                <span className="text-[#66BB6A]">Алма</span>
+                <span className="text-[#3A8D7B]">Алма</span>
                 <span className="text-white/90">выкуп</span>
               </span>
             </div>
