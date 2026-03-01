@@ -51,6 +51,7 @@ export type Database = {
           krisha_url: string | null;
           wall_material: string | null;
           zone_slug: string | null;
+          is_golden_square: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -71,6 +72,7 @@ export type Database = {
           krisha_url?: string | null;
           wall_material?: string | null;
           zone_slug?: string | null;
+          is_golden_square?: boolean;
         };
         Update: {
           id?: string;
@@ -89,6 +91,7 @@ export type Database = {
           krisha_url?: string | null;
           wall_material?: string | null;
           zone_slug?: string | null;
+          is_golden_square?: boolean;
         };
         Relationships: [];
       };
@@ -114,6 +117,7 @@ export type Database = {
           year_built: number | null;
           wall_material: string | null;
           is_pledged: boolean;
+          is_golden_square: boolean;
           intent: string;
           created_at: string;
           contacted_at: string | null;
@@ -139,6 +143,7 @@ export type Database = {
           year_built?: number | null;
           wall_material?: string | null;
           is_pledged?: boolean;
+          is_golden_square?: boolean;
           intent?: string;
         };
         Update: {
@@ -162,6 +167,7 @@ export type Database = {
           year_built?: number | null;
           wall_material?: string | null;
           is_pledged?: boolean;
+          is_golden_square?: boolean;
           intent?: string;
           contacted_at?: string | null;
         };

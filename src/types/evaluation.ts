@@ -40,6 +40,7 @@ export interface VtorichkaEvaluationInput {
   wallMaterial: WallMaterial;
   condition: ConditionType;
   floorPosition: FloorPosition;
+  isGoldenSquare?: boolean;
 }
 
 export interface CalculationParams {

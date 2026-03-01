@@ -22,6 +22,7 @@ const createLeadSchema = z.object({
   year_built: z.number().int().min(1950).max(2026).optional(),
   wall_material: z.enum(["panel", "brick", "monolith"]).optional(),
   is_pledged: z.boolean().optional(),
+  is_golden_square: z.boolean().optional(),
   intent: z.enum(["ready", "negotiate"]).optional(),
 });
 
@@ -56,6 +57,7 @@ export async function POST(req: NextRequest) {
         year_built: data.year_built ?? null,
         wall_material: data.wall_material ?? null,
         is_pledged: data.is_pledged ?? false,
+        is_golden_square: data.is_golden_square ?? false,
         intent: data.intent ?? "ready",
       })
       .select()

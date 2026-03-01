@@ -60,11 +60,11 @@ export function getBuybackMultiplier(opts: {
   housingClass: string;
   wallMaterial: WallMaterial;
   isVtorichka: boolean;
-  zoneSlug?: string;
+  isGoldenSquare?: boolean;
 }): number {
   // Вторичка path: always 0.70, exception: Золотой квадрат → 0.80
   if (opts.isVtorichka) {
-    return opts.zoneSlug === "zolotoy-kvadrat" ? 0.80 : 0.70;
+    return opts.isGoldenSquare ? 0.80 : 0.70;
   }
 
   // ЖК path: strictly by housing class, wall material is irrelevant
@@ -180,7 +180,7 @@ export function evaluateVtorichka(
     housingClass: "",
     wallMaterial: input.wallMaterial,
     isVtorichka: true,
-    zoneSlug: input.zoneSlug,
+    isGoldenSquare: input.isGoldenSquare,
   });
 
   const params: CalculationParams = {

@@ -27,7 +27,6 @@ export const PRICE_ZONES: PriceZone[] = [
   { id: "z-tastak",              name: "Тастак",                 slug: "tastak",               district: "Бостандыкский", description: "Микрорайоны Тастак 1-4",                                          avgPriceSqm:  750000, coefficient: 0.93, sortOrder: 8 },
 
   // Алмалинский
-  { id: "z-zolotoy-kvadrat",     name: "Золотой квадрат",        slug: "zolotoy-kvadrat",      district: "Алмалинский",   description: "Премиальный квадрат центра: Абая — Толе Би — Сейфуллина — Байтурсынова", avgPriceSqm: 960000, coefficient: 1.30, sortOrder: 9 },
   { id: "z-centr-arbat",         name: "Центр — Арбат",          slug: "centr-arbat",          district: "Алмалинский",   description: "Исторический центр, пешеходная улица Панфилова",                  avgPriceSqm:  950000, coefficient: 1.18, sortOrder: 10 },
   { id: "z-ploshchad",           name: "Площадь Республики",     slug: "ploshchad-respubliki", district: "Алмалинский",   description: "Район Площади Республики, центральный парк",                      avgPriceSqm:  900000, coefficient: 1.12, sortOrder: 11 },
   { id: "z-almaly-zhibek",       name: "Алмалы — Жибек Жолы",   slug: "almaly-zhibek-zholy",  district: "Алмалинский",   description: "Район метро Жибек Жолы, нижняя часть центра",                     avgPriceSqm:  870000, coefficient: 1.08, sortOrder: 12 },

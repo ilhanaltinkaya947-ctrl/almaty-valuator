@@ -17,6 +17,7 @@ interface ParameterFormProps {
     condition: ConditionType;
     isPledged: boolean;
     floorPosition: FloorPosition;
+    isGoldenSquare?: boolean;
   }) => void;
   onBack: () => void;
 }
@@ -53,6 +54,7 @@ export function ParameterForm({
   const [condition, setCondition] = useState<ConditionType>("renovated");
   const [isPledged, setIsPledged] = useState(false);
   const [floorPosition, setFloorPosition] = useState<FloorPosition>("middle");
+  const [isGoldenSquare, setIsGoldenSquare] = useState(false);
 
   const title = mode === "complex" && complex
     ? `${complex.name} · ${complex.district}`
@@ -233,6 +235,31 @@ export function ParameterForm({
         </div>
       </div>
 
+      {/* Golden Square checkbox — only for vtorichka in Алмалинский / Медеуский */}
+      {mode === "vtorichka" && zone && (zone.district === "Алмалинский" || zone.district === "Медеуский") && (
+        <div className="mb-6">
+          <label className="flex items-center gap-3 cursor-pointer group">
+            <div
+              className={`h-5 w-5 rounded border flex items-center justify-center transition-all duration-200 ${
+                isGoldenSquare
+                  ? "bg-[#C8A44E] border-[#C8A44E]"
+                  : "border-[rgba(0,0,0,0.15)] group-hover:border-[rgba(0,0,0,0.3)]"
+              }`}
+              onClick={() => setIsGoldenSquare(!isGoldenSquare)}
+            >
+              {isGoldenSquare && (
+                <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+            <span className="text-sm text-[#6B7280] group-hover:text-[#1A2332] transition-colors duration-200">
+              Находится в Золотом квадрате?
+            </span>
+          </label>
+        </div>
+      )}
+
       {/* Pledge checkbox */}
       <div className="mb-6 sm:mb-8">
         <label className="flex items-center gap-3 cursor-pointer group">
@@ -258,7 +285,7 @@ export function ParameterForm({
 
       <Button
         variant="primary"
-        onClick={() => onSubmit({ area, yearBuilt, wallMaterial, condition, isPledged, floorPosition })}
+        onClick={() => onSubmit({ area, yearBuilt, wallMaterial, condition, isPledged, floorPosition, isGoldenSquare: isGoldenSquare || undefined })}
         className="w-full text-lg py-4"
       >
         Рассчитать стоимость

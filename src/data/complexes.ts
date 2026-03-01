@@ -170,7 +170,7 @@ export const COMPLEXES: Complex[] = [
     avgPriceSqm: 1181280,
     krishaUrl: "https://krisha.kz/complex/golden-square",
     wallMaterial: "monolith",
-    zoneSlug: "zolotoy-kvadrat",
+    zoneSlug: "centr-arbat",
   },
   {
     name: "Botanical Garden Residence",
@@ -268,7 +268,7 @@ export const COMPLEXES: Complex[] = [
     avgPriceSqm: 996705,
     krishaUrl: "https://krisha.kz/complex/baiseitova-104",
     wallMaterial: "brick",
-    zoneSlug: "zolotoy-kvadrat",
+    zoneSlug: "centr-arbat",
   },
   {
     name: "Манхэттен",
@@ -612,7 +612,7 @@ export const COMPLEXES: Complex[] = [
     avgPriceSqm: 996705,
     krishaUrl: "https://krisha.kz/map/almaty",
     wallMaterial: "monolith",
-    zoneSlug: "zolotoy-kvadrat",
+    zoneSlug: "centr-arbat",
   },
   {
     name: "ЖК 4 You",

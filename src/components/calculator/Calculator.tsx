@@ -121,6 +121,7 @@ export function Calculator() {
     condition: ConditionType;
     isPledged: boolean;
     floorPosition: FloorPosition;
+    isGoldenSquare?: boolean;
   }) {
     if (!selectedZone) return;
 
@@ -139,6 +140,7 @@ export function Calculator() {
       wallMaterial: params.wallMaterial,
       condition: params.condition,
       floorPosition: params.floorPosition,
+      isGoldenSquare: params.isGoldenSquare,
     });
 
     setResult(evalResult);

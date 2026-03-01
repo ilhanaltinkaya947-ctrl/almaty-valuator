@@ -14,6 +14,7 @@ const vtorichkaEvaluationSchema = z.object({
   wallMaterial: z.enum(["panel", "brick", "monolith"]),
   condition: z.enum(["renovated", "rough"]),
   floorPosition: z.enum(["first", "middle", "last"]),
+  isGoldenSquare: z.boolean().optional(),
 });
 
 export async function POST(request: Request) {
