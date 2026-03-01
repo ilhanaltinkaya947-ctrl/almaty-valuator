@@ -120,6 +120,26 @@ export const PROPERTY_TYPE_LABELS: Record<string, string> = {
   land: "Участок",
 };
 
+export const CATEGORY_FILTERS = [
+  { value: "all", label: "Все", color: "#C8A44E" },
+  { value: "ready", label: "Согласен ✓", color: "#25D366" },
+  { value: "negotiate", label: "Торг", color: "#E8A838" },
+  { value: "house", label: "Дома", color: "#9B59B6" },
+  { value: "commercial", label: "Коммерция", color: "#4A8FD4" },
+  { value: "land", label: "Участки", color: "#3498DB" },
+];
+
+export function filterLeadsByCategory(leads: Lead[], category: string): Lead[] {
+  switch (category) {
+    case "ready": return leads.filter(l => !l.needs_manual_review && l.intent === "ready");
+    case "negotiate": return leads.filter(l => !l.needs_manual_review && l.intent === "negotiate");
+    case "house": return leads.filter(l => l.needs_manual_review && l.property_type === "house");
+    case "commercial": return leads.filter(l => l.needs_manual_review && l.property_type === "commercial");
+    case "land": return leads.filter(l => l.needs_manual_review && l.property_type === "land");
+    default: return leads;
+  }
+}
+
 export function formatPrice(price: number | null): string {
   return price ? new Intl.NumberFormat("ru-RU").format(price) + " \u20B8" : "\u2014";
 }
