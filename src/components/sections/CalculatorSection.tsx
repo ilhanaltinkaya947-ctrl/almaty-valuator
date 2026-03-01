@@ -40,7 +40,7 @@ export function CalculatorSection() {
             <div className="space-y-3">
               {[
                 { icon: "📊", text: "Данные krisha.kz" },
-                { icon: "🏘️", text: "25+ жилых комплексов" },
+                { icon: "🏘️", text: "390+ жилых комплексов" },
                 { icon: "⚡", text: "Мгновенный расчет" },
               ].map((f) => (
                 <div
