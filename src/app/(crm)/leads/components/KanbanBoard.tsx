@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Lead,
   PIPELINE_STATUSES,
@@ -27,6 +27,16 @@ export default function KanbanBoard({
 }) {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [category, setCategory] = useState("all");
+
+  // Sync selectedLead with incoming leads prop (reflects rollback)
+  useEffect(() => {
+    if (selectedLead) {
+      const updated = leads.find((l) => l.id === selectedLead.id);
+      if (updated) {
+        setSelectedLead(updated);
+      }
+    }
+  }, [leads]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = useMemo(() => {
     let result = leads;

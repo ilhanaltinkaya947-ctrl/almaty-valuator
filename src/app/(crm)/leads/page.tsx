@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import {
   Lead,
   SettingRow,
   STATUS_OPTIONS,
-  formatPrice,
-  formatDate,
+  STATUS_LABELS,
 } from "@/lib/crm-constants";
 import ViewToggle from "./components/ViewToggle";
 import LeadCard from "./components/LeadCard";
@@ -81,37 +81,60 @@ export default function LeadsPage() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
-    const initData = getInitData();
+    const previousLeads = leads;
+    const label = STATUS_LABELS[newStatus] ?? newStatus;
+
+    // Optimistic update
+    setLeads((prev) =>
+      prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
+    );
+
     try {
+      const initData = getInitData();
       const res = await fetch("/api/crm/leads", {
         method: "PATCH",
         headers: { "Content-Type": "application/json", "x-telegram-init-data": initData },
         body: JSON.stringify({ lead_id: leadId, status: newStatus }),
       });
-      if (res.ok) {
-        setLeads((prev) =>
-          prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
-        );
+      if (!res.ok) {
+        setLeads(previousLeads);
+        toast.error("Ошибка сохранения");
+      } else {
+        toast.success(`Статус → ${label}`);
       }
-    } catch {}
+    } catch {
+      setLeads(previousLeads);
+      toast.error("Ошибка сети");
+    }
   };
 
   const setOfferPrice = async (leadId: string, price: number) => {
-    const initData = getInitData();
+    const previousLeads = leads;
+
+    // Optimistic update
+    setLeads((prev) =>
+      prev.map((l) =>
+        l.id === leadId ? { ...l, offer_price: price } : l
+      )
+    );
+
     try {
+      const initData = getInitData();
       const res = await fetch("/api/crm/leads", {
         method: "PATCH",
         headers: { "Content-Type": "application/json", "x-telegram-init-data": initData },
         body: JSON.stringify({ lead_id: leadId, offer_price: price }),
       });
-      if (res.ok) {
-        setLeads((prev) =>
-          prev.map((l) =>
-            l.id === leadId ? { ...l, offer_price: price } : l
-          )
-        );
+      if (!res.ok) {
+        setLeads(previousLeads);
+        toast.error("Ошибка сохранения цены");
+      } else {
+        toast.success("Цена обновлена");
       }
-    } catch {}
+    } catch {
+      setLeads(previousLeads);
+      toast.error("Ошибка сети");
+    }
   };
 
   const filteredLeads = leads.filter((l) => {

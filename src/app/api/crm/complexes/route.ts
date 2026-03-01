@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { authenticateRequest } from "@/lib/auth-telegram";
 
@@ -22,7 +23,14 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ complexes: data ?? [] });
 }
 
-/** PATCH /api/crm/complexes — Update complex coefficient (admin-only) */
+const updateComplexSchema = z.object({
+  complex_id: z.string(),
+  coefficient: z.number().min(0.5).max(3.0).optional(),
+  class: z.enum(["Elite", "Business+", "Business", "Comfort+", "Comfort", "Standard"]).optional(),
+  is_golden_square: z.boolean().optional(),
+});
+
+/** PATCH /api/crm/complexes — Update complex fields (admin-only) */
 export async function PATCH(req: NextRequest) {
   const agent = await authenticateRequest(req);
   if (!agent) {
@@ -35,28 +43,32 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { complex_id, coefficient } = body;
+    const data = updateComplexSchema.parse(body);
 
-    if (!complex_id || typeof coefficient !== "number") {
-      return NextResponse.json({ error: "complex_id and coefficient required" }, { status: 400 });
-    }
+    const updatePayload: Record<string, unknown> = {};
+    if (data.coefficient !== undefined) updatePayload.coefficient = data.coefficient;
+    if (data.class !== undefined) updatePayload.class = data.class;
+    if (data.is_golden_square !== undefined) updatePayload.is_golden_square = data.is_golden_square;
 
-    if (coefficient < 0.5 || coefficient > 3.0) {
-      return NextResponse.json({ error: "Coefficient must be between 0.50 and 3.00" }, { status: 400 });
+    if (Object.keys(updatePayload).length === 0) {
+      return NextResponse.json({ error: "No fields to update" }, { status: 400 });
     }
 
     const supabase = createAdminClient();
     const { error } = await supabase
       .from("complexes")
-      .update({ coefficient })
-      .eq("id", complex_id);
+      .update(updatePayload)
+      .eq("id", data.complex_id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, complex_id, coefficient, updated_by: agent.name });
-  } catch {
+    return NextResponse.json({ success: true, complex_id: data.complex_id, updated_by: agent.name });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: "Invalid input", details: err.issues }, { status: 400 });
+    }
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 }
