@@ -121,16 +121,16 @@ function parseListings(html: string): ListingData[] {
   $(".a-card").each((_, el) => {
     const card = $(el);
 
-    // Price — usually in .a-card__price or data attribute
-    const priceText = card.find(".a-card__price").first().text().replace(/\s/g, "");
+    // Price — strip all whitespace including non-breaking spaces (\u00a0)
+    const priceText = card.find(".a-card__price").first().text().replace(/[\s\u00a0]/g, "");
     const priceMatch = priceText.match(/([\d]+)/);
     if (!priceMatch) return;
     const price = parseInt(priceMatch[1]);
     if (price < 1_000_000 || price > 1_000_000_000) return; // skip outliers
 
-    // Area — extract from title/header like "2-комн. квартира, 65 м²"
+    // Area — extract from title/header like "2-комн. квартира · 65 м²"
     const headerText = card.find(".a-card__header-left, .a-card__title").first().text();
-    const areaMatch = headerText.match(/([\d.,]+)\s*м/);
+    const areaMatch = headerText.match(/([\d.,]+)[\s\u00a0]*м/);
     if (!areaMatch) return;
     const area = parseFloat(areaMatch[1].replace(",", "."));
     if (area < 10 || area > 500) return; // skip outliers
