@@ -3,7 +3,6 @@
 import { useState } from "react";
 import type { AutoEvaluationResult, WallMaterial, FloorPosition, LeadIntent } from "@/types/evaluation";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
-import { FactorChips } from "@/components/calculator/FactorChips";
 import { BenchmarkTeaser } from "@/components/calculator/BenchmarkTeaser";
 import { LeadCaptureForm } from "@/components/calculator/LeadCaptureForm";
 import { formatPrice } from "@/lib/utils";
@@ -83,14 +82,6 @@ export function ResultCard({ result, complexName, onBack, zoneId, floorPosition,
             Выкуп за 24 часа · Без комиссий · Оплата сразу
           </div>
         </div>
-      </div>
-
-      {/* Factor chips */}
-      <div className="mb-6">
-        <div className="text-[13px] font-medium text-[#9CA3AF] uppercase tracking-[0.15em] mb-3">
-          Коэффициенты оценки
-        </div>
-        <FactorChips params={result.params} />
       </div>
 
       {/* Benchmark teaser */}

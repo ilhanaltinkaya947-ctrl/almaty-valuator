@@ -7,14 +7,6 @@ function formatPrice(n: number): string {
 }
 
 export function PriceAnalysis({ data }: { data: ReportData }) {
-  const coefficients = [
-    { label: "Базовая ставка", value: `${formatPrice(data.baseRate)} тг/м²` },
-    { label: "K комплекс", value: `×${data.kComplex.toFixed(2)}` },
-    { label: "K год", value: `×${data.kYear.toFixed(2)}` },
-    { label: "K материал", value: `×${data.kMaterial.toFixed(2)}` },
-    ...(data.kFloor != null ? [{ label: "K этаж", value: `×${data.kFloor.toFixed(2)}` }] : []),
-  ];
-
   return (
     <View style={styles.section}>
       <Text style={styles.label}>ЦЕНОВОЙ АНАЛИЗ</Text>
@@ -70,26 +62,6 @@ export function PriceAnalysis({ data }: { data: ReportData }) {
         </View>
 
         <View style={styles.divider} />
-
-        {/* Coefficient breakdown */}
-        <Text style={{ ...styles.h3, marginBottom: 10 }}>Разбивка коэффициентов</Text>
-        {coefficients.map((c) => (
-          <View key={c.label} style={{ ...styles.spaceBetween, marginBottom: 6 }}>
-            <Text style={styles.body}>{c.label}</Text>
-            <Text style={{ fontSize: 10, fontWeight: "bold", color: colors.white }}>
-              {c.value}
-            </Text>
-          </View>
-        ))}
-
-        {/* Formula */}
-        <View style={{ ...styles.divider, marginTop: 8 }} />
-        <Text style={{ ...styles.caption, textAlign: "center" }}>
-          Рынок = Площадь × Ставка × K_комплекс × K_год × K_материал
-        </Text>
-        <Text style={{ ...styles.caption, textAlign: "center", marginTop: 2 }}>
-          Выкуп = Рынок × 0.70 (дисконт за срочность сделки)
-        </Text>
       </View>
     </View>
   );
