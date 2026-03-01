@@ -89,7 +89,15 @@ async function handleMessage(msg: TelegramMessage) {
   // Check agent authorization
   const agent = await getAgent(telegramId);
   if (!agent) {
-    await sendMessage(chatId, "⛔ Доступ ограничен. Обратитесь к администратору для получения доступа.");
+    const username = msg.from?.username ? ` (@${msg.from.username})` : "";
+    await sendMessage(chatId, [
+      `⛔ Доступ ограничен.`,
+      ``,
+      `Ваш Telegram ID: <code>${telegramId}</code>${username}`,
+      ``,
+      `Отправьте этот ID администратору, чтобы он добавил вас командой:`,
+      `<code>/add_agent ${telegramId} ${msg.from?.first_name ?? "Имя"} broker</code>`,
+    ].join("\n"));
     return;
   }
 
@@ -124,6 +132,15 @@ async function handleMessage(msg: TelegramMessage) {
       break;
     case "/pending":
       await handlePendingReview(chatId);
+      break;
+    case "/add_agent":
+      await handleAddAgent(chatId, agent, args);
+      break;
+    case "/remove_agent":
+      await handleRemoveAgent(chatId, agent, args);
+      break;
+    case "/agents":
+      await handleListAgents(chatId, agent);
       break;
     default:
       await sendMessage(chatId, "Неизвестная команда. Введите /start для списка команд.");
@@ -275,6 +292,9 @@ async function handleStart(chatId: string, agent: AgentRow) {
         "<b>Админ:</b>",
         "/set_base [число] — Изменить базовую ставку",
         "/edit_complex [ЖК] [коэфф] — Изменить коэффициент ЖК",
+        "/add_agent [telegram_id] [имя] [роль] — Добавить сотрудника",
+        "/remove_agent [telegram_id] — Удалить сотрудника",
+        "/agents — Список сотрудников",
       ].join("\n")
     : "";
 
@@ -652,4 +672,157 @@ async function handleSetPrice(chatId: string, agent: AgentRow, args: string[]) {
       await sendMessage(chatId, "⚠️ Не удалось отправить WhatsApp. Свяжитесь с клиентом вручную.");
     }
   }
+}
+
+// ── Agent Management Commands ──
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "👑 Админ",
+  broker: "👷 Брокер",
+};
+
+async function handleAddAgent(chatId: string, agent: AgentRow, args: string[]) {
+  if (!isAdmin(agent)) {
+    await sendMessage(chatId, "⛔ Только администратор может добавлять сотрудников.");
+    return;
+  }
+
+  if (args.length < 2) {
+    await sendMessage(chatId, [
+      "Использование: /add_agent [telegram_id] [имя] [роль]",
+      "",
+      "Роли: <b>admin</b>, <b>broker</b> (по умолчанию broker)",
+      "",
+      "Пример: <code>/add_agent 123456789 Иван admin</code>",
+      "",
+      "💡 Чтобы узнать telegram_id — попросите человека написать боту, ID покажется в ошибке доступа, или используйте @userinfobot",
+    ].join("\n"));
+    return;
+  }
+
+  const telegramId = parseInt(args[0]);
+  if (isNaN(telegramId)) {
+    await sendMessage(chatId, "❌ telegram_id должен быть числом.");
+    return;
+  }
+
+  const lastArg = args[args.length - 1];
+  const hasRole = args.length >= 3 && (lastArg === "admin" || lastArg === "broker");
+  const role = hasRole ? lastArg as "admin" | "broker" : "broker" as const;
+  const name = hasRole ? args.slice(1, -1).join(" ") : args.slice(1).join(" ");
+
+  const supabase = createAdminClient();
+
+  // Check if already exists
+  const { data: existing } = await supabase
+    .from("authorized_agents")
+    .select("id")
+    .eq("telegram_id", telegramId)
+    .single();
+
+  if (existing) {
+    // Reactivate if disabled
+    await supabase
+      .from("authorized_agents")
+      .update({ is_active: true, name, role })
+      .eq("telegram_id", telegramId);
+
+    await sendMessage(chatId, [
+      "✅ <b>Сотрудник обновлён</b>",
+      "",
+      `👤 <b>${name}</b>`,
+      `🆔 Telegram ID: <code>${telegramId}</code>`,
+      `🔑 Роль: ${ROLE_LABELS[role] ?? role}`,
+    ].join("\n"));
+    return;
+  }
+
+  const { error } = await supabase
+    .from("authorized_agents")
+    .insert({ telegram_id: telegramId, name, role });
+
+  if (error) {
+    await sendMessage(chatId, `❌ Ошибка: ${error.message}`);
+    return;
+  }
+
+  await sendMessage(chatId, [
+    "✅ <b>Сотрудник добавлен!</b>",
+    "",
+    `👤 <b>${name}</b>`,
+    `🆔 Telegram ID: <code>${telegramId}</code>`,
+    `🔑 Роль: ${ROLE_LABELS[role] ?? role}`,
+    "",
+    "Теперь этот человек может написать боту /start и получит доступ к CRM.",
+  ].join("\n"));
+}
+
+async function handleRemoveAgent(chatId: string, agent: AgentRow, args: string[]) {
+  if (!isAdmin(agent)) {
+    await sendMessage(chatId, "⛔ Только администратор может удалять сотрудников.");
+    return;
+  }
+
+  if (args.length < 1) {
+    await sendMessage(chatId, "Использование: /remove_agent [telegram_id]\nПример: <code>/remove_agent 123456789</code>");
+    return;
+  }
+
+  const telegramId = parseInt(args[0]);
+  if (isNaN(telegramId)) {
+    await sendMessage(chatId, "❌ telegram_id должен быть числом.");
+    return;
+  }
+
+  const supabase = createAdminClient();
+  const { data: target } = await supabase
+    .from("authorized_agents")
+    .select("name")
+    .eq("telegram_id", telegramId)
+    .single();
+
+  if (!target) {
+    await sendMessage(chatId, "❌ Сотрудник не найден.");
+    return;
+  }
+
+  await supabase
+    .from("authorized_agents")
+    .update({ is_active: false })
+    .eq("telegram_id", telegramId);
+
+  await sendMessage(chatId, `✅ <b>${(target as { name: string }).name}</b> деактивирован.`);
+}
+
+async function handleListAgents(chatId: string, agent: AgentRow) {
+  if (!isAdmin(agent)) {
+    await sendMessage(chatId, "⛔ Только администратор может просматривать список.");
+    return;
+  }
+
+  const supabase = createAdminClient();
+  const { data: agents } = await supabase
+    .from("authorized_agents")
+    .select("*")
+    .order("created_at");
+
+  type AgentInfo = { telegram_id: number; name: string; role: string; is_active: boolean };
+  const list = (agents ?? []) as AgentInfo[];
+
+  if (list.length === 0) {
+    await sendMessage(chatId, "Нет зарегистрированных сотрудников.");
+    return;
+  }
+
+  const lines = list.map((a, i) => {
+    const status = a.is_active ? "✅" : "❌";
+    const roleLabel = ROLE_LABELS[a.role] ?? a.role;
+    return `${i + 1}. ${status} <b>${a.name}</b> — ${roleLabel}\n   ID: <code>${a.telegram_id}</code>`;
+  });
+
+  await sendMessage(chatId, [
+    "👥 <b>Список сотрудников</b>",
+    "",
+    ...lines,
+  ].join("\n"));
 }

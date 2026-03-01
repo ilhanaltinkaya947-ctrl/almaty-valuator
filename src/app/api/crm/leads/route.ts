@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { authenticateRequest } from "@/lib/auth-telegram";
+import { sendMessage } from "@/lib/telegram";
 import type { Database } from "@/types/database";
 
 type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
+
+const STATUS_LABELS: Record<string, string> = {
+  new: "🆕 Новый",
+  in_progress: "📞 В обработке",
+  price_approved: "💰 Оценка утверждена",
+  jurist_approved: "⚖️ Проверено юристом",
+  director_approved: "✅ Утверждено директором",
+  deal_progress: "📝 На сделке",
+  paid: "🏆 Выдано",
+  rejected: "📦 Отказ",
+};
 
 /** GET /api/crm/leads — Fetch leads with optional filters */
 export async function GET(req: NextRequest) {
@@ -62,6 +74,14 @@ export async function PATCH(req: NextRequest) {
     }
 
     const supabase = createAdminClient();
+
+    // Fetch lead before update (for notification context)
+    const { data: leadBefore } = await supabase
+      .from("leads")
+      .select("*")
+      .eq("id", lead_id)
+      .single();
+
     const updateData: Record<string, unknown> = {};
 
     if (status) {
@@ -87,8 +107,64 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Send Telegram notification on status change (fire-and-forget)
+    if (status && leadBefore) {
+      const lead = leadBefore as LeadRow;
+      const oldLabel = STATUS_LABELS[lead.status] ?? lead.status;
+      const newLabel = STATUS_LABELS[status] ?? status;
+      const price = lead.offer_price ?? lead.estimated_price;
+      const priceStr = price
+        ? new Intl.NumberFormat("ru-RU").format(price) + " ₸"
+        : "—";
+
+      const text = [
+        `📢 <b>Статус изменён</b>`,
+        ``,
+        `👤 <b>${lead.name ?? "—"}</b> | 📞 ${lead.phone}`,
+        `🏠 ${lead.property_type ?? "—"} | 💰 ${priceStr}`,
+        ``,
+        `${oldLabel}  →  ${newLabel}`,
+        ``,
+        `👷 <b>${agent.name}</b> | ${new Date().toLocaleString("ru-RU", { timeZone: "Asia/Almaty", hour: "2-digit", minute: "2-digit" })}`,
+      ].join("\n");
+
+      // Send to all active agents
+      notifyAllAgents(supabase, text).catch(() => {});
+    }
+
+    // Send Telegram notification on price change (fire-and-forget)
+    if (typeof offer_price === "number" && offer_price > 0 && leadBefore) {
+      const lead = leadBefore as LeadRow;
+      const priceStr = new Intl.NumberFormat("ru-RU").format(offer_price);
+
+      const text = [
+        `💰 <b>Цена назначена</b>`,
+        ``,
+        `👤 <b>${lead.name ?? "—"}</b> | 📞 ${lead.phone}`,
+        `💰 <b>${priceStr} ₸</b>`,
+        ``,
+        `👷 <b>${agent.name}</b>`,
+      ].join("\n");
+
+      notifyAllAgents(supabase, text).catch(() => {});
+    }
+
     return NextResponse.json({ success: true, lead_id, updated: updateData, updated_by: agent.name });
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
+}
+
+/** Send a message to all active authorized agents */
+async function notifyAllAgents(supabase: ReturnType<typeof createAdminClient>, text: string) {
+  const { data: agents } = await supabase
+    .from("authorized_agents")
+    .select("telegram_id")
+    .eq("is_active", true);
+
+  const targets = (agents ?? []) as { telegram_id: number }[];
+
+  await Promise.allSettled(
+    targets.map((a) => sendMessage(String(a.telegram_id), text))
+  );
 }
