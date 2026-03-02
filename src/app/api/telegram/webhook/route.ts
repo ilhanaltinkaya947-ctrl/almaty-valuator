@@ -3,6 +3,7 @@ import {
   sendMessage,
   editMessage,
   answerCallback,
+  callApi,
   getAgent,
   isAdmin,
   type InlineKeyboard,
@@ -21,11 +22,30 @@ interface TelegramUser {
   username?: string;
 }
 
+interface TelegramPhotoSize {
+  file_id: string;
+  file_unique_id: string;
+  width: number;
+  height: number;
+  file_size?: number;
+}
+
+interface TelegramDocument {
+  file_id: string;
+  file_unique_id: string;
+  file_name?: string;
+  mime_type?: string;
+  file_size?: number;
+}
+
 interface TelegramMessage {
   message_id: number;
   chat: { id: number };
   text?: string;
+  caption?: string;
   from?: TelegramUser;
+  photo?: TelegramPhotoSize[];
+  document?: TelegramDocument;
 }
 
 interface TelegramCallbackQuery {
@@ -66,6 +86,12 @@ export async function POST(req: NextRequest) {
     // Handle callback queries (inline button presses)
     if (update.callback_query) {
       await handleCallbackQuery(update.callback_query);
+      return NextResponse.json({ ok: true });
+    }
+
+    // Handle photo/document uploads (file attachment to leads)
+    if (update.message && (update.message.photo || update.message.document) && update.message.from) {
+      await handleFileUpload(update.message);
       return NextResponse.json({ ok: true });
     }
 
@@ -283,6 +309,131 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
   }
 
   await answerCallback(query.id, notification);
+}
+
+// ── File Upload Handler (photos + documents → Supabase Storage) ──
+
+async function handleFileUpload(msg: TelegramMessage) {
+  const chatId = String(msg.chat.id);
+  const telegramId = msg.from!.id;
+
+  // Check authorization
+  const agent = await getAgent(telegramId);
+  if (!agent) {
+    await sendMessage(chatId, "⛔ Доступ ограничен.");
+    return;
+  }
+
+  const caption = msg.caption ?? "";
+
+  // Extract short_id from caption (e.g. "105", "#105", "заявка 105")
+  const idMatch = caption.match(/#?(\d+)/);
+  if (!idMatch) {
+    await sendMessage(chatId, "❌ Укажите номер заявки в подписи к файлу.\n\nПример: отправьте фото с подписью <code>#105</code>");
+    return;
+  }
+
+  const shortId = parseInt(idMatch[1]);
+
+  // Find lead by short_id
+  const supabase = createAdminClient();
+  const { data: lead } = await supabase
+    .from("leads")
+    .select("id, name, short_id")
+    .eq("short_id", shortId)
+    .single();
+
+  if (!lead) {
+    await sendMessage(chatId, `❌ Заявка #${shortId} не найдена.`);
+    return;
+  }
+
+  // Determine file_id and metadata
+  let fileId: string;
+  let fileName: string;
+  let fileType: string;
+
+  if (msg.document) {
+    fileId = msg.document.file_id;
+    fileName = msg.document.file_name ?? `document_${Date.now()}`;
+    fileType = msg.document.mime_type ?? "application/octet-stream";
+  } else if (msg.photo && msg.photo.length > 0) {
+    // Take the largest photo (last in array)
+    const largest = msg.photo[msg.photo.length - 1];
+    fileId = largest.file_id;
+    fileName = `photo_${Date.now()}.jpg`;
+    fileType = "image/jpeg";
+  } else {
+    return;
+  }
+
+  try {
+    // Get file path from Telegram
+    const fileInfo = await callApi("getFile", { file_id: fileId });
+    const filePath = fileInfo.file_path;
+    if (!filePath) {
+      await sendMessage(chatId, "❌ Не удалось получить файл от Telegram.");
+      return;
+    }
+
+    // Download file from Telegram
+    const token = process.env.TELEGRAM_BOT_TOKEN!;
+    const fileUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;
+    const fileRes = await fetch(fileUrl);
+    if (!fileRes.ok) {
+      await sendMessage(chatId, "❌ Ошибка скачивания файла.");
+      return;
+    }
+    const fileBuffer = await fileRes.arrayBuffer();
+
+    // Upload to Supabase Storage
+    const storagePath = `${lead.id}/${fileName}`;
+    const { error: uploadError } = await supabase.storage
+      .from("crm_documents")
+      .upload(storagePath, fileBuffer, {
+        contentType: fileType,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      await sendMessage(chatId, `❌ Ошибка загрузки: ${uploadError.message}`);
+      return;
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from("crm_documents")
+      .getPublicUrl(storagePath);
+
+    const publicUrl = urlData.publicUrl;
+
+    // Save record to lead_attachments
+    const { error: insertError } = await supabase
+      .from("lead_attachments")
+      .insert({
+        lead_id: lead.id,
+        uploaded_by: agent.id,
+        file_url: publicUrl,
+        file_type: fileType,
+        file_name: fileName,
+      });
+
+    if (insertError) {
+      await sendMessage(chatId, `❌ Ошибка сохранения: ${insertError.message}`);
+      return;
+    }
+
+    await sendMessage(chatId, [
+      `✅ Файл прикреплён к заявке <b>#${shortId}</b>`,
+      ``,
+      `👤 ${lead.name ?? "—"}`,
+      `📎 ${fileName}`,
+      `👷 ${agent.name}`,
+    ].join("\n"));
+  } catch (err) {
+    console.error("File upload error:", err);
+    await sendMessage(chatId, "❌ Произошла ошибка при загрузке файла.");
+  }
 }
 
 // ── Command Handlers ──
