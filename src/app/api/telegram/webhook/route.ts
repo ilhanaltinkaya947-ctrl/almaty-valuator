@@ -190,6 +190,12 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
     return;
   }
 
+  // Handle jurist callback: jurist_{short_id}
+  if (data.startsWith("jurist_")) {
+    await handleJuristCallback(query, agent, data);
+    return;
+  }
+
   // Parse: lead:action:leadId
   const parts = data.split(":");
   if (parts[0] !== "lead" || parts.length < 3) {
@@ -311,6 +317,108 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
   await answerCallback(query.id, notification);
 }
 
+// ── Jurist Callback Handler ──
+
+async function handleJuristCallback(
+  query: TelegramCallbackQuery,
+  agent: AgentRow,
+  data: string,
+) {
+  const chatId = query.message?.chat.id;
+  const messageId = query.message?.message_id;
+  const shortId = parseInt(data.replace("jurist_", ""));
+
+  if (isNaN(shortId)) {
+    await answerCallback(query.id, "Неверный формат");
+    return;
+  }
+
+  const supabase = createAdminClient();
+
+  // Find lead by short_id
+  const { data: rawLead } = await supabase
+    .from("leads")
+    .select("id, name, short_id, phone, status")
+    .eq("short_id", shortId)
+    .single();
+
+  const lead = rawLead as { id: string; name: string | null; short_id: number; phone: string; status: string } | null;
+  if (!lead) {
+    await answerCallback(query.id, `Заявка #${shortId} не найдена`);
+    return;
+  }
+
+  // Update status to jurist_approved
+  await supabase
+    .from("leads")
+    .update({ status: "jurist_approved" })
+    .eq("id", lead.id);
+
+  // Fetch all attachments for this lead
+  const { data: attachments } = await supabase
+    .from("lead_attachments")
+    .select("file_url, file_name, file_type")
+    .eq("lead_id", lead.id)
+    .order("created_at", { ascending: false });
+
+  const files = (attachments ?? []) as { file_url: string; file_name: string; file_type: string }[];
+
+  // Find all jurists
+  const { data: jurists } = await supabase
+    .from("profiles")
+    .select("telegram_chat_id, full_name")
+    .eq("role", "jurist")
+    .not("telegram_chat_id", "is", null);
+
+  const juristList = (jurists ?? []) as { telegram_chat_id: string; full_name: string }[];
+
+  // Build document list text
+  const fileLines = files.length > 0
+    ? files.map((f, i) => `${i + 1}. <a href="${f.file_url}">${f.file_name}</a>`).join("\n")
+    : "<i>Нет прикреплённых файлов</i>";
+
+  const notificationText = [
+    `⚖️ <b>Новая заявка на проверку</b>`,
+    ``,
+    `📋 <b>Заявка:</b> #${lead.short_id}`,
+    `👤 <b>Клиент:</b> ${lead.name ?? "—"}`,
+    `📞 <b>Телефон:</b> ${lead.phone}`,
+    `👷 <b>Отправил:</b> ${agent.name}`,
+    ``,
+    `📎 <b>Документы:</b>`,
+    fileLines,
+  ].join("\n");
+
+  // Send to each jurist
+  let sentCount = 0;
+  for (const j of juristList) {
+    try {
+      await sendMessage(j.telegram_chat_id, notificationText);
+      sentCount++;
+    } catch {
+      console.error(`Failed to notify jurist ${j.full_name}`);
+    }
+  }
+
+  await answerCallback(query.id, `✅ Отправлено ${sentCount} юристу(ам)`);
+
+  // Edit broker's message to confirm
+  if (chatId && messageId) {
+    await editMessage(
+      chatId,
+      messageId,
+      [
+        `✅ Документы по заявке <b>#${shortId}</b> отправлены юристам`,
+        ``,
+        `👤 ${lead.name ?? "—"}`,
+        `📎 Файлов: ${files.length}`,
+        `⚖️ Юристов уведомлено: ${sentCount}`,
+        `👷 ${agent.name}`,
+      ].join("\n"),
+    ).catch(() => {});
+  }
+}
+
 // ── File Upload Handler (photos + documents → Supabase Storage) ──
 
 async function handleFileUpload(msg: TelegramMessage) {
@@ -429,7 +537,11 @@ async function handleFileUpload(msg: TelegramMessage) {
       `👤 ${lead.name ?? "—"}`,
       `📎 ${fileName}`,
       `👷 ${agent.name}`,
-    ].join("\n"));
+    ].join("\n"), {
+      replyMarkup: [[
+        { text: "📤 Отправить юристу", callback_data: `jurist_${shortId}` },
+      ]],
+    });
   } catch (err) {
     console.error("File upload error:", err);
     await sendMessage(chatId, "❌ Произошла ошибка при загрузке файла.");
@@ -834,6 +946,37 @@ const ROLE_LABELS: Record<string, string> = {
   broker: "👷 Брокер",
 };
 
+// Map agent role → profile role
+const AGENT_TO_PROFILE_ROLE: Record<string, string> = {
+  admin: "admin",
+  broker: "manager",
+};
+
+/** Upsert into profiles table so role-based routing (jurist notifications etc.) works */
+async function upsertProfile(
+  supabase: ReturnType<typeof createAdminClient>,
+  agentId: string,
+  name: string,
+  agentRole: string,
+  telegramId: number,
+) {
+  const profileRole = AGENT_TO_PROFILE_ROLE[agentRole] ?? "manager";
+  await supabase
+    .from("profiles")
+    .upsert(
+      {
+        id: agentId,
+        full_name: name,
+        role: profileRole as Database["public"]["Tables"]["profiles"]["Row"]["role"],
+        telegram_chat_id: String(telegramId),
+      },
+      { onConflict: "id" },
+    )
+    .then(({ error }) => {
+      if (error) console.error("Profile upsert error:", error.message);
+    });
+}
+
 async function handleAddAgent(chatId: string, agent: AgentRow, args: string[]) {
   if (!isAdmin(agent)) {
     await sendMessage(chatId, "⛔ Только администратор может добавлять сотрудников.");
@@ -880,6 +1023,9 @@ async function handleAddAgent(chatId: string, agent: AgentRow, args: string[]) {
       .update({ is_active: true, name, role })
       .eq("telegram_id", telegramId);
 
+    // Also upsert into profiles
+    await upsertProfile(supabase, existing.id, name, role, telegramId);
+
     await sendMessage(chatId, [
       "✅ <b>Сотрудник обновлён</b>",
       "",
@@ -890,14 +1036,19 @@ async function handleAddAgent(chatId: string, agent: AgentRow, args: string[]) {
     return;
   }
 
-  const { error } = await supabase
+  const { data: inserted, error } = await supabase
     .from("authorized_agents")
-    .insert({ telegram_id: telegramId, name, role });
+    .insert({ telegram_id: telegramId, name, role })
+    .select("id")
+    .single();
 
-  if (error) {
-    await sendMessage(chatId, `❌ Ошибка: ${error.message}`);
+  if (error || !inserted) {
+    await sendMessage(chatId, `❌ Ошибка: ${error?.message ?? "unknown"}`);
     return;
   }
+
+  // Also upsert into profiles
+  await upsertProfile(supabase, inserted.id, name, role, telegramId);
 
   await sendMessage(chatId, [
     "✅ <b>Сотрудник добавлен!</b>",
