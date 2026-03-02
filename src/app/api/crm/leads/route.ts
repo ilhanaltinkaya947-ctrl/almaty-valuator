@@ -13,6 +13,8 @@ const STATUS_LABELS: Record<string, string> = {
   jurist_approved: "⚖️ Проверено юристом",
   director_approved: "✅ Утверждено директором",
   deal_progress: "📝 На сделке",
+  awaiting_payout: "💸 Ждёт выплаты",
+  deal_closed: "🏆 Сделка закрыта",
   paid: "🏆 Выдано",
   rejected: "📦 Отказ",
 };
@@ -68,7 +70,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "lead_id required" }, { status: 400 });
     }
 
-    const validStatuses = ["new", "in_progress", "price_approved", "jurist_approved", "director_approved", "deal_progress", "paid", "rejected"];
+    const validStatuses = ["new", "in_progress", "price_approved", "jurist_approved", "director_approved", "deal_progress", "awaiting_payout", "deal_closed", "paid", "rejected"];
     if (status && !validStatuses.includes(status)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }

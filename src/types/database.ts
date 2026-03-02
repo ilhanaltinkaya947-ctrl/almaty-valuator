@@ -13,6 +13,8 @@ export type LeadStatus =
   | "jurist_approved"
   | "director_approved"
   | "deal_progress"
+  | "awaiting_payout"
+  | "deal_closed"
   | "paid"
   | "rejected";
 
@@ -29,6 +31,27 @@ export type BuildingSeriesEnum =
   | "uluchshenka"
   | "individual"
   | "novostroyka";
+
+// ── Standalone interfaces (for use outside of Database generic) ──
+
+export interface Client {
+  id: string;
+  phone: string;
+  full_name: string | null;
+  iin: string | null;
+  tags: string[];
+  created_at: string;
+}
+
+export interface LeadAttachment {
+  id: string;
+  lead_id: string;
+  uploaded_by: string | null;
+  file_url: string;
+  file_type: string;
+  file_name: string;
+  created_at: string;
+}
 
 export type Database = {
   public: {
@@ -95,6 +118,31 @@ export type Database = {
         };
         Relationships: [];
       };
+      clients: {
+        Row: {
+          id: string;
+          phone: string;
+          full_name: string | null;
+          iin: string | null;
+          tags: string[];
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          phone: string;
+          full_name?: string | null;
+          iin?: string | null;
+          tags?: string[];
+        };
+        Update: {
+          id?: string;
+          phone?: string;
+          full_name?: string | null;
+          iin?: string | null;
+          tags?: string[];
+        };
+        Relationships: [];
+      };
       leads: {
         Row: {
           id: string;
@@ -121,6 +169,10 @@ export type Database = {
           intent: string;
           created_at: string;
           contacted_at: string | null;
+          updated_at: string;
+          client_id: string | null;
+          short_id: number;
+          rejection_reason: string | null;
         };
         Insert: {
           id?: string;
@@ -145,6 +197,8 @@ export type Database = {
           is_pledged?: boolean;
           is_golden_square?: boolean;
           intent?: string;
+          client_id?: string | null;
+          rejection_reason?: string | null;
         };
         Update: {
           id?: string;
@@ -170,6 +224,10 @@ export type Database = {
           is_golden_square?: boolean;
           intent?: string;
           contacted_at?: string | null;
+          updated_at?: string;
+          client_id?: string | null;
+          short_id?: number;
+          rejection_reason?: string | null;
         };
         Relationships: [
           {
@@ -177,6 +235,56 @@ export type Database = {
             columns: ["complex_id"];
             isOneToOne: false;
             referencedRelation: "complexes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "leads_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      lead_attachments: {
+        Row: {
+          id: string;
+          lead_id: string;
+          uploaded_by: string | null;
+          file_url: string;
+          file_type: string;
+          file_name: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          lead_id: string;
+          uploaded_by?: string | null;
+          file_url: string;
+          file_type: string;
+          file_name: string;
+        };
+        Update: {
+          id?: string;
+          lead_id?: string;
+          uploaded_by?: string | null;
+          file_url?: string;
+          file_type?: string;
+          file_name?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "lead_attachments_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lead_attachments_uploaded_by_fkey";
+            columns: ["uploaded_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -388,6 +496,8 @@ export type Database = {
           id: string;
           role: UserRole;
           full_name: string;
+          role_text: string | null;
+          telegram_chat_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -395,11 +505,15 @@ export type Database = {
           id: string;
           role?: UserRole;
           full_name?: string;
+          role_text?: string | null;
+          telegram_chat_id?: string | null;
         };
         Update: {
           id?: string;
           role?: UserRole;
           full_name?: string;
+          role_text?: string | null;
+          telegram_chat_id?: string | null;
         };
         Relationships: [];
       };

@@ -50,7 +50,7 @@ export async function PATCH(req: NextRequest) {
     if (data.class !== undefined) updatePayload.class = data.class;
     if (data.is_golden_square !== undefined) updatePayload.is_golden_square = data.is_golden_square;
 
-    if (Object.keys(updatePayload).length === 0) {
+    if (!updatePayload.coefficient && !updatePayload.class && updatePayload.is_golden_square === undefined) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 });
     }
 

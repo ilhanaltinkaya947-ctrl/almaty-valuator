@@ -1,3 +1,5 @@
+import type { Client } from "@/types/database";
+
 export interface Lead {
   id: string;
   phone: string;
@@ -21,6 +23,12 @@ export interface Lead {
   intent: string;
   building_series: string | null;
   is_pledged: boolean;
+  // ERP fields
+  client_id: string | null;
+  short_id: number | null;
+  rejection_reason: string | null;
+  assignee?: { full_name: string } | null;
+  client?: Client | null;
 }
 
 export interface SettingRow {
@@ -36,7 +44,8 @@ export const PIPELINE_STATUSES = [
   "jurist_approved",
   "director_approved",
   "deal_progress",
-  "paid",
+  "awaiting_payout",
+  "deal_closed",
   "rejected",
 ] as const;
 
@@ -47,9 +56,10 @@ export const ACTIVE_STATUSES = [
   "jurist_approved",
   "director_approved",
   "deal_progress",
+  "awaiting_payout",
 ] as const;
 
-export const TERMINAL_STATUSES = ["paid", "rejected"] as const;
+export const TERMINAL_STATUSES = ["rejected", "deal_closed"] as const;
 
 export const STATUS_OPTIONS: readonly { value: string; label: string; color?: string }[] = [
   { value: "all", label: "Все" },
@@ -59,7 +69,9 @@ export const STATUS_OPTIONS: readonly { value: string; label: string; color?: st
   { value: "jurist_approved", label: "Юрист", color: "#9B59B6" },
   { value: "director_approved", label: "Директор", color: "#3498DB" },
   { value: "deal_progress", label: "Сделка", color: "#F39C12" },
-  { value: "paid", label: "Выдано", color: "#25D366" },
+  { value: "awaiting_payout", label: "Ждёт выплаты", color: "#EAB308" },
+  { value: "deal_closed", label: "Закрыта", color: "#22C55E" },
+  { value: "paid", label: "Выдано (legacy)", color: "#25D366" },
   { value: "rejected", label: "Отказ", color: "#5A6478" },
 ];
 
@@ -70,6 +82,8 @@ export const STATUS_LABELS: Record<string, string> = {
   jurist_approved: "Юрист \u2713",
   director_approved: "Директор \u2713",
   deal_progress: "На сделке",
+  awaiting_payout: "Ждёт выплаты",
+  deal_closed: "Закрыта \u2713",
   paid: "Выдано \u2713",
   rejected: "Отказ",
 };
@@ -81,6 +95,8 @@ export const STATUS_COLORS: Record<string, string> = {
   jurist_approved: "#9B59B6",
   director_approved: "#3498DB",
   deal_progress: "#F39C12",
+  awaiting_payout: "#EAB308",
+  deal_closed: "#22C55E",
   paid: "#25D366",
   rejected: "#5A6478",
 };
@@ -90,8 +106,8 @@ export const NEXT_STATUS: Record<string, string> = {
   in_progress: "price_approved",
   price_approved: "jurist_approved",
   jurist_approved: "director_approved",
-  director_approved: "deal_progress",
-  deal_progress: "paid",
+  director_approved: "awaiting_payout",
+  awaiting_payout: "deal_closed",
 };
 
 export const NEXT_STATUS_LABELS: Record<string, string> = {
@@ -99,8 +115,8 @@ export const NEXT_STATUS_LABELS: Record<string, string> = {
   in_progress: "Оценка \u2713",
   price_approved: "Юрист \u2713",
   jurist_approved: "Директор \u2713",
-  director_approved: "На сделку",
-  deal_progress: "Выдано \u2713",
+  director_approved: "На выплату",
+  awaiting_payout: "Закрыть сделку \u2713",
 };
 
 export const INTENT_LABELS: Record<string, string> = {
@@ -122,7 +138,7 @@ export const PROPERTY_TYPE_LABELS: Record<string, string> = {
 
 export const CATEGORY_FILTERS = [
   { value: "all", label: "Все", color: "#C8A44E" },
-  { value: "ready", label: "Согласен ✓", color: "#25D366" },
+  { value: "ready", label: "Согласен \u2713", color: "#25D366" },
   { value: "negotiate", label: "Торг", color: "#E8A838" },
   { value: "house", label: "Дома", color: "#9B59B6" },
   { value: "commercial", label: "Коммерция", color: "#4A8FD4" },

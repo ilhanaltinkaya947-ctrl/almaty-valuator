@@ -49,6 +49,8 @@ const STATUS_LABELS: Record<string, string> = {
   jurist_approved: "⚖️ Проверено юристом",
   director_approved: "✅ Утверждено директором",
   deal_progress: "📝 На сделке",
+  awaiting_payout: "💸 Ждёт выплаты",
+  deal_closed: "🏆 Сделка закрыта",
   paid: "🏆 Выдано",
   rejected: "📦 Отказ",
 };
