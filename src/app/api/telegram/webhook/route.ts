@@ -46,6 +46,7 @@ interface TelegramMessage {
   from?: TelegramUser;
   photo?: TelegramPhotoSize[];
   document?: TelegramDocument;
+  media_group_id?: string;
 }
 
 interface TelegramCallbackQuery {
@@ -59,6 +60,9 @@ interface TelegramUpdate {
   message?: TelegramMessage;
   callback_query?: TelegramCallbackQuery;
 }
+
+// ── Media Group Dedup (album uploads) ──
+const processedMediaGroups = new Set<string>();
 
 // ── Status Labels ──
 
@@ -434,16 +438,16 @@ async function handleFileUpload(msg: TelegramMessage) {
 
   const caption = msg.caption ?? "";
 
-  // Extract short_id from caption (e.g. "105", "#105", "заявка 105")
+  // 1. Validate caption contains a number
   const idMatch = caption.match(/#?(\d+)/);
   if (!idMatch) {
-    await sendMessage(chatId, "❌ Укажите номер заявки в подписи к файлу.\n\nПример: отправьте фото с подписью <code>#105</code>");
+    await sendMessage(chatId, "❌ Вы не указали номер заявки. Отправьте фото ещё раз и обязательно добавьте номер (например, <code>105</code>) в описание (caption).");
     return;
   }
 
   const shortId = parseInt(idMatch[1]);
 
-  // Find lead by short_id
+  // 2. Find lead by short_id — clear error if not found
   const supabase = createAdminClient();
   const { data: lead } = await supabase
     .from("leads")
@@ -452,8 +456,21 @@ async function handleFileUpload(msg: TelegramMessage) {
     .single();
 
   if (!lead) {
-    await sendMessage(chatId, `❌ Заявка #${shortId} не найдена.`);
+    await sendMessage(chatId, `❌ Заявка #${shortId} не найдена в системе. Проверьте номер.`);
     return;
+  }
+
+  // 3. Media group dedup — detect if this is part of an album
+  const mediaGroupId = msg.media_group_id;
+  let isAlbumDuplicate = false;
+  if (mediaGroupId) {
+    if (processedMediaGroups.has(mediaGroupId)) {
+      isAlbumDuplicate = true;
+    } else {
+      processedMediaGroups.add(mediaGroupId);
+      // Auto-cleanup after 60s to prevent memory leak
+      setTimeout(() => processedMediaGroups.delete(mediaGroupId), 60_000);
+    }
   }
 
   // Determine file_id and metadata
@@ -466,7 +483,6 @@ async function handleFileUpload(msg: TelegramMessage) {
     fileName = msg.document.file_name ?? `document_${Date.now()}`;
     fileType = msg.document.mime_type ?? "application/octet-stream";
   } else if (msg.photo && msg.photo.length > 0) {
-    // Take the largest photo (last in array)
     const largest = msg.photo[msg.photo.length - 1];
     fileId = largest.file_id;
     fileName = `photo_${Date.now()}.jpg`;
@@ -531,17 +547,20 @@ async function handleFileUpload(msg: TelegramMessage) {
       return;
     }
 
-    await sendMessage(chatId, [
-      `✅ Файл прикреплён к заявке <b>#${shortId}</b>`,
-      ``,
-      `👤 ${lead.name ?? "—"}`,
-      `📎 ${fileName}`,
-      `👷 ${agent.name}`,
-    ].join("\n"), {
-      replyMarkup: [[
-        { text: "📤 Отправить юристу", callback_data: `jurist_${shortId}` },
-      ]],
-    });
+    // Only send confirmation + jurist button for first file in an album
+    if (!isAlbumDuplicate) {
+      await sendMessage(chatId, [
+        `✅ Файл прикреплён к заявке <b>#${shortId}</b>`,
+        ``,
+        `👤 ${lead.name ?? "—"}`,
+        `📎 ${fileName}`,
+        `👷 ${agent.name}`,
+      ].join("\n"), {
+        replyMarkup: [[
+          { text: "📤 Отправить юристу", callback_data: `jurist_${shortId}` },
+        ]],
+      });
+    }
   } catch (err) {
     console.error("File upload error:", err);
     await sendMessage(chatId, "❌ Произошла ошибка при загрузке файла.");
