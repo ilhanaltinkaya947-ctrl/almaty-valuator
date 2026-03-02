@@ -20,15 +20,22 @@ export default function LeadDetailPanel({
   onClose,
   onStatusChange,
   onSetPrice,
+  onRequestReject,
+  onAssign,
+  currentAgentId,
 }: {
   lead: Lead;
   buybackDiscount: number;
   onClose: () => void;
   onStatusChange: (id: string, status: string) => void;
   onSetPrice: (id: string, price: number) => void;
+  onRequestReject: (lead: Lead) => void;
+  onAssign: (id: string) => void;
+  currentAgentId: string | null;
 }) {
   const [priceInput, setPriceInput] = useState("");
   const [visible, setVisible] = useState(false);
+  const [tab, setTab] = useState<"info" | "docs">("info");
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -59,10 +66,10 @@ export default function LeadDetailPanel({
 
   const waPhone = lead.phone.replace(/\D/g, "");
   const offerText = offerPrice
-    ? ` \u041D\u0430\u0448\u0435 \u043F\u0440\u0435\u0434\u043B\u043E\u0436\u0435\u043D\u0438\u0435 \u043F\u043E \u0441\u0440\u043E\u0447\u043D\u043E\u043C\u0443 \u0432\u044B\u043A\u0443\u043F\u0443: ${new Intl.NumberFormat("ru-RU").format(offerPrice)} \u0442\u0435\u043D\u0433\u0435.`
+    ? ` Наше предложение по срочному выкупу: ${new Intl.NumberFormat("ru-RU").format(offerPrice)} тенге.`
     : "";
   const waMessage = encodeURIComponent(
-    `\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435${lead.name ? `, ${lead.name}` : ""}! \u042F \u043C\u0435\u043D\u0435\u0434\u0436\u0435\u0440 \u0438\u0437 \u0410\u043B\u043C\u0430\u0432\u044B\u043A\u0443\u043F.${offerText}`
+    `Здравствуйте${lead.name ? `, ${lead.name}` : ""}! Я менеджер из Алмавыкуп.${offerText}`
   );
 
   const nextStatus = NEXT_STATUS[lead.status];
@@ -75,6 +82,17 @@ export default function LeadDetailPanel({
       <span style={{ color: valueColor ?? "#8B95A8", fontSize: 12, fontWeight: 600 }}>{value}</span>
     </div>
   );
+
+  const tabStyle = (active: boolean) => ({
+    padding: "8px 16px",
+    fontSize: 13,
+    fontWeight: 600 as const,
+    color: active ? "#C8A44E" : "#5A6478",
+    background: "none" as const,
+    border: "none" as const,
+    borderBottom: active ? "2px solid #C8A44E" : "2px solid transparent",
+    cursor: "pointer" as const,
+  });
 
   return (
     <>
@@ -156,149 +174,216 @@ export default function LeadDetailPanel({
               padding: "0 4px",
             }}
           >
-            \u2715
+            {"\u2715"}
+          </button>
+        </div>
+
+        {/* Tab bar */}
+        <div style={{ display: "flex", borderBottom: "1px solid #1E2A3A", padding: "0 16px" }}>
+          <button style={tabStyle(tab === "info")} onClick={() => setTab("info")}>
+            Инфо
+          </button>
+          <button style={tabStyle(tab === "docs")} onClick={() => setTab("docs")}>
+            Документы
           </button>
         </div>
 
         {/* Body */}
         <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
-          {/* Name + phone */}
-          <h2 style={{ fontSize: 18, fontWeight: 700, color: "#F1F3F7", margin: "0 0 4px" }}>
-            {lead.name ?? "\u0411\u0435\u0437 \u0438\u043C\u0435\u043D\u0438"}
-          </h2>
-          <div style={{ fontSize: 13, color: "#8B95A8", marginBottom: 16 }}>{lead.phone}</div>
+          {tab === "info" ? (
+            <>
+              {/* Name + phone */}
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: "#F1F3F7", margin: "0 0 4px" }}>
+                <span style={{ color: "#5A6478", fontWeight: 400, fontSize: 14 }}>#{lead.short_id} </span>
+                {lead.name ?? "Без имени"}
+              </h2>
+              <div style={{ fontSize: 13, color: "#8B95A8", marginBottom: 8 }}>{lead.phone}</div>
 
-          {/* 3-price block for auto-calc */}
-          {!lead.needs_manual_review && offerPrice ? (
-            <div
-              style={{
-                display: "flex",
-                gap: 12,
-                marginBottom: 16,
-                padding: 12,
-                background: "#111827",
-                borderRadius: 8,
-                border: "1px solid #1E2A3A",
-              }}
-            >
-              <div>
-                <div style={{ color: "#5A6478", fontSize: 10 }}>{"\u0420\u044B\u043D\u043E\u043A"}</div>
-                <div style={{ color: "#8B95A8", fontWeight: 600, fontSize: 13 }}>{formatPrice(marketPrice)}</div>
-              </div>
-              <div>
-                <div style={{ color: "#5A6478", fontSize: 10 }}>{"\u041E\u0444\u0435\u0440\u0442\u0430"}</div>
-                <div style={{ color: "#C8A44E", fontWeight: 700, fontSize: 13 }}>{formatPrice(offerPrice)}</div>
-              </div>
-              <div>
-                <div style={{ color: "#5A6478", fontSize: 10 }}>{"\u041B\u0438\u043C\u0438\u0442"}</div>
-                <div style={{ color: "#E74C3C", fontWeight: 600, fontSize: 13 }}>{formatPrice(limitPrice)}</div>
-              </div>
-              {margin !== null && (
-                <div
-                  style={{
-                    marginLeft: "auto",
-                    alignSelf: "center",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "#25D366",
-                    background: "#25D36620",
-                    padding: "2px 8px",
-                    borderRadius: 8,
-                  }}
-                >
-                  {margin}%
+              {/* Assignee info */}
+              {lead.assignee && (
+                <div style={{
+                  fontSize: 12,
+                  padding: "4px 8px",
+                  borderRadius: 6,
+                  background: "#C8A44E15",
+                  color: "#C8A44E",
+                  fontWeight: 600,
+                  display: "inline-block",
+                  marginBottom: 12,
+                }}>
+                  {lead.assignee.name}
                 </div>
               )}
-            </div>
-          ) : null}
 
-          {/* Manual price input */}
-          {lead.needs_manual_review && !lead.offer_price && (
-            <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
-              <input
-                type="number"
-                placeholder="\u0426\u0435\u043D\u0430 \u0432\u044B\u043A\u0443\u043F\u0430"
-                value={priceInput}
-                onChange={(e) => setPriceInput(e.target.value)}
+              {/* 3-price block for auto-calc */}
+              {!lead.needs_manual_review && offerPrice ? (
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 12,
+                    marginBottom: 16,
+                    padding: 12,
+                    background: "#111827",
+                    borderRadius: 8,
+                    border: "1px solid #1E2A3A",
+                  }}
+                >
+                  <div>
+                    <div style={{ color: "#5A6478", fontSize: 10 }}>Рынок</div>
+                    <div style={{ color: "#8B95A8", fontWeight: 600, fontSize: 13 }}>{formatPrice(marketPrice)}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: "#5A6478", fontSize: 10 }}>Оферта</div>
+                    <div style={{ color: "#C8A44E", fontWeight: 700, fontSize: 13 }}>{formatPrice(offerPrice)}</div>
+                  </div>
+                  <div>
+                    <div style={{ color: "#5A6478", fontSize: 10 }}>Лимит</div>
+                    <div style={{ color: "#E74C3C", fontWeight: 600, fontSize: 13 }}>{formatPrice(limitPrice)}</div>
+                  </div>
+                  {margin !== null && (
+                    <div
+                      style={{
+                        marginLeft: "auto",
+                        alignSelf: "center",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: "#25D366",
+                        background: "#25D36620",
+                        padding: "2px 8px",
+                        borderRadius: 8,
+                      }}
+                    >
+                      {margin}%
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
+              {/* Manual price input */}
+              {lead.needs_manual_review && !lead.offer_price && (
+                <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+                  <input
+                    type="number"
+                    placeholder="Цена выкупа"
+                    value={priceInput}
+                    onChange={(e) => setPriceInput(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: "8px 10px",
+                      borderRadius: 6,
+                      background: "#111827",
+                      border: "1px solid #E74C3C",
+                      color: "#F1F3F7",
+                      fontSize: 13,
+                      outline: "none",
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      const p = parseInt(priceInput);
+                      if (p > 0) {
+                        onSetPrice(lead.id, p);
+                        setPriceInput("");
+                      }
+                    }}
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: 6,
+                      background: "#E74C3C",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Назначить
+                  </button>
+                </div>
+              )}
+              {lead.needs_manual_review && lead.offer_price && (
+                <div style={{ fontSize: 14, color: "#25D366", fontWeight: 600, marginBottom: 16 }}>
+                  Оферта: {formatPrice(lead.offer_price)}
+                </div>
+              )}
+
+              {/* Detail rows */}
+              <div
                 style={{
-                  flex: 1,
-                  padding: "8px 10px",
-                  borderRadius: 6,
+                  marginBottom: 16,
+                  padding: 12,
                   background: "#111827",
-                  border: "1px solid #E74C3C",
-                  color: "#F1F3F7",
-                  fontSize: 13,
-                  outline: "none",
-                }}
-              />
-              <button
-                onClick={() => {
-                  const p = parseInt(priceInput);
-                  if (p > 0) {
-                    onSetPrice(lead.id, p);
-                    setPriceInput("");
-                  }
-                }}
-                style={{
-                  padding: "8px 14px",
-                  borderRadius: 6,
-                  background: "#E74C3C",
-                  color: "#fff",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  border: "none",
-                  cursor: "pointer",
+                  borderRadius: 8,
+                  border: "1px solid #1E2A3A",
                 }}
               >
-                {"\u041D\u0430\u0437\u043D\u0430\u0447\u0438\u0442\u044C"}
-              </button>
-            </div>
-          )}
-          {lead.needs_manual_review && lead.offer_price && (
-            <div style={{ fontSize: 14, color: "#25D366", fontWeight: 600, marginBottom: 16 }}>
-              {"\u041E\u0444\u0435\u0440\u0442\u0430:"} {formatPrice(lead.offer_price)}
-            </div>
-          )}
+                <DetailRow label="Дата" value={formatDate(lead.created_at)} />
+                {lead.area_sqm && <DetailRow label="Площадь" value={`${lead.area_sqm} м²`} />}
+                {lead.floor && <DetailRow label="Этаж" value={String(lead.floor)} />}
+                {lead.year_built && <DetailRow label="Год постройки" value={String(lead.year_built)} />}
+                {lead.wall_material && <DetailRow label="Материал стен" value={lead.wall_material} />}
+                {lead.intent && INTENT_LABELS[lead.intent] && (
+                  <DetailRow
+                    label="Статус клиента"
+                    value={INTENT_LABELS[lead.intent]}
+                    valueColor={INTENT_COLORS[lead.intent]}
+                  />
+                )}
+                {lead.is_pledged && <DetailRow label="В залоге" value="Да" valueColor="#E74C3C" />}
+              </div>
 
-          {/* Detail rows */}
-          <div
-            style={{
-              marginBottom: 16,
-              padding: 12,
-              background: "#111827",
-              borderRadius: 8,
-              border: "1px solid #1E2A3A",
-            }}
-          >
-            <DetailRow label={"\u0414\u0430\u0442\u0430"} value={formatDate(lead.created_at)} />
-            {lead.area_sqm && <DetailRow label={"\u041F\u043B\u043E\u0449\u0430\u0434\u044C"} value={`${lead.area_sqm} \u043C\u00B2`} />}
-            {lead.floor && <DetailRow label={"\u042D\u0442\u0430\u0436"} value={String(lead.floor)} />}
-            {lead.year_built && <DetailRow label={"\u0413\u043E\u0434 \u043F\u043E\u0441\u0442\u0440\u043E\u0439\u043A\u0438"} value={String(lead.year_built)} />}
-            {lead.wall_material && <DetailRow label={"\u041C\u0430\u0442\u0435\u0440\u0438\u0430\u043B \u0441\u0442\u0435\u043D"} value={lead.wall_material} />}
-            {lead.intent && INTENT_LABELS[lead.intent] && (
-              <DetailRow
-                label={"\u0421\u0442\u0430\u0442\u0443\u0441 \u043A\u043B\u0438\u0435\u043D\u0442\u0430"}
-                value={INTENT_LABELS[lead.intent]}
-                valueColor={INTENT_COLORS[lead.intent]}
-              />
-            )}
-            {lead.is_pledged && <DetailRow label={"\u0412 \u0437\u0430\u043B\u043E\u0433\u0435"} value={"\u0414\u0430"} valueColor="#E74C3C" />}
-          </div>
+              {lead.notes && (
+                <div
+                  style={{
+                    marginBottom: 16,
+                    padding: 12,
+                    background: "#111827",
+                    borderRadius: 8,
+                    border: "1px solid #1E2A3A",
+                    color: "#8B95A8",
+                    fontSize: 12,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {lead.notes}
+                </div>
+              )}
 
-          {lead.notes && (
-            <div
-              style={{
-                marginBottom: 16,
-                padding: 12,
-                background: "#111827",
-                borderRadius: 8,
-                border: "1px solid #1E2A3A",
-                color: "#8B95A8",
-                fontSize: 12,
-                lineHeight: 1.5,
-              }}
-            >
-              {lead.notes}
+              {/* Rejection reason block */}
+              {lead.status === "rejected" && lead.rejection_reason && (
+                <div
+                  style={{
+                    marginBottom: 16,
+                    padding: 12,
+                    background: "#E74C3C15",
+                    borderRadius: 8,
+                    border: "1px solid #E74C3C30",
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#E74C3C", marginBottom: 4 }}>
+                    Причина отказа
+                  </div>
+                  <div style={{ fontSize: 12, color: "#F1F3F7", lineHeight: 1.4 }}>
+                    {lead.rejection_reason}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            /* Docs tab — empty state */
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "60px 20px",
+              color: "#5A6478",
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: 32, marginBottom: 12 }}>📄</div>
+              <div style={{ fontSize: 13 }}>
+                Здесь будут фото с объекта и договоры
+              </div>
             </div>
           )}
         </div>
@@ -341,9 +426,26 @@ export default function LeadDetailPanel({
               textDecoration: "none",
             }}
           >
-            {"\u041F\u043E\u0437\u0432\u043E\u043D\u0438\u0442\u044C"}
+            Позвонить
           </a>
-          {nextStatus && nextLabel && (
+          {lead.status === "new" && !lead.assigned_to && (
+            <button
+              onClick={() => onAssign(lead.id)}
+              style={{
+                padding: "8px 14px",
+                borderRadius: 6,
+                background: "#C8A44E",
+                color: "#0A0D14",
+                fontSize: 12,
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              Взять в работу
+            </button>
+          )}
+          {nextStatus && nextLabel && lead.status !== "new" && (
             <button
               onClick={() => onStatusChange(lead.id, nextStatus)}
               style={{
@@ -360,9 +462,9 @@ export default function LeadDetailPanel({
               {nextLabel}
             </button>
           )}
-          {lead.status !== "paid" && lead.status !== "rejected" && (
+          {lead.status !== "deal_closed" && lead.status !== "rejected" && (
             <button
-              onClick={() => onStatusChange(lead.id, "rejected")}
+              onClick={() => onRequestReject(lead)}
               style={{
                 padding: "8px 14px",
                 borderRadius: 6,
@@ -374,7 +476,7 @@ export default function LeadDetailPanel({
                 cursor: "pointer",
               }}
             >
-              {"\u041E\u0442\u043A\u0430\u0437"}
+              Отказ
             </button>
           )}
         </div>

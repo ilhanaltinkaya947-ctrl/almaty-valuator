@@ -6,6 +6,8 @@ import Link from "next/link";
 
 const NAV_ITEMS = [
   { emoji: "📊", label: "Лиды", href: "/leads" },
+  { emoji: "👥", label: "Клиенты", href: "/clients" },
+  { emoji: "📦", label: "Архив", href: "/archive" },
   { emoji: "🏢", label: "База ЖК", href: "/complexes" },
   { emoji: "📈", label: "Вторичка", href: "/zones" },
   { emoji: "⚙️", label: "Настройки", href: "/settings" },

@@ -27,7 +27,8 @@ export interface Lead {
   client_id: string | null;
   short_id: number | null;
   rejection_reason: string | null;
-  assignee?: { full_name: string } | null;
+  assigned_to: string | null;
+  assignee?: { id: string; name: string } | null;
   client?: Client | null;
 }
 

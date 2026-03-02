@@ -18,6 +18,12 @@ interface TelegramWebApp {
   expand: () => void;
 }
 
+interface AgentInfo {
+  id: string;
+  name: string;
+  role: string;
+}
+
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +31,7 @@ export default function LeadsPage() {
   const [search, setSearch] = useState("");
   const [buybackDiscount, setBuybackDiscount] = useState(0.7);
   const [error, setError] = useState<string | null>(null);
+  const [currentAgent, setCurrentAgent] = useState<AgentInfo | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "kanban">(() => {
     if (typeof window !== "undefined") {
       return (localStorage.getItem("crm-view-mode") as "list" | "kanban") ?? "list";
@@ -55,9 +62,10 @@ export default function LeadsPage() {
       const initData = getInitData();
       const headers = { "x-telegram-init-data": initData };
 
-      const [leadsRes, settingsRes] = await Promise.all([
+      const [leadsRes, settingsRes, meRes] = await Promise.all([
         fetch("/api/crm/leads?limit=100", { headers }),
         fetch("/api/crm/settings", { headers }),
+        fetch("/api/crm/auth/me", { headers }),
       ]);
 
       if (!leadsRes.ok) throw new Error("Failed to fetch leads");
@@ -70,6 +78,11 @@ export default function LeadsPage() {
           (s: SettingRow) => s.key === "buyback_discount"
         );
         if (bbSetting) setBuybackDiscount(Number(bbSetting.value_numeric));
+      }
+
+      if (meRes.ok) {
+        const meData = await meRes.json();
+        setCurrentAgent(meData);
       }
     } catch {
       setError("Ошибка загрузки данных");
@@ -84,7 +97,6 @@ export default function LeadsPage() {
     const previousLeads = leads;
     const label = STATUS_LABELS[newStatus] ?? newStatus;
 
-    // Optimistic update
     setLeads((prev) =>
       prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
     );
@@ -109,10 +121,79 @@ export default function LeadsPage() {
     }
   };
 
+  const rejectLead = async (leadId: string, reason: string) => {
+    const previousLeads = leads;
+
+    setLeads((prev) =>
+      prev.map((l) =>
+        l.id === leadId ? { ...l, status: "rejected", rejection_reason: reason } : l
+      )
+    );
+
+    try {
+      const initData = getInitData();
+      const res = await fetch("/api/crm/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-telegram-init-data": initData },
+        body: JSON.stringify({ lead_id: leadId, status: "rejected", rejection_reason: reason }),
+      });
+      if (!res.ok) {
+        setLeads(previousLeads);
+        const errData = await res.json().catch(() => ({}));
+        toast.error(errData.error ?? "Ошибка сохранения");
+      } else {
+        toast.success("Отказ оформлен");
+      }
+    } catch {
+      setLeads(previousLeads);
+      toast.error("Ошибка сети");
+    }
+  };
+
+  const assignLead = async (leadId: string) => {
+    if (!currentAgent) return;
+    const previousLeads = leads;
+
+    setLeads((prev) =>
+      prev.map((l) =>
+        l.id === leadId
+          ? {
+              ...l,
+              status: "in_progress",
+              assigned_to: currentAgent.id,
+              assignee: { id: currentAgent.id, name: currentAgent.name },
+            }
+          : l
+      )
+    );
+
+    try {
+      const initData = getInitData();
+      const res = await fetch("/api/crm/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-telegram-init-data": initData },
+        body: JSON.stringify({
+          lead_id: leadId,
+          status: "in_progress",
+          assigned_to: currentAgent.id,
+        }),
+      });
+      if (!res.ok) {
+        setLeads(previousLeads);
+        const errData = await res.json().catch(() => ({}));
+        toast.error(errData.error ?? "Ошибка сохранения");
+      } else {
+        toast.success("Взято в работу");
+      }
+    } catch {
+      setLeads(previousLeads);
+      toast.error("Ошибка сети");
+    }
+  };
+
   const setOfferPrice = async (leadId: string, price: number) => {
     const previousLeads = leads;
 
-    // Optimistic update
     setLeads((prev) =>
       prev.map((l) =>
         l.id === leadId ? { ...l, offer_price: price } : l
@@ -200,6 +281,9 @@ export default function LeadsPage() {
           search={search}
           onStatusChange={updateLeadStatus}
           onSetPrice={setOfferPrice}
+          onReject={rejectLead}
+          onAssign={assignLead}
+          currentAgent={currentAgent}
         />
       ) : (
         <>
@@ -235,6 +319,9 @@ export default function LeadsPage() {
                   buybackDiscount={buybackDiscount}
                   onStatusChange={updateLeadStatus}
                   onSetPrice={setOfferPrice}
+                  onRequestReject={rejectLead}
+                  onAssign={assignLead}
+                  currentAgentId={currentAgent?.id ?? null}
                 />
               ))}
             </div>
@@ -253,6 +340,9 @@ export default function LeadsPage() {
                   buybackDiscount={buybackDiscount}
                   onStatusChange={updateLeadStatus}
                   onSetPrice={setOfferPrice}
+                  onRequestReject={rejectLead}
+                  onAssign={assignLead}
+                  currentAgentId={currentAgent?.id ?? null}
                 />
               ))}
             </div>

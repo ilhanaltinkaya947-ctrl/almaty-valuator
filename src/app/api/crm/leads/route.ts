@@ -42,6 +42,10 @@ export async function GET(req: NextRequest) {
     query = query.eq("status", status as Database["public"]["Enums"]["lead_status"]);
   }
 
+  if (url.searchParams.get("terminal") === "true") {
+    query = query.in("status", ["rejected", "deal_closed"]);
+  }
+
   if (search) {
     query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`);
   }
@@ -64,7 +68,7 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { lead_id, status, offer_price } = body;
+    const { lead_id, status, offer_price, rejection_reason, assigned_to } = body;
 
     if (!lead_id) {
       return NextResponse.json({ error: "lead_id required" }, { status: 400 });
@@ -94,6 +98,12 @@ export async function PATCH(req: NextRequest) {
     }
     if (typeof offer_price === "number" && offer_price > 0) {
       updateData.offer_price = offer_price;
+    }
+    if (status === "rejected" && typeof rejection_reason === "string") {
+      updateData.rejection_reason = rejection_reason;
+    }
+    if (assigned_to) {
+      updateData.assigned_to = assigned_to;
     }
 
     if (Object.keys(updateData).length === 0) {

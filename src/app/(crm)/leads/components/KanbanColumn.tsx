@@ -1,68 +1,27 @@
 "use client";
 
-import { useState } from "react";
 import { Lead, STATUS_LABELS, STATUS_COLORS } from "@/lib/crm-constants";
 import KanbanCard from "./KanbanCard";
 
 export default function KanbanColumn({
   status,
   leads,
-  defaultCollapsed,
   onCardClick,
   onStatusChange,
+  onRequestReject,
+  onAssign,
+  currentAgentId,
 }: {
   status: string;
   leads: Lead[];
-  defaultCollapsed: boolean;
   onCardClick: (lead: Lead) => void;
   onStatusChange: (id: string, status: string) => void;
+  onRequestReject: (lead: Lead) => void;
+  onAssign: (id: string) => void;
+  currentAgentId: string | null;
 }) {
-  const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const color = STATUS_COLORS[status] ?? "#1E2A3A";
   const label = STATUS_LABELS[status] ?? status;
-
-  if (collapsed) {
-    return (
-      <div
-        onClick={() => setCollapsed(false)}
-        style={{
-          minWidth: 80,
-          maxWidth: 80,
-          background: "#0D1118",
-          borderRadius: 8,
-          borderTop: `3px solid ${color}`,
-          padding: "10px 6px",
-          cursor: "pointer",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 6,
-          flexShrink: 0,
-        }}
-      >
-        <span
-          style={{
-            fontSize: 20,
-            fontWeight: 700,
-            color,
-          }}
-        >
-          {leads.length}
-        </span>
-        <span
-          style={{
-            fontSize: 10,
-            color: "#8B95A8",
-            writingMode: "vertical-lr",
-            textOrientation: "mixed",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {label}
-        </span>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -79,13 +38,11 @@ export default function KanbanColumn({
     >
       {/* Column header */}
       <div
-        onClick={() => defaultCollapsed ? setCollapsed(true) : undefined}
         style={{
           padding: "10px 10px 6px",
           display: "flex",
           alignItems: "center",
           gap: 6,
-          cursor: defaultCollapsed ? "pointer" : "default",
         }}
       >
         <span
@@ -130,6 +87,9 @@ export default function KanbanColumn({
             lead={lead}
             onClick={onCardClick}
             onStatusChange={onStatusChange}
+            onRequestReject={onRequestReject}
+            onAssign={onAssign}
+            currentAgentId={currentAgentId}
           />
         ))}
         {leads.length === 0 && (

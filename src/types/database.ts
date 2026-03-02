@@ -173,6 +173,9 @@ export type Database = {
           client_id: string | null;
           short_id: number;
           rejection_reason: string | null;
+          // Optional join expansions
+          assignee?: { id: string; name: string } | null;
+          client?: { id: string; phone: string; full_name: string | null } | null;
         };
         Insert: {
           id?: string;

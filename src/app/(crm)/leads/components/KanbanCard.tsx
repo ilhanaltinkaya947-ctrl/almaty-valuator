@@ -16,15 +16,22 @@ export default function KanbanCard({
   lead,
   onClick,
   onStatusChange,
+  onRequestReject,
+  onAssign,
+  currentAgentId,
 }: {
   lead: Lead;
   onClick: (lead: Lead) => void;
   onStatusChange: (id: string, status: string) => void;
+  onRequestReject: (lead: Lead) => void;
+  onAssign: (id: string) => void;
+  currentAgentId: string | null;
 }) {
   const color = STATUS_COLORS[lead.status] ?? "#1E2A3A";
   const nextStatus = NEXT_STATUS[lead.status];
   const nextLabel = NEXT_STATUS_LABELS[lead.status];
   const nextColor = nextStatus ? (STATUS_COLORS[nextStatus] ?? "#C8A44E") : null;
+  const showAssignBtn = lead.status === "new" && !lead.assigned_to;
 
   return (
     <div
@@ -52,6 +59,7 @@ export default function KanbanCard({
             flex: 1,
           }}
         >
+          <span style={{ color: "#5A6478", fontWeight: 400 }}>#{lead.short_id} </span>
           {lead.name ?? "Без имени"}
         </span>
         {lead.property_type && PROPERTY_TYPE_LABELS[lead.property_type] && (
@@ -70,6 +78,22 @@ export default function KanbanCard({
           </span>
         )}
       </div>
+
+      {/* Assignee badge */}
+      {lead.assignee && (
+        <div style={{
+          fontSize: 10,
+          padding: "1px 6px",
+          borderRadius: 6,
+          background: "#C8A44E20",
+          color: "#C8A44E",
+          fontWeight: 600,
+          display: "inline-block",
+          marginTop: 3,
+        }}>
+          {lead.assignee.name}
+        </div>
+      )}
 
       {/* Price */}
       <div style={{ fontSize: 13, fontWeight: 700, color: "#C8A44E", marginTop: 4 }}>
@@ -100,8 +124,29 @@ export default function KanbanCard({
         )}
       </div>
 
-      {/* Next step button */}
-      {nextStatus && nextLabel && (
+      {/* Action button */}
+      {showAssignBtn ? (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onAssign(lead.id);
+          }}
+          style={{
+            marginTop: 6,
+            width: "100%",
+            padding: "4px 0",
+            borderRadius: 5,
+            border: "none",
+            background: "#C8A44E",
+            color: "#0A0D14",
+            fontSize: 11,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          {"\u0412\u0437\u044F\u0442\u044C \u0432 \u0440\u0430\u0431\u043E\u0442\u0443"}
+        </button>
+      ) : nextStatus && nextLabel ? (
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -122,7 +167,7 @@ export default function KanbanCard({
         >
           {nextLabel}
         </button>
-      )}
+      ) : null}
     </div>
   );
 }

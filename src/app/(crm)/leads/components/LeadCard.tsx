@@ -8,6 +8,8 @@ import {
   PROPERTY_TYPE_LABELS,
   INTENT_LABELS,
   INTENT_COLORS,
+  NEXT_STATUS,
+  NEXT_STATUS_LABELS,
   formatPrice,
   formatDate,
 } from "@/lib/crm-constants";
@@ -17,14 +19,22 @@ export default function LeadCard({
   buybackDiscount,
   onStatusChange,
   onSetPrice,
+  onRequestReject,
+  onAssign,
+  currentAgentId,
 }: {
   lead: Lead;
   buybackDiscount: number;
   onStatusChange: (id: string, status: string) => void;
   onSetPrice: (id: string, price: number) => void;
+  onRequestReject: (id: string, reason: string) => void;
+  onAssign: (id: string) => void;
+  currentAgentId: string | null;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [priceInput, setPriceInput] = useState("");
+  const [rejectReason, setRejectReason] = useState("");
+  const [showRejectInput, setShowRejectInput] = useState(false);
 
   const color = STATUS_COLORS[lead.status] ?? "#1E2A3A";
 
@@ -47,6 +57,10 @@ export default function LeadCard({
     `Здравствуйте${lead.name ? `, ${lead.name}` : ""}! Я менеджер из Алмавыкуп. ${offerText}`
   );
 
+  const nextStatus = NEXT_STATUS[lead.status];
+  const nextLabel = NEXT_STATUS_LABELS[lead.status];
+  const nextColor = nextStatus ? (STATUS_COLORS[nextStatus] ?? "#C8A44E") : null;
+
   return (
     <div
       style={{
@@ -59,8 +73,25 @@ export default function LeadCard({
     >
       <div onClick={() => setExpanded(!expanded)} style={{ cursor: "pointer" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontWeight: 600, fontSize: 15 }}>{lead.name ?? "Без имени"}</span>
+          <span style={{ fontWeight: 600, fontSize: 15 }}>
+            <span style={{ color: "#5A6478", fontWeight: 400, fontSize: 12 }}>#{lead.short_id} </span>
+            {lead.name ?? "Без имени"}
+          </span>
           <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
+            {lead.assignee && (
+              <span
+                style={{
+                  fontSize: 10,
+                  padding: "2px 6px",
+                  borderRadius: 8,
+                  background: "#C8A44E20",
+                  color: "#C8A44E",
+                  fontWeight: 600,
+                }}
+              >
+                {lead.assignee.name}
+              </span>
+            )}
             {lead.property_type && PROPERTY_TYPE_LABELS[lead.property_type] && (
               <span
                 style={{
@@ -195,6 +226,26 @@ export default function LeadCard({
             )}
           </div>
 
+          {/* Rejection reason display */}
+          {lead.status === "rejected" && lead.rejection_reason && (
+            <div
+              style={{
+                marginBottom: 10,
+                padding: 10,
+                background: "#E74C3C15",
+                borderRadius: 8,
+                border: "1px solid #E74C3C30",
+              }}
+            >
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#E74C3C", marginBottom: 2 }}>
+                Причина отказа
+              </div>
+              <div style={{ fontSize: 12, color: "#F1F3F7", lineHeight: 1.4 }}>
+                {lead.rejection_reason}
+              </div>
+            </div>
+          )}
+
           {lead.needs_manual_review && !lead.offer_price && (
             <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
               <input
@@ -243,6 +294,62 @@ export default function LeadCard({
             </div>
           )}
 
+          {/* Inline reject reason input */}
+          {showRejectInput && (
+            <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+              <input
+                type="text"
+                placeholder="Причина отказа..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                style={{
+                  flex: 1,
+                  padding: "6px 10px",
+                  borderRadius: 6,
+                  background: "#0A0D14",
+                  border: "1px solid #E74C3C",
+                  color: "#F1F3F7",
+                  fontSize: 13,
+                  outline: "none",
+                }}
+              />
+              <button
+                onClick={() => {
+                  onRequestReject(lead.id, rejectReason);
+                  setShowRejectInput(false);
+                  setRejectReason("");
+                }}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 6,
+                  background: "#E74C3C",
+                  color: "#fff",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Подтвердить
+              </button>
+              <button
+                onClick={() => { setShowRejectInput(false); setRejectReason(""); }}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 6,
+                  background: "transparent",
+                  color: "#5A6478",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  border: "1px solid #5A6478",
+                  cursor: "pointer",
+                }}
+              >
+                Отмена
+              </button>
+            </div>
+          )}
+
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             <a
               href={`https://wa.me/${waPhone}?text=${waMessage}`}
@@ -276,7 +383,7 @@ export default function LeadCard({
             </a>
             {lead.status === "new" && (
               <button
-                onClick={() => onStatusChange(lead.id, "in_progress")}
+                onClick={() => onAssign(lead.id)}
                 style={{
                   padding: "6px 12px",
                   borderRadius: 6,
@@ -291,94 +398,26 @@ export default function LeadCard({
                 Взять в работу
               </button>
             )}
-            {lead.status === "in_progress" && (
+            {nextStatus && nextLabel && lead.status !== "new" && (
               <button
-                onClick={() => onStatusChange(lead.id, "price_approved")}
+                onClick={() => onStatusChange(lead.id, nextStatus)}
                 style={{
                   padding: "6px 12px",
                   borderRadius: 6,
-                  background: "#E8A838",
-                  color: "#0A0D14",
+                  background: nextColor ?? "#C8A44E",
+                  color: nextColor === "#9B59B6" || nextColor === "#3498DB" || nextColor === "#25D366" ? "#fff" : "#0A0D14",
                   fontSize: 12,
                   fontWeight: 600,
                   border: "none",
                   cursor: "pointer",
                 }}
               >
-                Оценка ✓
+                {nextLabel}
               </button>
             )}
-            {lead.status === "price_approved" && (
+            {lead.status !== "deal_closed" && lead.status !== "rejected" && !showRejectInput && (
               <button
-                onClick={() => onStatusChange(lead.id, "jurist_approved")}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 6,
-                  background: "#9B59B6",
-                  color: "#fff",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Юрист ✓
-              </button>
-            )}
-            {lead.status === "jurist_approved" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "director_approved")}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 6,
-                  background: "#3498DB",
-                  color: "#fff",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Директор ✓
-              </button>
-            )}
-            {lead.status === "director_approved" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "deal_progress")}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 6,
-                  background: "#F39C12",
-                  color: "#0A0D14",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                На сделку
-              </button>
-            )}
-            {lead.status === "deal_progress" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "paid")}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 6,
-                  background: "#25D366",
-                  color: "#fff",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Выдано ✓
-              </button>
-            )}
-            {lead.status !== "paid" && lead.status !== "rejected" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "rejected")}
+                onClick={() => setShowRejectInput(true)}
                 style={{
                   padding: "6px 12px",
                   borderRadius: 6,

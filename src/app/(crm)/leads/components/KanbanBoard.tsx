@@ -11,6 +11,17 @@ import {
 } from "@/lib/crm-constants";
 import KanbanColumn from "./KanbanColumn";
 import LeadDetailPanel from "./LeadDetailPanel";
+import RejectModal from "./RejectModal";
+
+interface AgentInfo {
+  id: string;
+  name: string;
+  role: string;
+}
+
+const ACTIVE_PIPELINE = PIPELINE_STATUSES.filter(
+  (s) => !(TERMINAL_STATUSES as readonly string[]).includes(s)
+);
 
 export default function KanbanBoard({
   leads,
@@ -18,14 +29,21 @@ export default function KanbanBoard({
   search,
   onStatusChange,
   onSetPrice,
+  onReject,
+  onAssign,
+  currentAgent,
 }: {
   leads: Lead[];
   buybackDiscount: number;
   search: string;
   onStatusChange: (id: string, status: string) => void;
   onSetPrice: (id: string, price: number) => void;
+  onReject: (id: string, reason: string) => void;
+  onAssign: (id: string) => void;
+  currentAgent: AgentInfo | null;
 }) {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<Lead | null>(null);
   const [category, setCategory] = useState("all");
 
   // Sync selectedLead with incoming leads prop (reflects rollback)
@@ -70,7 +88,7 @@ export default function KanbanBoard({
 
   const grouped = useMemo(() => {
     const map: Record<string, Lead[]> = {};
-    for (const s of PIPELINE_STATUSES) {
+    for (const s of ACTIVE_PIPELINE) {
       map[s] = [];
     }
     for (const lead of filtered) {
@@ -100,6 +118,20 @@ export default function KanbanBoard({
     onSetPrice(id, price);
     if (selectedLead && selectedLead.id === id) {
       setSelectedLead({ ...selectedLead, offer_price: price });
+    }
+  };
+
+  const handleRequestReject = (lead: Lead) => {
+    setRejectTarget(lead);
+  };
+
+  const handleConfirmReject = (reason: string) => {
+    if (rejectTarget) {
+      onReject(rejectTarget.id, reason);
+      setRejectTarget(null);
+      if (selectedLead && selectedLead.id === rejectTarget.id) {
+        setSelectedLead(null);
+      }
     }
   };
 
@@ -171,17 +203,28 @@ export default function KanbanBoard({
           paddingBottom: 8,
         }}
       >
-        {PIPELINE_STATUSES.map((status) => (
+        {ACTIVE_PIPELINE.map((status) => (
           <KanbanColumn
             key={status}
             status={status}
             leads={grouped[status]}
-            defaultCollapsed={(TERMINAL_STATUSES as readonly string[]).includes(status)}
             onCardClick={setSelectedLead}
             onStatusChange={handleStatusChange}
+            onRequestReject={handleRequestReject}
+            onAssign={onAssign}
+            currentAgentId={currentAgent?.id ?? null}
           />
         ))}
       </div>
+
+      {/* Rejection modal */}
+      {rejectTarget && (
+        <RejectModal
+          leadName={`#${rejectTarget.short_id ?? ""} ${rejectTarget.name ?? "Без имени"}`}
+          onConfirm={handleConfirmReject}
+          onCancel={() => setRejectTarget(null)}
+        />
+      )}
 
       {/* Detail panel */}
       {selectedLead && (
@@ -191,6 +234,9 @@ export default function KanbanBoard({
           onClose={() => setSelectedLead(null)}
           onStatusChange={handleStatusChange}
           onSetPrice={handleSetPrice}
+          onRequestReject={handleRequestReject}
+          onAssign={onAssign}
+          currentAgentId={currentAgent?.id ?? null}
         />
       )}
     </div>
