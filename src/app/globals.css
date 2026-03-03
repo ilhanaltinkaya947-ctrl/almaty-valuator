@@ -454,6 +454,24 @@ input[type="range"]::-moz-range-thumb {
   animation: floatBubble3 45s ease-in-out infinite;
 }
 
+/* ── Telegram Mini App — disable rubber-band / pull-to-close ── */
+.tma-root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  overscroll-behavior-y: none;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: auto;
+}
+
+.tma-root .crm-main {
+  height: 100dvh;
+  height: 100vh; /* fallback */
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .reveal, .reveal-left, .reveal-right, .reveal-scale,

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import Sidebar from "@/components/crm/Sidebar";
 import CRMToaster from "@/components/crm/CRMToaster";
+import TelegramInit from "@/components/crm/TelegramInit";
 
 export const metadata: Metadata = {
   title: "Алмавыкуп CRM",
@@ -13,6 +14,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
+      <TelegramInit />
       <CRMToaster />
       <Sidebar />
       <main style={{ marginLeft: 220 }} className="crm-main">
