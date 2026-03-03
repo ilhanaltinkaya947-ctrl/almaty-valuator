@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { authenticateRequest } from "@/lib/auth-telegram";
 import { sendMessage } from "@/lib/telegram";
+import { logLeadEvent } from "@/lib/lead-events";
 import type { Database } from "@/types/database";
 
 type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
@@ -141,6 +142,34 @@ export async function PATCH(req: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Log audit events (fire-and-forget)
+    const userId = agent.id !== "system" ? agent.id : null;
+    if (status) {
+      const statusLabel = STATUS_LABELS[status] ?? status;
+      logLeadEvent({
+        leadId: lead_id,
+        userId,
+        action: "status_changed",
+        description: `Статус изменён на ${statusLabel} (${agent.name})`,
+      }).catch(() => {});
+    }
+    if (assigned_to) {
+      logLeadEvent({
+        leadId: lead_id,
+        userId,
+        action: "assigned",
+        description: `Взял заявку в работу (${agent.name})`,
+      }).catch(() => {});
+    }
+    if (typeof offer_price === "number" && offer_price > 0) {
+      logLeadEvent({
+        leadId: lead_id,
+        userId,
+        action: "price_set",
+        description: `Цена назначена: ${new Intl.NumberFormat("ru-RU").format(offer_price)} ₸ (${agent.name})`,
+      }).catch(() => {});
     }
 
     // Send Telegram notification on status change (fire-and-forget)

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logLeadEvent } from "@/lib/lead-events";
 import type { Database } from "@/types/database";
 
 const createLeadSchema = z.object({
@@ -71,9 +72,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Log creation event (fire-and-forget)
+    const leadRecord = lead as Record<string, unknown>;
+    logLeadEvent({
+      leadId: leadRecord.id as string,
+      action: "created",
+      description: `Заявка создана (${data.source})`,
+    }).catch(() => {});
+
     // Notify agents via Telegram with interactive lead card (fire-and-forget)
     if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_ADMIN_CHAT_ID) {
-      const leadRecord = lead as Record<string, unknown>;
       import("@/lib/telegram").then(({ notifyNewLead }) =>
         notifyNewLead({
           id: leadRecord.id as string,

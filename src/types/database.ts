@@ -292,6 +292,46 @@ export type Database = {
           },
         ];
       };
+      lead_events: {
+        Row: {
+          id: string;
+          lead_id: string;
+          user_id: string | null;
+          action: string;
+          description: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          lead_id: string;
+          user_id?: string | null;
+          action: string;
+          description: string;
+        };
+        Update: {
+          id?: string;
+          lead_id?: string;
+          user_id?: string | null;
+          action?: string;
+          description?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "lead_events_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lead_events_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       evaluations: {
         Row: {
           id: string;

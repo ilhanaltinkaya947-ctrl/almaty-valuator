@@ -9,6 +9,7 @@ import {
   type InlineKeyboard,
 } from "@/lib/telegram";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logLeadEvent } from "@/lib/lead-events";
 import type { Database } from "@/types/database";
 
 type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
@@ -358,6 +359,14 @@ async function handleJuristCallback(
     .update({ status: "jurist_approved" })
     .eq("id", lead.id);
 
+  // Log jurist handoff event
+  logLeadEvent({
+    leadId: lead.id,
+    userId: agent.id,
+    action: "status_changed",
+    description: `Документы переданы юристу (${agent.name}, Telegram)`,
+  }).catch(() => {});
+
   // Fetch all attachments for this lead
   const { data: attachments } = await supabase
     .from("lead_attachments")
@@ -546,6 +555,14 @@ async function handleFileUpload(msg: TelegramMessage) {
       await sendMessage(chatId, `❌ Ошибка сохранения: ${insertError.message}`);
       return;
     }
+
+    // Log document upload event
+    logLeadEvent({
+      leadId: lead.id,
+      userId: agent.id,
+      action: "document_added",
+      description: `Загружен файл: ${fileName} (${agent.name}, Telegram)`,
+    }).catch(() => {});
 
     // Only send confirmation + jurist button for first file in an album
     if (!isAlbumDuplicate) {
