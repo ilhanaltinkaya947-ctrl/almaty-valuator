@@ -296,11 +296,14 @@ export default function LeadDetailPanel({
                     const date = new Date(ev.created_at);
                     const timeStr = date.toLocaleString("ru-RU", {
                       timeZone: "Asia/Almaty",
-                      day: "2-digit",
-                      month: "2-digit",
                       hour: "2-digit",
                       minute: "2-digit",
+                    }) + ", " + date.toLocaleString("ru-RU", {
+                      timeZone: "Asia/Almaty",
+                      day: "numeric",
+                      month: "short",
                     });
+                    const userName = ev.user_name || "Система";
                     const isLast = idx === events.length - 1;
                     return (
                       <div key={ev.id} style={{ display: "flex", gap: 10 }}>
@@ -342,9 +345,7 @@ export default function LeadDetailPanel({
                           </div>
                           <div style={{ fontSize: 10, color: "#5A6478", marginTop: 2 }}>
                             {timeStr}
-                            {ev.user_name && (
-                              <span style={{ color: "#C8A44E", marginLeft: 6 }}>{ev.user_name}</span>
-                            )}
+                            <span style={{ color: "#C8A44E", marginLeft: 6 }}>{userName}</span>
                           </div>
                         </div>
                       </div>
