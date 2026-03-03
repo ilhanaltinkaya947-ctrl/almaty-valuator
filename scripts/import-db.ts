@@ -8,7 +8,7 @@
  * Then upserts curated complexes (hand-tuned coefficients take priority).
  *
  * Environment variables:
- *   API_URL             — default: https://almavykup.org.kz/api/v1/automation/sync-complex
+ *   API_URL             — default: https://almavykup.kz/api/v1/automation/sync-complex
  *   AUTOMATION_API_KEY  — default: almavykup-auto-2026-secret
  */
 
@@ -21,7 +21,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 const API_URL =
-  process.env.API_URL || "https://almavykup.org.kz/api/v1/automation/sync-complex";
+  process.env.API_URL || "https://almavykup.kz/api/v1/automation/sync-complex";
 const API_KEY =
   process.env.AUTOMATION_API_KEY || "almavykup-auto-2026-secret";
 const DELAY = 100; // ms between requests
