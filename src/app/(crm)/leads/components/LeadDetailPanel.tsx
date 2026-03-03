@@ -41,10 +41,12 @@ export default function LeadDetailPanel({
 }) {
   const [priceInput, setPriceInput] = useState("");
   const [visible, setVisible] = useState(false);
-  const [tab, setTab] = useState<"info" | "docs">("info");
+  const [tab, setTab] = useState<"info" | "docs" | "events">("info");
   const [attachments, setAttachments] = useState<LeadAttachment[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [events, setEvents] = useState<{ id: string; action: string; description: string; created_at: string; user_name: string | null }[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
 
   const getTg = () => (window as unknown as { Telegram?: { WebApp: TelegramWebApp } }).Telegram?.WebApp;
   const getInitData = () => getTg()?.initData ?? "";
@@ -66,11 +68,31 @@ export default function LeadDetailPanel({
     }
   }, [lead.id]);
 
+  const fetchEvents = useCallback(async () => {
+    setLoadingEvents(true);
+    try {
+      const res = await fetch(`/api/crm/leads/${lead.id}/events`, {
+        headers: { "x-telegram-init-data": getInitData() },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEvents(data.events ?? []);
+      }
+    } catch {
+      // silent fail
+    } finally {
+      setLoadingEvents(false);
+    }
+  }, [lead.id]);
+
   useEffect(() => {
     if (tab === "docs") {
       fetchAttachments();
     }
-  }, [tab, fetchAttachments]);
+    if (tab === "events") {
+      fetchEvents();
+    }
+  }, [tab, fetchAttachments, fetchEvents]);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -227,11 +249,111 @@ export default function LeadDetailPanel({
           <button style={tabStyle(tab === "docs")} onClick={() => setTab("docs")}>
             Документы
           </button>
+          <button style={tabStyle(tab === "events")} onClick={() => setTab("events")}>
+            История
+          </button>
         </div>
 
         {/* Body */}
         <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
-          {tab === "info" ? (
+          {tab === "events" ? (
+            /* Events tab */
+            <div>
+              {loadingEvents ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} style={{
+                      height: 48, background: "#111827", borderRadius: 8,
+                      animation: "pulse 1.5s ease-in-out infinite",
+                    }} />
+                  ))}
+                </div>
+              ) : events.length === 0 ? (
+                <div style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "60px 20px",
+                  color: "#5A6478",
+                  textAlign: "center",
+                }}>
+                  <div style={{ fontSize: 32, marginBottom: 12 }}>📋</div>
+                  <div style={{ fontSize: 13 }}>Нет событий</div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  {events.map((ev, idx) => {
+                    const ACTION_ICONS: Record<string, string> = {
+                      created: "🆕",
+                      status_changed: "🔄",
+                      assigned: "👤",
+                      price_set: "💰",
+                      file_uploaded: "📎",
+                      jurist_approved: "⚖️",
+                    };
+                    const icon = ACTION_ICONS[ev.action] ?? "📌";
+                    const date = new Date(ev.created_at);
+                    const timeStr = date.toLocaleString("ru-RU", {
+                      timeZone: "Asia/Almaty",
+                      day: "2-digit",
+                      month: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+                    const isLast = idx === events.length - 1;
+                    return (
+                      <div key={ev.id} style={{ display: "flex", gap: 10 }}>
+                        {/* Timeline line + dot */}
+                        <div style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          width: 24,
+                          flexShrink: 0,
+                        }}>
+                          <div style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: "50%",
+                            background: "#111827",
+                            border: "2px solid #1E2A3A",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 11,
+                            flexShrink: 0,
+                          }}>
+                            {icon}
+                          </div>
+                          {!isLast && (
+                            <div style={{
+                              width: 2,
+                              flex: 1,
+                              background: "#1E2A3A",
+                              minHeight: 16,
+                            }} />
+                          )}
+                        </div>
+                        {/* Content */}
+                        <div style={{ paddingBottom: isLast ? 0 : 12, flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 12, color: "#F1F3F7", lineHeight: 1.4 }}>
+                            {ev.description}
+                          </div>
+                          <div style={{ fontSize: 10, color: "#5A6478", marginTop: 2 }}>
+                            {timeStr}
+                            {ev.user_name && (
+                              <span style={{ color: "#C8A44E", marginLeft: 6 }}>{ev.user_name}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : tab === "info" ? (
             <>
               {/* Name + phone */}
               <h2 style={{ fontSize: 18, fontWeight: 700, color: "#F1F3F7", margin: "0 0 4px" }}>

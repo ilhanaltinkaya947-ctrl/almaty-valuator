@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Write(src/**)",
+      "Write(supabase/**)",
+      "Write(scripts/**)",
+      "Write(telegram-bot/**)",
+      "Write(nginx/**)",
+      "Write(docker-compose.yml)",
+      "Write(Dockerfile)",
+      "Write(package.json)",
+      "Write(tsconfig.json)",
+      "Write(tailwind.config.ts)",
+      "Write(next.config.mjs)",
+      "Write(.env.example)",
+      "Bash(npm run *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(git *)",
+      "Bash(cat *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(rm src/**)",
+      "Bash(docker *)",
+      "Bash(curl *)"
+    ],
+    "deny": [
+      "Write(.env.local)",
+      "Write(.env)",
+      "Bash(rm -rf /)",
+      "Bash(sudo *)"
+    ]
+  }
+}
