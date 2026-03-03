@@ -289,7 +289,7 @@ export default function LeadDetailPanel({
                       status_changed: "🔄",
                       assigned: "👤",
                       price_set: "💰",
-                      file_uploaded: "📎",
+                      document_added: "📎",
                       jurist_approved: "⚖️",
                     };
                     const icon = ACTION_ICONS[ev.action] ?? "📌";

@@ -273,9 +273,22 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
   };
   if (action === "claim") {
     updateData.contacted_at = new Date().toISOString();
+    updateData.assigned_to = agent.id;
   }
 
   await supabase.from("leads").update(updateData).eq("id", leadId);
+
+  // Log audit event (fire-and-forget)
+  const eventAction = action === "claim" ? "assigned" : "status_changed";
+  const eventDesc = action === "claim"
+    ? `Взял заявку в работу (${agent.name}, Telegram)`
+    : `Статус изменён на ${STATUS_LABELS[newStatus] ?? newStatus} (${agent.name}, Telegram)`;
+  logLeadEvent({
+    leadId: leadId,
+    userId: agent.id,
+    action: eventAction,
+    description: eventDesc,
+  }).catch(() => {});
 
   // Update the message to reflect new status
   if (chatId && messageId) {
@@ -946,6 +959,14 @@ async function handleSetPrice(chatId: string, agent: AgentRow, args: string[]) {
   }
 
   await supabase.from("leads").update(updateData).eq("id", leadId);
+
+  // Log price_set event (fire-and-forget)
+  logLeadEvent({
+    leadId: leadId,
+    userId: agent.id,
+    action: "price_set",
+    description: `Цена назначена: ${new Intl.NumberFormat("ru-RU").format(price)} ₸ (${agent.name}, Telegram)`,
+  }).catch(() => {});
 
   const formattedPrice = new Intl.NumberFormat("ru-RU").format(price);
 
