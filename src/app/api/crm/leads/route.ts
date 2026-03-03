@@ -19,6 +19,9 @@ const STATUS_LABELS: Record<string, string> = {
   rejected: "📦 Отказ",
 };
 
+/** Roles that see all leads without restriction */
+const FULL_ACCESS_ROLES = new Set(["admin", "jurist", "director"]);
+
 /** GET /api/crm/leads — Fetch leads with optional filters */
 export async function GET(req: NextRequest) {
   const agent = await authenticateRequest(req);
@@ -27,6 +30,22 @@ export async function GET(req: NextRequest) {
   }
 
   const supabase = createAdminClient();
+
+  // Determine profile role for data isolation
+  let profileRole: string | null = null;
+  if (agent.id !== "system") {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", agent.id)
+      .single();
+    profileRole = (profile as { role: string } | null)?.role ?? null;
+  }
+
+  // admin, jurist, director, system, or unknown profile → full access
+  // broker/manager → restricted to own leads + new leads
+  const isBroker = profileRole !== null && !FULL_ACCESS_ROLES.has(profileRole);
+
   const url = new URL(req.url);
   const status = url.searchParams.get("status");
   const search = url.searchParams.get("search");
@@ -48,6 +67,11 @@ export async function GET(req: NextRequest) {
 
   if (search) {
     query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`);
+  }
+
+  // Data isolation: brokers only see new (unclaimed) + their own assigned leads
+  if (isBroker) {
+    query = query.or(`status.eq.new,assigned_to.eq.${agent.id}`);
   }
 
   const { data: leads, error } = await query;
