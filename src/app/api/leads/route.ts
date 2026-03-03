@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
       import("@/lib/telegram").then(({ notifyNewLead }) =>
         notifyNewLead({
           id: leadRecord.id as string,
+          short_id: leadRecord.short_id as number | undefined,
           name: data.name,
           phone: data.phone,
           address: data.address,

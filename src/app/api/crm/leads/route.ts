@@ -129,8 +129,9 @@ export async function PATCH(req: NextRequest) {
         ? new Intl.NumberFormat("ru-RU").format(price) + " ₸"
         : "—";
 
+      const idTag = lead.short_id ? `#${lead.short_id} ` : "";
       const text = [
-        `📢 <b>Статус изменён</b>`,
+        `📢 <b>${idTag}Статус изменён</b>`,
         ``,
         `👤 <b>${lead.name ?? "—"}</b> | 📞 ${lead.phone}`,
         `🏠 ${lead.property_type ?? "—"} | 💰 ${priceStr}`,
@@ -149,8 +150,9 @@ export async function PATCH(req: NextRequest) {
       const lead = leadBefore as LeadRow;
       const priceStr = new Intl.NumberFormat("ru-RU").format(offer_price);
 
+      const priceIdTag = lead.short_id ? `#${lead.short_id} ` : "";
       const text = [
-        `💰 <b>Цена назначена</b>`,
+        `💰 <b>${priceIdTag}Цена назначена</b>`,
         ``,
         `👤 <b>${lead.name ?? "—"}</b> | 📞 ${lead.phone}`,
         `💰 <b>${priceStr} ₸</b>`,

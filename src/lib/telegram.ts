@@ -167,6 +167,7 @@ const FLOOR_POSITION_LABELS: Record<string, string> = {
 /** Send an interactive lead notification to all authorized agents */
 export async function notifyLeadInteractive(lead: {
   id: string;
+  short_id?: number | null;
   name?: string | null;
   phone: string;
   address?: string | null;
@@ -216,8 +217,9 @@ export async function notifyLeadInteractive(lead: {
 
   if (isNonApartmentManual) {
     // ⚠️ ИНДИВИДУАЛЬНАЯ ОЦЕНКА template
+    const idTag = lead.short_id ? `#${lead.short_id} ` : "";
     const lines = [
-      `⚠️ <b>ИНДИВИДУАЛЬНАЯ ОЦЕНКА</b> | ${typeLabel}`,
+      `⚠️ <b>${idTag}ИНДИВИДУАЛЬНАЯ ОЦЕНКА</b> | ${typeLabel}`,
       "",
       `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
       `📞 <b>Телефон:</b> ${maskedPhone}`,
@@ -252,8 +254,9 @@ export async function notifyLeadInteractive(lead: {
 
     const complexLine = lead.complex_name ?? "—";
 
+    const aptIdTag = lead.short_id ? `#${lead.short_id} ` : "";
     text = [
-      `🟢 <b>НОВАЯ ЗАЯВКА</b> | Квартира`,
+      `🟢 <b>${aptIdTag}НОВАЯ ЗАЯВКА</b> | Квартира`,
       "",
       `👤 <b>Имя:</b> ${lead.name ?? "—"} | 📞 <b>Телефон:</b> ${maskedPhone}`,
       ...(lead.address ? [`📍 <b>Адрес:</b> ${lead.address}`] : []),
@@ -265,8 +268,9 @@ export async function notifyLeadInteractive(lead: {
     ].join("\n");
   } else {
     // Fallback apartment manual review
+    const fbIdTag = lead.short_id ? `#${lead.short_id} ` : "";
     text = [
-      "🚨 <b>Сложный объект — требуется ручной расчёт!</b>",
+      `🚨 <b>${fbIdTag}Сложный объект — требуется ручной расчёт!</b>`,
       "",
       `🏠 <b>Тип:</b> ${typeLabel}`,
       `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
@@ -328,6 +332,7 @@ export function buildManualReviewKeyboard(leadId: string, phone: string): Inline
 
 export async function notifyNewLead(lead: {
   id?: string;
+  short_id?: number | null;
   name?: string | null;
   phone: string;
   address?: string | null;
@@ -348,6 +353,7 @@ export async function notifyNewLead(lead: {
   if (lead.id) {
     return notifyLeadInteractive({
       id: lead.id,
+      short_id: lead.short_id,
       name: lead.name,
       phone: lead.phone,
       address: lead.address,
@@ -371,8 +377,9 @@ export async function notifyNewLead(lead: {
     ? new Intl.NumberFormat("ru-RU").format(lead.estimated_price) + " ₸"
     : "—";
 
+  const plainIdTag = lead.short_id ? ` #${lead.short_id}` : "";
   const text = [
-    "🔔 <b>Новая заявка!</b>",
+    `🔔 <b>Новая заявка!${plainIdTag}</b>`,
     "",
     `👤 <b>Имя:</b> ${lead.name ?? "—"}`,
     `📞 <b>Телефон:</b> ${lead.phone}`,
