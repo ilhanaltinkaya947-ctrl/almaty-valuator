@@ -4,8 +4,11 @@ import { z } from "zod";
 import { ReportDocument } from "@/components/pdf/ReportDocument";
 import { COMPLEXES, CLASS_LABELS } from "@/data/complexes";
 import { evaluateAuto } from "@/lib/smart-value";
+import { createRateLimiter, rateLimitResponse } from "@/lib/rate-limit";
 import type { ReportData, BenchmarkComplex } from "@/components/pdf/types";
 import type { ConditionType, WallMaterial } from "@/types/evaluation";
+
+const limiter = createRateLimiter("pdf", { windowMs: 60_000, maxRequests: 5 });
 
 const CONDITION_LABELS: Record<ConditionType, string> = {
   renovated: "С ремонтом",
@@ -34,6 +37,10 @@ const pdfRequestSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  const { allowed, retryAfterMs } = limiter.check(ip);
+  if (!allowed) return rateLimitResponse(retryAfterMs);
+
   try {
     const body = await req.json();
     const input = pdfRequestSchema.parse(body);

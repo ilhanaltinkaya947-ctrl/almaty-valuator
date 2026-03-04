@@ -1,8 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { evaluationInputSchema } from "@/lib/validation";
 import { evaluatePrice, evaluateVtorichka } from "@/lib/smart-value";
 import { getSystemSettings } from "@/lib/settings";
+import { createRateLimiter, rateLimitResponse } from "@/lib/rate-limit";
+
+const limiter = createRateLimiter("evaluate", { windowMs: 60_000, maxRequests: 20 });
 
 const vtorichkaEvaluationSchema = z.object({
   zoneId: z.string().min(1),
@@ -17,7 +20,11 @@ const vtorichkaEvaluationSchema = z.object({
   isGoldenSquare: z.boolean().optional(),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  const { allowed, retryAfterMs } = limiter.check(ip);
+  if (!allowed) return rateLimitResponse(retryAfterMs);
+
   try {
     const body = await request.json();
     const settings = await getSystemSettings();

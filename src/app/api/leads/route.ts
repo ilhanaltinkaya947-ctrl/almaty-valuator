@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logLeadEvent } from "@/lib/lead-events";
+import { createRateLimiter, rateLimitResponse } from "@/lib/rate-limit";
 import type { Database } from "@/types/database";
+
+const limiter = createRateLimiter("leads", { windowMs: 60_000, maxRequests: 5 });
 
 const createLeadSchema = z.object({
   phone: z.string().regex(/^\+7\d{10}$/),
@@ -28,6 +31,10 @@ const createLeadSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  const { allowed, retryAfterMs } = limiter.check(ip);
+  if (!allowed) return rateLimitResponse(retryAfterMs);
+
   try {
     const body = await req.json();
     const data = createLeadSchema.parse(body);
