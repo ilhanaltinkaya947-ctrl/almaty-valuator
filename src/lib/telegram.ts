@@ -146,16 +146,21 @@ export async function notifyJuristsReview(lead: {
     ? files.map((f, i) => `${i + 1}. <a href="${f.file_url}">${f.file_name}</a>`).join("\n")
     : "<i>Нет документов</i>";
 
-  const price = lead.offer_price ?? lead.estimated_price;
-  const priceStr = price ? new Intl.NumberFormat("ru-RU").format(price) + " ₸" : "—";
+  const offerStr = lead.offer_price ? new Intl.NumberFormat("ru-RU").format(lead.offer_price) + " ₸" : null;
+  const marketStr = lead.estimated_price ? new Intl.NumberFormat("ru-RU").format(lead.estimated_price) + " ₸" : null;
   const idTag = lead.short_id ? `#${lead.short_id} ` : "";
+
+  const priceLines: string[] = [];
+  if (offerStr) priceLines.push(`💰 <b>Цена выкупа:</b> ${offerStr}`);
+  if (marketStr && marketStr !== offerStr) priceLines.push(`📊 <b>Рыночная оценка:</b> ${marketStr}`);
+  if (!offerStr && !marketStr) priceLines.push(`💰 <b>Цена:</b> —`);
 
   const text = [
     `⚖️ <b>${idTag}Новая заявка на проверку</b>`,
     "",
     `👤 <b>Клиент:</b> ${lead.name ?? "—"}`,
     `📞 <b>Телефон:</b> ${lead.phone}`,
-    `💰 <b>Оценка:</b> ${priceStr}`,
+    ...priceLines,
     "",
     `📎 <b>Документы (${files.length}):</b>`,
     fileLines,
