@@ -136,6 +136,13 @@ async function handleMessage(msg: TelegramMessage) {
     return;
   }
 
+  // Handle "Цена #105 24500000" text pattern (before command switch)
+  const priceMatch = text.match(/^(?:цена|price)\s*#(\d+)\s+([\d\s.,]+)/i);
+  if (priceMatch) {
+    await handleTextPrice(chatId, agent, parseInt(priceMatch[1]), priceMatch[2]);
+    return;
+  }
+
   // Parse command and args
   const [command, ...args] = text.split(/\s+/);
   const cmd = command.toLowerCase();
@@ -1001,6 +1008,62 @@ async function handlePendingReview(chatId: string) {
     "🚨 <b>Заявки на ручной расчёт</b>",
     "",
     ...lines,
+  ].join("\n"));
+}
+
+async function handleTextPrice(chatId: string, agent: AgentRow, shortId: number, rawPrice: string) {
+  // Strip spaces, dots, commas from price string
+  const cleaned = rawPrice.replace(/[\s.,]/g, "");
+  const price = parseInt(cleaned);
+
+  if (isNaN(price) || price < 1_000_000 || price > 10_000_000_000) {
+    await sendMessage(chatId, "❌ Цена должна быть числом от 1 000 000 до 10 000 000 000 ₸\n\nПример: <code>Цена #105 24500000</code>");
+    return;
+  }
+
+  const supabase = createAdminClient();
+
+  // Find lead by short_id
+  const { data: rawLead } = await supabase
+    .from("leads")
+    .select("id, name, short_id, phone, status, assigned_to")
+    .eq("short_id", shortId)
+    .single();
+
+  const lead = rawLead as { id: string; name: string | null; short_id: number; phone: string; status: string; assigned_to: string | null } | null;
+  if (!lead) {
+    await sendMessage(chatId, `❌ Заявка #${shortId} не найдена.`);
+    return;
+  }
+
+  // Security: only admin or assigned broker can update price
+  if (agent.role !== "admin" && lead.assigned_to !== agent.id) {
+    await sendMessage(chatId, "⛔ Вы не можете изменить цену чужой заявки.");
+    return;
+  }
+
+  // Update offer_price
+  await supabase
+    .from("leads")
+    .update({ offer_price: price })
+    .eq("id", lead.id);
+
+  // Log event
+  logLeadEvent({
+    leadId: lead.id,
+    userId: agent.id,
+    action: "price_set",
+    description: `Цена обновлена: ${new Intl.NumberFormat("ru-RU").format(price)} ₸ (${agent.name}, Telegram)`,
+  }).catch(() => {});
+
+  const formatted = new Intl.NumberFormat("ru-RU").format(price);
+  await sendMessage(chatId, [
+    `✅ Цена для заявки <b>#${shortId}</b> успешно обновлена: <b>${formatted} ₸</b>`,
+    ``,
+    `👤 ${lead.name ?? "—"}`,
+    `👷 ${agent.name}`,
+    ``,
+    `Теперь вы можете отправить документы юристу.`,
   ].join("\n"));
 }
 
