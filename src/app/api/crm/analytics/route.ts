@@ -26,15 +26,26 @@ export async function GET(req: NextRequest) {
 
   const supabase = createAdminClient();
 
-  // Determine profile role
-  let profileRole = "admin";
+  // Map agent role → profile role
+  const AGENT_TO_PROFILE_ROLE: Record<string, string> = {
+    admin: "admin",
+    broker: "manager",
+    jurist: "jurist",
+    director: "director",
+    cashier: "cashier",
+  };
+
+  // Determine profile role (fall back to agent role mapping)
+  let profileRole = AGENT_TO_PROFILE_ROLE[agent.role] ?? "manager";
   if (agent.id !== "system") {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", agent.id)
       .single();
-    profileRole = (profile as { role: string } | null)?.role ?? "manager";
+    if (profile) {
+      profileRole = (profile as { role: string }).role;
+    }
   }
 
   // Only admin and director can access analytics

@@ -38,6 +38,14 @@ const ROLE_TRANSITIONS: Record<string, string[]> = {
   cashier: ["deal_closed"],
 };
 
+const AGENT_TO_PROFILE_ROLE: Record<string, string> = {
+  admin: "admin",
+  broker: "manager",
+  jurist: "jurist",
+  director: "director",
+  cashier: "cashier",
+};
+
 /** GET /api/crm/leads — Fetch leads with role-based filtering */
 export async function GET(req: NextRequest) {
   const agent = await authenticateRequest(req);
@@ -47,15 +55,17 @@ export async function GET(req: NextRequest) {
 
   const supabase = createAdminClient();
 
-  // Determine profile role for data isolation
-  let profileRole = "admin";
+  // Determine profile role for data isolation (fall back to agent role mapping)
+  let profileRole = AGENT_TO_PROFILE_ROLE[agent.role] ?? "manager";
   if (agent.id !== "system") {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", agent.id)
       .single();
-    profileRole = (profile as { role: string } | null)?.role ?? "manager";
+    if (profile) {
+      profileRole = (profile as { role: string }).role;
+    }
   }
 
   const url = new URL(req.url);
@@ -152,15 +162,17 @@ export async function PATCH(req: NextRequest) {
 
     const supabase = createAdminClient();
 
-    // Fetch profile role for permission guard
-    let profileRole = "admin";
+    // Fetch profile role for permission guard (fall back to agent role mapping)
+    let profileRole = AGENT_TO_PROFILE_ROLE[agent.role] ?? "manager";
     if (agent.id !== "system") {
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", agent.id)
         .single();
-      profileRole = (profile as { role: string } | null)?.role ?? "manager";
+      if (profile) {
+        profileRole = (profile as { role: string }).role;
+      }
     }
 
     // Permission guard: check if this role can set the requested status

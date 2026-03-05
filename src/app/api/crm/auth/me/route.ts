@@ -9,8 +9,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Fetch profile role for role-based UI
-  let profileRole: string = "manager";
+  // Map agent role → profile role
+  const AGENT_TO_PROFILE_ROLE: Record<string, string> = {
+    admin: "admin",
+    broker: "manager",
+    jurist: "jurist",
+    director: "director",
+    cashier: "cashier",
+  };
+
+  // Fetch profile role for role-based UI, fall back to agent role mapping
+  let profileRole: string = AGENT_TO_PROFILE_ROLE[agent.role] ?? "manager";
   if (agent.id !== "system") {
     const supabase = createAdminClient();
     const { data: profile } = await supabase
