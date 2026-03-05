@@ -128,7 +128,7 @@ export default function AnalyticsPage() {
 
   if (error) {
     return (
-      <div style={{ padding: "40px 24px", textAlign: "center" }}>
+      <div style={{ minHeight: "100vh", background: "#0A0D14", padding: "40px 24px", textAlign: "center" }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>⛔</div>
         <div style={{ fontSize: 18, fontWeight: 600, color: "#F1F3F7", marginBottom: 8 }}>
           {error}
@@ -162,7 +162,14 @@ export default function AnalyticsPage() {
   ];
 
   return (
-    <div style={{ padding: "24px 24px 48px", maxWidth: 1100 }}>
+    <div style={{
+      minHeight: "100vh",
+      background: "#0A0D14",
+      color: "#F1F3F7",
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      padding: "24px 24px 48px",
+      maxWidth: 1100,
+    }}>
       {/* Header */}
       <h1
         style={{
