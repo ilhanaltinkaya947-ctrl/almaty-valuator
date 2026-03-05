@@ -6,11 +6,13 @@ import {
   callApi,
   getAgent,
   isAdmin,
+  editLeadBroadcast,
+  notifyJuristsReview,
   type InlineKeyboard,
 } from "@/lib/telegram";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logLeadEvent } from "@/lib/lead-events";
-import type { Database } from "@/types/database";
+import type { Database, AgentRole } from "@/types/database";
 
 type LeadRow = Database["public"]["Tables"]["leads"]["Row"];
 type AgentRow = Database["public"]["Tables"]["authorized_agents"]["Row"];
@@ -195,7 +197,13 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
     return;
   }
 
-  // Handle jurist callback: jurist_{short_id}
+  // Handle jurist docs callback: jurist_docs_{short_id}
+  if (data.startsWith("jurist_docs_")) {
+    await handleJuristDocsCallback(query, agent, data);
+    return;
+  }
+
+  // Handle send-to-jurist callback: jurist_{short_id}
   if (data.startsWith("jurist_")) {
     await handleJuristCallback(query, agent, data);
     return;
@@ -246,10 +254,22 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
   let notification: string;
 
   switch (action) {
-    case "claim":
+    case "claim": {
+      // Prevent double-claiming
+      if (lead.assigned_to && lead.assigned_to !== agent.id) {
+        const { data: assigneeProfile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("id", lead.assigned_to)
+          .single();
+        const assigneeName = (assigneeProfile as { full_name: string } | null)?.full_name ?? "другим брокером";
+        await answerCallback(query.id, `❌ Уже взято: ${assigneeName}`);
+        return;
+      }
       newStatus = "in_progress";
       notification = `✅ ${agent.name} взял в работу`;
       break;
+    }
     case "progress":
       newStatus = "price_approved";
       notification = `💰 ${agent.name} утвердил оценку`;
@@ -332,7 +352,91 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
     await editMessage(chatId, messageId, updatedText, keyboard).catch(() => {});
   }
 
+  // On claim: edit ALL broadcast messages so other brokers see it's taken
+  if (action === "claim") {
+    const claimIdTag = lead.short_id ? `#${lead.short_id} ` : "";
+    const claimedText = [
+      `✅ <b>${claimIdTag}Заявка взята в работу</b>`,
+      "",
+      `👤 ${lead.name ?? "—"}`,
+      `👷 <b>${agent.name}</b>`,
+      `🕐 ${new Date().toLocaleString("ru-RU", { timeZone: "Asia/Almaty" })}`,
+    ].join("\n");
+    editLeadBroadcast(leadId, claimedText).catch(() => {});
+  }
+
   await answerCallback(query.id, notification);
+}
+
+// ── Jurist Docs Callback Handler ──
+
+async function handleJuristDocsCallback(
+  query: TelegramCallbackQuery,
+  _agent: AgentRow,
+  data: string,
+) {
+  const chatId = query.message?.chat.id;
+  const shortIdStr = data.replace("jurist_docs_", "");
+  const shortId = parseInt(shortIdStr);
+
+  if (isNaN(shortId)) {
+    await answerCallback(query.id, "Неверный формат");
+    return;
+  }
+
+  const supabase = createAdminClient();
+
+  const { data: rawLead } = await supabase
+    .from("leads")
+    .select("id, name, short_id, phone")
+    .eq("short_id", shortId)
+    .single();
+
+  const lead = rawLead as { id: string; name: string | null; short_id: number; phone: string } | null;
+  if (!lead) {
+    await answerCallback(query.id, `Заявка #${shortId} не найдена`);
+    return;
+  }
+
+  // Fetch attachments
+  const { data: attachments } = await supabase
+    .from("lead_attachments")
+    .select("file_url, file_name, file_type, created_at")
+    .eq("lead_id", lead.id)
+    .order("created_at", { ascending: true });
+
+  const files = (attachments ?? []) as { file_url: string; file_name: string; file_type: string; created_at: string }[];
+
+  if (files.length === 0) {
+    await answerCallback(query.id, "Нет прикреплённых документов");
+    return;
+  }
+
+  const fileLines = files.map((f, i) => {
+    const date = new Date(f.created_at).toLocaleString("ru-RU", {
+      timeZone: "Asia/Almaty",
+      day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+    });
+    return `${i + 1}. <a href="${f.file_url}">${f.file_name}</a> (${date})`;
+  }).join("\n");
+
+  const text = [
+    `📎 <b>Документы по заявке #${shortId}</b>`,
+    "",
+    `👤 ${lead.name ?? "—"} | 📞 ${lead.phone}`,
+    "",
+    fileLines,
+  ].join("\n");
+
+  await answerCallback(query.id);
+  if (chatId) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://almavykup.kz";
+    await sendMessage(chatId, text, {
+      replyMarkup: [[
+        { text: "📊 Открыть в CRM", web_app: { url: `${appUrl}/leads` } },
+      ]],
+    });
+  }
 }
 
 // ── Jurist Callback Handler ──
@@ -356,77 +460,51 @@ async function handleJuristCallback(
   // Find lead by short_id
   const { data: rawLead } = await supabase
     .from("leads")
-    .select("id, name, short_id, phone, status")
+    .select("id, name, short_id, phone, status, offer_price, estimated_price")
     .eq("short_id", shortId)
     .single();
 
-  const lead = rawLead as { id: string; name: string | null; short_id: number; phone: string; status: string } | null;
+  const lead = rawLead as {
+    id: string; name: string | null; short_id: number; phone: string;
+    status: string; offer_price: number | null; estimated_price: number | null;
+  } | null;
   if (!lead) {
     await answerCallback(query.id, `Заявка #${shortId} не найдена`);
     return;
   }
 
-  // Update status to jurist_approved
+  // Update status to price_approved (triggers jurist notification)
   await supabase
     .from("leads")
-    .update({ status: "jurist_approved" })
+    .update({ status: "price_approved" })
     .eq("id", lead.id);
 
-  // Log jurist handoff event
+  // Log event
   logLeadEvent({
     leadId: lead.id,
     userId: agent.id,
     action: "status_changed",
-    description: `Документы переданы юристу (${agent.name}, Telegram)`,
+    description: `Отправлено на проверку юристу (${agent.name}, Telegram)`,
   }).catch(() => {});
 
-  // Fetch all attachments for this lead
-  const { data: attachments } = await supabase
+  // Count attachments
+  const { count } = await supabase
     .from("lead_attachments")
-    .select("file_url, file_name, file_type")
-    .eq("lead_id", lead.id)
-    .order("created_at", { ascending: false });
+    .select("*", { count: "exact", head: true })
+    .eq("lead_id", lead.id);
+  const fileCount = count ?? 0;
 
-  const files = (attachments ?? []) as { file_url: string; file_name: string; file_type: string }[];
+  // Notify jurists with document list + button (fire-and-forget)
+  notifyJuristsReview({
+    id: lead.id,
+    short_id: lead.short_id,
+    name: lead.name,
+    phone: lead.phone,
+    offer_price: lead.offer_price,
+    estimated_price: lead.estimated_price,
+  }).catch(() => {});
 
-  // Find all jurists
-  const { data: jurists } = await supabase
-    .from("profiles")
-    .select("telegram_chat_id, full_name")
-    .eq("role", "jurist")
-    .not("telegram_chat_id", "is", null);
-
-  const juristList = (jurists ?? []) as { telegram_chat_id: string; full_name: string }[];
-
-  // Build document list text
-  const fileLines = files.length > 0
-    ? files.map((f, i) => `${i + 1}. <a href="${f.file_url}">${f.file_name}</a>`).join("\n")
-    : "<i>Нет прикреплённых файлов</i>";
-
-  const notificationText = [
-    `⚖️ <b>Новая заявка на проверку</b>`,
-    ``,
-    `📋 <b>Заявка:</b> #${lead.short_id}`,
-    `👤 <b>Клиент:</b> ${lead.name ?? "—"}`,
-    `📞 <b>Телефон:</b> ${lead.phone}`,
-    `👷 <b>Отправил:</b> ${agent.name}`,
-    ``,
-    `📎 <b>Документы:</b>`,
-    fileLines,
-  ].join("\n");
-
-  // Send to each jurist
-  let sentCount = 0;
-  for (const j of juristList) {
-    try {
-      await sendMessage(j.telegram_chat_id, notificationText);
-      sentCount++;
-    } catch {
-      console.error(`Failed to notify jurist ${j.full_name}`);
-    }
-  }
-
-  await answerCallback(query.id, `✅ Отправлено ${sentCount} юристу(ам)`);
+  await answerCallback(query.id, `✅ Отправлено юристам`);
 
   // Edit broker's message to confirm
   if (chatId && messageId) {
@@ -434,11 +512,10 @@ async function handleJuristCallback(
       chatId,
       messageId,
       [
-        `✅ Документы по заявке <b>#${shortId}</b> отправлены юристам`,
+        `✅ Заявка <b>#${shortId}</b> отправлена на проверку юристам`,
         ``,
         `👤 ${lead.name ?? "—"}`,
-        `📎 Файлов: ${files.length}`,
-        `⚖️ Юристов уведомлено: ${sentCount}`,
+        `📎 Файлов: ${fileCount}`,
         `👷 ${agent.name}`,
       ].join("\n"),
     ).catch(() => {});
@@ -579,11 +656,17 @@ async function handleFileUpload(msg: TelegramMessage) {
 
     // Only send confirmation + jurist button for first file in an album
     if (!isAlbumDuplicate) {
+      // Get total attachment count for this lead
+      const { count: totalFiles } = await supabase
+        .from("lead_attachments")
+        .select("*", { count: "exact", head: true })
+        .eq("lead_id", lead.id);
+
       await sendMessage(chatId, [
         `✅ Файл прикреплён к заявке <b>#${shortId}</b>`,
         ``,
         `👤 ${lead.name ?? "—"}`,
-        `📎 ${fileName}`,
+        `📎 Всего файлов: ${totalFiles ?? 1}`,
         `👷 ${agent.name}`,
       ].join("\n"), {
         replyMarkup: [[
@@ -1001,12 +1084,18 @@ async function handleSetPrice(chatId: string, agent: AgentRow, args: string[]) {
 const ROLE_LABELS: Record<string, string> = {
   admin: "👑 Админ",
   broker: "👷 Брокер",
+  jurist: "⚖️ Юрист",
+  director: "📋 Директор",
+  cashier: "💰 Кассир",
 };
 
 // Map agent role → profile role
 const AGENT_TO_PROFILE_ROLE: Record<string, string> = {
   admin: "admin",
   broker: "manager",
+  jurist: "jurist",
+  director: "director",
+  cashier: "cashier",
 };
 
 /** Upsert into profiles table so role-based routing (jurist notifications etc.) works */
@@ -1040,13 +1129,15 @@ async function handleAddAgent(chatId: string, agent: AgentRow, args: string[]) {
     return;
   }
 
+  const VALID_ROLES = ["admin", "broker", "jurist", "director", "cashier"];
+
   if (args.length < 2) {
     await sendMessage(chatId, [
       "Использование: /add_agent [telegram_id] [имя] [роль]",
       "",
-      "Роли: <b>admin</b>, <b>broker</b> (по умолчанию broker)",
+      "Роли: <b>admin</b>, <b>broker</b>, <b>jurist</b>, <b>director</b>, <b>cashier</b> (по умолчанию broker)",
       "",
-      "Пример: <code>/add_agent 123456789 Иван admin</code>",
+      "Пример: <code>/add_agent 123456789 Иван jurist</code>",
       "",
       "💡 Чтобы узнать telegram_id — попросите человека написать боту, ID покажется в ошибке доступа, или используйте @userinfobot",
     ].join("\n"));
@@ -1060,8 +1151,8 @@ async function handleAddAgent(chatId: string, agent: AgentRow, args: string[]) {
   }
 
   const lastArg = args[args.length - 1];
-  const hasRole = args.length >= 3 && (lastArg === "admin" || lastArg === "broker");
-  const role = hasRole ? lastArg as "admin" | "broker" : "broker" as const;
+  const hasRole = args.length >= 3 && VALID_ROLES.includes(lastArg);
+  const role = hasRole ? (lastArg as AgentRole) : ("broker" as const);
   const name = hasRole ? args.slice(1, -1).join(" ") : args.slice(1).join(" ");
 
   const supabase = createAdminClient();

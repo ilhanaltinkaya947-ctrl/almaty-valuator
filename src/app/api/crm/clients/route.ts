@@ -2,14 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { authenticateRequest } from "@/lib/auth-telegram";
 
-/** GET /api/crm/clients — Fetch clients with optional search */
+/** Roles that can access the full client database */
+const CLIENT_ACCESS_ROLES = new Set(["admin", "director", "jurist"]);
+
+/** GET /api/crm/clients — Fetch clients with optional search (restricted to admin/director/jurist) */
 export async function GET(req: NextRequest) {
   const agent = await authenticateRequest(req);
   if (!agent) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Check profile role — brokers and cashiers cannot access client database
   const supabase = createAdminClient();
+  let profileRole = "admin";
+  if (agent.id !== "system") {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", agent.id)
+      .single();
+    profileRole = (profile as { role: string } | null)?.role ?? "manager";
+  }
+
+  if (!CLIENT_ACCESS_ROLES.has(profileRole)) {
+    return NextResponse.json(
+      { error: "Доступ к базе клиентов ограничен" },
+      { status: 403 }
+    );
+  }
+
   const url = new URL(req.url);
   const search = url.searchParams.get("search");
 

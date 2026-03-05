@@ -11,6 +11,7 @@ export default function KanbanColumn({
   onRequestReject,
   onAssign,
   currentAgentId,
+  currentRole = "manager",
 }: {
   status: string;
   leads: Lead[];
@@ -19,6 +20,7 @@ export default function KanbanColumn({
   onRequestReject: (lead: Lead) => void;
   onAssign: (id: string) => void;
   currentAgentId: string | null;
+  currentRole?: string;
 }) {
   const color = STATUS_COLORS[status] ?? "#1E2A3A";
   const label = STATUS_LABELS[status] ?? status;
@@ -90,6 +92,7 @@ export default function KanbanColumn({
             onRequestReject={onRequestReject}
             onAssign={onAssign}
             currentAgentId={currentAgentId}
+            currentRole={currentRole}
           />
         ))}
         {leads.length === 0 && (

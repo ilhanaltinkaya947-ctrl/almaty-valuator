@@ -20,7 +20,7 @@ export type LeadStatus =
 
 export type LeadSource = "landing" | "telegram" | "direct" | "manual";
 
-export type AgentRole = "admin" | "broker";
+export type AgentRole = "admin" | "broker" | "jurist" | "director" | "cashier";
 
 export type UserRole = "admin" | "manager" | "jurist" | "director" | "cashier";
 
@@ -328,6 +328,39 @@ export type Database = {
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      lead_telegram_messages: {
+        Row: {
+          id: string;
+          lead_id: string;
+          chat_id: string;
+          message_id: number;
+          notification_type: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          lead_id: string;
+          chat_id: string;
+          message_id: number;
+          notification_type?: string;
+        };
+        Update: {
+          id?: string;
+          lead_id?: string;
+          chat_id?: string;
+          message_id?: number;
+          notification_type?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "lead_telegram_messages_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
             referencedColumns: ["id"];
           },
         ];

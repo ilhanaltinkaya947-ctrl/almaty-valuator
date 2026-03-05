@@ -6,6 +6,8 @@ import {
   PIPELINE_STATUSES,
   TERMINAL_STATUSES,
   CATEGORY_FILTERS,
+  ROLE_PIPELINE_STATUSES,
+  ACTIVE_STATUSES,
   filterLeadsByCategory,
   formatPrice,
 } from "@/lib/crm-constants";
@@ -19,7 +21,7 @@ interface AgentInfo {
   role: string;
 }
 
-const ACTIVE_PIPELINE = PIPELINE_STATUSES.filter(
+const DEFAULT_PIPELINE = PIPELINE_STATUSES.filter(
   (s) => !(TERMINAL_STATUSES as readonly string[]).includes(s)
 );
 
@@ -32,6 +34,7 @@ export default function KanbanBoard({
   onReject,
   onAssign,
   currentAgent,
+  currentRole = "manager",
 }: {
   leads: Lead[];
   buybackDiscount: number;
@@ -41,10 +44,13 @@ export default function KanbanBoard({
   onReject: (id: string, reason: string) => void;
   onAssign: (id: string) => void;
   currentAgent: AgentInfo | null;
+  currentRole?: string;
 }) {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [rejectTarget, setRejectTarget] = useState<Lead | null>(null);
   const [category, setCategory] = useState("all");
+
+  const activePipeline = (ROLE_PIPELINE_STATUSES[currentRole] ?? DEFAULT_PIPELINE) as readonly string[];
 
   // Sync selectedLead with incoming leads prop (reflects rollback)
   useEffect(() => {
@@ -88,7 +94,7 @@ export default function KanbanBoard({
 
   const grouped = useMemo(() => {
     const map: Record<string, Lead[]> = {};
-    for (const s of ACTIVE_PIPELINE) {
+    for (const s of activePipeline) {
       map[s] = [];
     }
     for (const lead of filtered) {
@@ -97,7 +103,7 @@ export default function KanbanBoard({
       }
     }
     return map;
-  }, [filtered]);
+  }, [filtered, activePipeline]);
 
   const totalActive = filtered.filter(
     (l) => !(TERMINAL_STATUSES as readonly string[]).includes(l.status)
@@ -203,7 +209,7 @@ export default function KanbanBoard({
           paddingBottom: 8,
         }}
       >
-        {ACTIVE_PIPELINE.map((status) => (
+        {activePipeline.map((status) => (
           <KanbanColumn
             key={status}
             status={status}
@@ -213,6 +219,7 @@ export default function KanbanBoard({
             onRequestReject={handleRequestReject}
             onAssign={onAssign}
             currentAgentId={currentAgent?.id ?? null}
+            currentRole={currentRole}
           />
         ))}
       </div>
@@ -237,6 +244,7 @@ export default function KanbanBoard({
           onRequestReject={handleRequestReject}
           onAssign={onAssign}
           currentAgentId={currentAgent?.id ?? null}
+          currentRole={currentRole}
         />
       )}
     </div>

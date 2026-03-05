@@ -1,10 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
-const NAV_ITEMS = [
+interface NavItem {
+  emoji: string;
+  label: string;
+  href: string;
+}
+
+const ALL_NAV_ITEMS: NavItem[] = [
   { emoji: "📊", label: "Лиды", href: "/leads" },
   { emoji: "👥", label: "Клиенты", href: "/clients" },
   { emoji: "📦", label: "Архив", href: "/archive" },
@@ -13,9 +19,50 @@ const NAV_ITEMS = [
   { emoji: "⚙️", label: "Настройки", href: "/settings" },
 ];
 
+const ROLE_NAV: Record<string, NavItem[]> = {
+  admin: ALL_NAV_ITEMS,
+  manager: [
+    { emoji: "📊", label: "Лиды", href: "/leads" },
+    { emoji: "📦", label: "Архив", href: "/archive" },
+  ],
+  jurist: [
+    { emoji: "⚖️", label: "На проверку", href: "/leads" },
+    { emoji: "📦", label: "Архив", href: "/archive" },
+  ],
+  director: [
+    { emoji: "📋", label: "На согласование", href: "/leads" },
+    { emoji: "📦", label: "Архив", href: "/archive" },
+  ],
+  cashier: [
+    { emoji: "💰", label: "Выплаты", href: "/leads" },
+    { emoji: "📦", label: "Архив", href: "/archive" },
+  ],
+};
+
+interface TelegramWebApp {
+  initData: string;
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [navItems, setNavItems] = useState<NavItem[]>(ALL_NAV_ITEMS);
+
+  useEffect(() => {
+    const tg = (window as unknown as { Telegram?: { WebApp: TelegramWebApp } }).Telegram?.WebApp;
+    const initData = tg?.initData ?? "";
+
+    fetch("/api/crm/auth/me", {
+      headers: { "x-telegram-init-data": initData },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.profileRole) {
+          setNavItems(ROLE_NAV[data.profileRole] ?? ROLE_NAV.manager);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   if (pathname.startsWith("/mobile")) return null;
 
@@ -60,7 +107,7 @@ export default function Sidebar() {
         </div>
 
         <nav style={{ padding: "12px 8px", display: "flex", flexDirection: "column", gap: 2 }}>
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <Link

@@ -7,6 +7,7 @@ import {
   SettingRow,
   STATUS_OPTIONS,
   STATUS_LABELS,
+  ROLE_STATUS_OPTIONS,
 } from "@/lib/crm-constants";
 import ViewToggle from "./components/ViewToggle";
 import LeadCard from "./components/LeadCard";
@@ -22,6 +23,7 @@ interface AgentInfo {
   id: string;
   name: string;
   role: string;
+  profileRole?: string;
 }
 
 export default function LeadsPage() {
@@ -284,12 +286,13 @@ export default function LeadsPage() {
           onReject={rejectLead}
           onAssign={assignLead}
           currentAgent={currentAgent}
+          currentRole={currentAgent?.profileRole ?? "manager"}
         />
       ) : (
         <>
           {/* Filter pills (list view only) */}
           <div style={{ display: "flex", gap: 6, marginBottom: 16, overflowX: "auto", paddingBottom: 4 }}>
-            {STATUS_OPTIONS.map((opt) => (
+            {(ROLE_STATUS_OPTIONS[currentAgent?.profileRole ?? "admin"] ?? STATUS_OPTIONS).map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setFilter(opt.value)}
@@ -322,6 +325,7 @@ export default function LeadsPage() {
                   onRequestReject={rejectLead}
                   onAssign={assignLead}
                   currentAgentId={currentAgent?.id ?? null}
+                  currentRole={currentAgent?.profileRole ?? "manager"}
                 />
               ))}
             </div>
@@ -343,6 +347,7 @@ export default function LeadsPage() {
                   onRequestReject={rejectLead}
                   onAssign={assignLead}
                   currentAgentId={currentAgent?.id ?? null}
+                  currentRole={currentAgent?.profileRole ?? "manager"}
                 />
               ))}
             </div>

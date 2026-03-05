@@ -90,6 +90,96 @@ export async function answerCallback(callbackQueryId: string, text?: string) {
   });
 }
 
+// ── Broadcast Message Tracking ──
+
+/** Save sent notification message IDs for later editing */
+async function saveBroadcastMessages(leadId: string, messages: { chatId: string; messageId: number }[]) {
+  if (messages.length === 0) return;
+  const supabase = createAdminClient();
+  await supabase.from("lead_telegram_messages").insert(
+    messages.map(m => ({
+      lead_id: leadId,
+      chat_id: m.chatId,
+      message_id: m.messageId,
+      notification_type: "new_lead",
+    }))
+  );
+}
+
+/** Edit all broadcast messages for a lead (e.g., when claimed by a broker) */
+export async function editLeadBroadcast(leadId: string, text: string, keyboard?: InlineKeyboard) {
+  const supabase = createAdminClient();
+  const { data: messages } = await supabase
+    .from("lead_telegram_messages")
+    .select("chat_id, message_id")
+    .eq("lead_id", leadId)
+    .eq("notification_type", "new_lead");
+
+  if (!messages || messages.length === 0) return;
+
+  const msgList = messages as { chat_id: string; message_id: number }[];
+  await Promise.allSettled(
+    msgList.map(m => editMessage(m.chat_id, m.message_id, text, keyboard))
+  );
+}
+
+/** Notify jurists when a lead reaches price_approved status */
+export async function notifyJuristsReview(lead: {
+  id: string;
+  short_id?: number | null;
+  name?: string | null;
+  phone: string;
+  offer_price?: number | null;
+  estimated_price?: number | null;
+}) {
+  const supabase = createAdminClient();
+
+  // Fetch attachments
+  const { data: attachments } = await supabase
+    .from("lead_attachments")
+    .select("file_url, file_name")
+    .eq("lead_id", lead.id)
+    .order("created_at", { ascending: false });
+
+  const files = (attachments ?? []) as { file_url: string; file_name: string }[];
+  const fileLines = files.length > 0
+    ? files.map((f, i) => `${i + 1}. <a href="${f.file_url}">${f.file_name}</a>`).join("\n")
+    : "<i>Нет документов</i>";
+
+  const price = lead.offer_price ?? lead.estimated_price;
+  const priceStr = price ? new Intl.NumberFormat("ru-RU").format(price) + " ₸" : "—";
+  const idTag = lead.short_id ? `#${lead.short_id} ` : "";
+
+  const text = [
+    `⚖️ <b>${idTag}Новая заявка на проверку</b>`,
+    "",
+    `👤 <b>Клиент:</b> ${lead.name ?? "—"}`,
+    `📞 <b>Телефон:</b> ${lead.phone}`,
+    `💰 <b>Оценка:</b> ${priceStr}`,
+    "",
+    `📎 <b>Документы (${files.length}):</b>`,
+    fileLines,
+  ].join("\n");
+
+  const shortRef = lead.short_id ?? 0;
+  const keyboard: InlineKeyboard = [[
+    { text: "📄 Открыть документы", callback_data: `jurist_docs_${shortRef}` },
+  ]];
+
+  // Send to jurists + admins
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("telegram_chat_id")
+    .in("role", ["jurist", "admin"])
+    .not("telegram_chat_id", "is", null);
+
+  const targets = (profiles ?? []) as { telegram_chat_id: string }[];
+
+  await Promise.allSettled(
+    targets.map(p => sendMessage(p.telegram_chat_id, text, { replyMarkup: keyboard }))
+  );
+}
+
 /** Send a message to the admin chat */
 export async function notifyAdmin(text: string) {
   const { adminChatId } = getConfig();
@@ -139,7 +229,7 @@ export function isAdmin(agent: AgentRow): boolean {
 
 // ── Interactive Lead Cards ──
 
-/** Build inline keyboard for a lead card */
+/** Build inline keyboard for a new lead notification (brokers) */
 export function buildLeadKeyboard(leadId: string, phone: string): InlineKeyboard {
   const waPhone = phone.replace(/\D/g, "");
   const waText = encodeURIComponent("Здравствуйте! Я ваш менеджер из Алмавыкуп. Готов помочь с оценкой вашей недвижимости.");
@@ -147,13 +237,6 @@ export function buildLeadKeyboard(leadId: string, phone: string): InlineKeyboard
     [
       { text: "✅ Взять в работу", callback_data: `lead:claim:${leadId}` },
       { text: "💬 WhatsApp", url: `https://wa.me/${waPhone}?text=${waText}` },
-    ],
-    [
-      { text: "📋 В работу", callback_data: `lead:progress:${leadId}` },
-      { text: "🏆 Закрыть (выиграно)", callback_data: `lead:won:${leadId}` },
-    ],
-    [
-      { text: "📦 Архив", callback_data: `lead:lost:${leadId}` },
     ],
   ];
 }
@@ -287,27 +370,39 @@ export async function notifyLeadInteractive(lead: {
     ? buildManualReviewKeyboard(lead.id, lead.phone)
     : buildLeadKeyboard(lead.id, lead.phone);
 
-  // Send to all active agents
+  // Send to brokers (manager) + admins only
   const supabase = createAdminClient();
-  const { data: agents } = await supabase
-    .from("authorized_agents")
-    .select("telegram_id")
-    .eq("is_active", true);
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("telegram_chat_id")
+    .in("role", ["manager", "admin"])
+    .not("telegram_chat_id", "is", null);
 
-  const targets = (agents ?? []) as { telegram_id: number }[];
-
-  // Also send to admin chat as fallback
-  const { adminChatId } = getConfig();
-  const allChatIds = new Set<string>([adminChatId]);
-  for (const a of targets) {
-    allChatIds.add(String(a.telegram_id));
+  const chatIds = new Set<string>();
+  for (const p of (profiles ?? []) as { telegram_chat_id: string }[]) {
+    chatIds.add(p.telegram_chat_id);
   }
+  // Also add admin chat as fallback
+  const { adminChatId } = getConfig();
+  chatIds.add(adminChatId);
 
+  const chatIdArray = [...chatIds];
   const results = await Promise.allSettled(
-    [...allChatIds].map((chatId) =>
+    chatIdArray.map((chatId) =>
       sendMessage(chatId, text, { replyMarkup: keyboard })
     ),
   );
+
+  // Save broadcast message IDs for later editing (claim flow)
+  if (lead.id) {
+    const sentMessages: { chatId: string; messageId: number }[] = [];
+    results.forEach((result, i) => {
+      if (result.status === "fulfilled" && result.value?.message_id) {
+        sentMessages.push({ chatId: chatIdArray[i], messageId: result.value.message_id });
+      }
+    });
+    saveBroadcastMessages(lead.id, sentMessages).catch(() => {});
+  }
 
   return results;
 }

@@ -120,6 +120,77 @@ export const NEXT_STATUS_LABELS: Record<string, string> = {
   awaiting_payout: "Закрыть сделку \u2713",
 };
 
+/** Per-role: which next status this role can push a lead to */
+export const ROLE_NEXT_STATUS: Record<string, Record<string, string>> = {
+  admin: NEXT_STATUS,
+  manager: {
+    new: "in_progress",
+    in_progress: "price_approved",
+  },
+  jurist: {
+    price_approved: "jurist_approved",
+  },
+  director: {
+    jurist_approved: "director_approved",
+    director_approved: "awaiting_payout",
+  },
+  cashier: {
+    awaiting_payout: "deal_closed",
+  },
+};
+
+/** Per-role: button labels for the next status action */
+export const ROLE_NEXT_LABELS: Record<string, Record<string, string>> = {
+  admin: NEXT_STATUS_LABELS,
+  manager: {
+    new: "Взять в работу",
+    in_progress: "Оценка ✓",
+  },
+  jurist: {
+    price_approved: "Юрист ✓",
+  },
+  director: {
+    jurist_approved: "Директор ✓",
+    director_approved: "На выплату",
+  },
+  cashier: {
+    awaiting_payout: "Закрыть сделку ✓",
+  },
+};
+
+/** Per-role: which status filter pills to show */
+export const ROLE_STATUS_OPTIONS: Record<string, readonly { value: string; label: string; color?: string }[]> = {
+  admin: STATUS_OPTIONS,
+  manager: [
+    { value: "all", label: "Все" },
+    { value: "new", label: "Новые", color: "#C8A44E" },
+    { value: "in_progress", label: "В обработке", color: "#4A8FD4" },
+    { value: "price_approved", label: "Оценка", color: "#E8A838" },
+  ],
+  jurist: [
+    { value: "all", label: "Все" },
+    { value: "price_approved", label: "На проверку", color: "#E8A838" },
+  ],
+  director: [
+    { value: "all", label: "Все" },
+    { value: "jurist_approved", label: "Юрист ✓", color: "#9B59B6" },
+    { value: "director_approved", label: "Директор ✓", color: "#3498DB" },
+  ],
+  cashier: [
+    { value: "all", label: "Все" },
+    { value: "awaiting_payout", label: "Ждёт выплаты", color: "#EAB308" },
+  ],
+};
+
+/** Per-role: which kanban columns to show */
+export const ROLE_PIPELINE_STATUSES: Record<string, readonly string[]> = {
+  admin: ACTIVE_STATUSES,
+  manager: ["new", "in_progress", "price_approved"],
+  jurist: ["price_approved"],
+  director: ["jurist_approved", "director_approved"],
+  cashier: ["awaiting_payout"],
+};
+
 export const INTENT_LABELS: Record<string, string> = {
   ready: "Согласен",
   negotiate: "Торг",

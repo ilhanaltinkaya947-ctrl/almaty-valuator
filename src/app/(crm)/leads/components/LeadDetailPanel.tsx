@@ -5,8 +5,8 @@ import {
   Lead,
   STATUS_COLORS,
   STATUS_LABELS,
-  NEXT_STATUS,
-  NEXT_STATUS_LABELS,
+  ROLE_NEXT_STATUS,
+  ROLE_NEXT_LABELS,
   PROPERTY_TYPE_LABELS,
   INTENT_LABELS,
   INTENT_COLORS,
@@ -29,6 +29,7 @@ export default function LeadDetailPanel({
   onRequestReject,
   onAssign,
   currentAgentId,
+  currentRole = "manager",
 }: {
   lead: Lead;
   buybackDiscount: number;
@@ -38,6 +39,7 @@ export default function LeadDetailPanel({
   onRequestReject: (lead: Lead) => void;
   onAssign: (id: string) => void;
   currentAgentId: string | null;
+  currentRole?: string;
 }) {
   const [priceInput, setPriceInput] = useState("");
   const [visible, setVisible] = useState(false);
@@ -127,6 +129,7 @@ export default function LeadDetailPanel({
       ? Math.round((1 - offerPrice / marketPrice) * 100)
       : null;
 
+  const isBroker = currentRole === "manager";
   const waPhone = lead.phone.replace(/\D/g, "");
   const offerText = offerPrice
     ? ` Наше предложение по срочному выкупу: ${new Intl.NumberFormat("ru-RU").format(offerPrice)} тенге.`
@@ -134,9 +137,17 @@ export default function LeadDetailPanel({
   const waMessage = encodeURIComponent(
     `Здравствуйте${lead.name ? `, ${lead.name}` : ""}! Я менеджер из Алмавыкуп.${offerText}`
   );
+  const waLink = isBroker
+    ? `/api/crm/leads/${lead.id}/contact?type=whatsapp`
+    : `https://wa.me/${waPhone}?text=${waMessage}`;
+  const callLink = isBroker
+    ? `/api/crm/leads/${lead.id}/contact?type=call`
+    : `tel:${lead.phone}`;
 
-  const nextStatus = NEXT_STATUS[lead.status];
-  const nextLabel = NEXT_STATUS_LABELS[lead.status];
+  const roleNextMap = ROLE_NEXT_STATUS[currentRole] ?? {};
+  const roleLabelMap = ROLE_NEXT_LABELS[currentRole] ?? {};
+  const nextStatus = roleNextMap[lead.status];
+  const nextLabel = roleLabelMap[lead.status];
   const nextColor = nextStatus ? (STATUS_COLORS[nextStatus] ?? "#C8A44E") : null;
 
   const DetailRow = ({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) => (
@@ -675,7 +686,7 @@ export default function LeadDetailPanel({
           }}
         >
           <a
-            href={`https://wa.me/${waPhone}?text=${waMessage}`}
+            href={waLink}
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -691,7 +702,7 @@ export default function LeadDetailPanel({
             WhatsApp
           </a>
           <a
-            href={`tel:${lead.phone}`}
+            href={callLink}
             style={{
               padding: "8px 14px",
               borderRadius: 6,
@@ -704,7 +715,7 @@ export default function LeadDetailPanel({
           >
             Позвонить
           </a>
-          {lead.status === "new" && !lead.assigned_to && (
+          {lead.status === "new" && !lead.assigned_to && (currentRole === "manager" || currentRole === "admin") && (
             <button
               onClick={() => onAssign(lead.id)}
               style={{

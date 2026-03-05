@@ -4,9 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Lead,
   SettingRow,
-  STATUS_OPTIONS,
   STATUS_COLORS,
   STATUS_LABELS,
+  ROLE_STATUS_OPTIONS,
+  ROLE_NEXT_STATUS,
+  ROLE_NEXT_LABELS,
+  STATUS_OPTIONS,
   formatPrice as sharedFormatPrice,
   formatDate as sharedFormatDate,
 } from "@/lib/crm-constants";
@@ -42,6 +45,7 @@ export default function MobileCRM() {
   const [error, setError] = useState<string | null>(null);
   const [telegramUser, setTelegramUser] = useState<string | null>(null);
   const [buybackDiscount, setBuybackDiscount] = useState(0.7);
+  const [currentRole, setCurrentRole] = useState("manager");
 
   const getTg = () => (window as unknown as { Telegram?: { WebApp: TelegramWebApp } }).Telegram?.WebApp;
 
@@ -65,9 +69,10 @@ export default function MobileCRM() {
       const initData = getTg()?.initData ?? "";
       const headers = { "x-telegram-init-data": initData };
 
-      const [leadsRes, settingsRes] = await Promise.all([
+      const [leadsRes, settingsRes, meRes] = await Promise.all([
         fetch("/api/crm/leads", { headers }),
         fetch("/api/crm/settings", { headers }),
+        fetch("/api/crm/auth/me", { headers }),
       ]);
 
       if (!leadsRes.ok) throw new Error("Failed to fetch leads");
@@ -80,6 +85,11 @@ export default function MobileCRM() {
           (s: SettingRow) => s.key === "buyback_discount"
         );
         if (bbSetting) setBuybackDiscount(Number(bbSetting.value_numeric));
+      }
+
+      if (meRes.ok) {
+        const meData = await meRes.json();
+        if (meData.profileRole) setCurrentRole(meData.profileRole);
       }
     } catch {
       setError("Ошибка загрузки данных");
@@ -234,7 +244,7 @@ export default function MobileCRM() {
         overflowX: "auto",
         paddingBottom: 4,
       }}>
-        {STATUS_OPTIONS.map((opt) => (
+        {(ROLE_STATUS_OPTIONS[currentRole] ?? STATUS_OPTIONS).map((opt) => (
           <button
             key={opt.value}
             onClick={() => setFilter(opt.value)}
@@ -287,6 +297,7 @@ export default function MobileCRM() {
               onSetPrice={setOfferPrice}
               formatPrice={formatPrice}
               formatDate={formatDate}
+              currentRole={currentRole}
             />
           ))}
         </div>
@@ -302,6 +313,7 @@ function LeadCard({
   onSetPrice,
   formatPrice,
   formatDate,
+  currentRole = "manager",
 }: {
   lead: Lead;
   buybackDiscount: number;
@@ -309,6 +321,7 @@ function LeadCard({
   onSetPrice: (id: string, price: number) => void;
   formatPrice: (p: number | null) => string;
   formatDate: (d: string) => string;
+  currentRole?: string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [priceInput, setPriceInput] = useState("");
@@ -427,106 +440,81 @@ function LeadCard({
           )}
 
           {/* Action buttons */}
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <a
-              href={`https://wa.me/${lead.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Здравствуйте${lead.name ? `, ${lead.name}` : ""}! Я менеджер из Алмавыкуп.${offerPrice ? ` Наше предложение: ${new Intl.NumberFormat("ru-RU").format(offerPrice)} ₸.` : ""}`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                padding: "6px 12px", borderRadius: 6, background: "#25D366",
-                color: "#fff", fontSize: 12, fontWeight: 600, textDecoration: "none",
-              }}
-            >
-              WhatsApp
-            </a>
-            <a
-              href={`tel:${lead.phone}`}
-              style={{
-                padding: "6px 12px", borderRadius: 6, background: "#4A8FD4",
-                color: "#fff", fontSize: 12, fontWeight: 600, textDecoration: "none",
-              }}
-            >
-              Позвонить
-            </a>
-            {lead.status === "new" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "in_progress")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#C8A44E",
-                  color: "#0A0D14", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
-                }}
-              >
-                Взять в работу
-              </button>
-            )}
-            {lead.status === "in_progress" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "price_approved")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#E8A838",
-                  color: "#0A0D14", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
-                }}
-              >
-                Оценка ✓
-              </button>
-            )}
-            {lead.status === "price_approved" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "jurist_approved")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#9B59B6",
-                  color: "#fff", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
-                }}
-              >
-                Юрист ✓
-              </button>
-            )}
-            {lead.status === "jurist_approved" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "director_approved")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#3498DB",
-                  color: "#fff", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
-                }}
-              >
-                Директор ✓
-              </button>
-            )}
-            {lead.status === "director_approved" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "deal_progress")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#F39C12",
-                  color: "#0A0D14", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
-                }}
-              >
-                На сделку
-              </button>
-            )}
-            {lead.status === "deal_progress" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "paid")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#25D366",
-                  color: "#fff", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
-                }}
-              >
-                Выдано ✓
-              </button>
-            )}
-            {lead.status !== "paid" && lead.status !== "rejected" && (
-              <button
-                onClick={() => onStatusChange(lead.id, "rejected")}
-                style={{
-                  padding: "6px 12px", borderRadius: 6, background: "#1A2332",
-                  color: "#5A6478", fontSize: 12, fontWeight: 600, border: "1px solid #5A6478",
-                  cursor: "pointer",
-                }}
-              >
-                Отказ
-              </button>
-            )}
-          </div>
+          {(() => {
+            const roleNextMap = ROLE_NEXT_STATUS[currentRole] ?? {};
+            const roleLabelMap = ROLE_NEXT_LABELS[currentRole] ?? {};
+            const nextStatus = roleNextMap[lead.status];
+            const nextLabel = roleLabelMap[lead.status];
+            const nextColor = nextStatus ? (STATUS_COLORS[nextStatus] ?? "#C8A44E") : null;
+            const isBroker = currentRole === "manager";
+            const showAssign = lead.status === "new" && (currentRole === "manager" || currentRole === "admin");
+            const mobileWaLink = isBroker
+              ? `/api/crm/leads/${lead.id}/contact?type=whatsapp`
+              : `https://wa.me/${lead.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Здравствуйте${lead.name ? `, ${lead.name}` : ""}! Я менеджер из Алмавыкуп.${offerPrice ? ` Наше предложение: ${new Intl.NumberFormat("ru-RU").format(offerPrice)} ₸.` : ""}`)}`;
+            const mobileCallLink = isBroker
+              ? `/api/crm/leads/${lead.id}/contact?type=call`
+              : `tel:${lead.phone}`;
+            return (
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <a
+                  href={mobileWaLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    padding: "6px 12px", borderRadius: 6, background: "#25D366",
+                    color: "#fff", fontSize: 12, fontWeight: 600, textDecoration: "none",
+                  }}
+                >
+                  WhatsApp
+                </a>
+                <a
+                  href={mobileCallLink}
+                  style={{
+                    padding: "6px 12px", borderRadius: 6, background: "#4A8FD4",
+                    color: "#fff", fontSize: 12, fontWeight: 600, textDecoration: "none",
+                  }}
+                >
+                  Позвонить
+                </a>
+                {showAssign && (
+                  <button
+                    onClick={() => onStatusChange(lead.id, "in_progress")}
+                    style={{
+                      padding: "6px 12px", borderRadius: 6, background: "#C8A44E",
+                      color: "#0A0D14", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
+                    }}
+                  >
+                    Взять в работу
+                  </button>
+                )}
+                {nextStatus && nextLabel && lead.status !== "new" && (
+                  <button
+                    onClick={() => onStatusChange(lead.id, nextStatus)}
+                    style={{
+                      padding: "6px 12px", borderRadius: 6,
+                      background: nextColor ?? "#C8A44E",
+                      color: nextColor === "#9B59B6" || nextColor === "#3498DB" || nextColor === "#25D366" ? "#fff" : "#0A0D14",
+                      fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
+                    }}
+                  >
+                    {nextLabel}
+                  </button>
+                )}
+                {lead.status !== "deal_closed" && lead.status !== "rejected" && lead.status !== "paid" && (
+                  <button
+                    onClick={() => onStatusChange(lead.id, "rejected")}
+                    style={{
+                      padding: "6px 12px", borderRadius: 6, background: "#1A2332",
+                      color: "#5A6478", fontSize: 12, fontWeight: 600, border: "1px solid #5A6478",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Отказ
+                  </button>
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>

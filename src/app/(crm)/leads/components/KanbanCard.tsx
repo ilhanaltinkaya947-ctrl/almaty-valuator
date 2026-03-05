@@ -3,8 +3,8 @@
 import {
   Lead,
   STATUS_COLORS,
-  NEXT_STATUS,
-  NEXT_STATUS_LABELS,
+  ROLE_NEXT_STATUS,
+  ROLE_NEXT_LABELS,
   PROPERTY_TYPE_LABELS,
   INTENT_LABELS,
   INTENT_COLORS,
@@ -19,6 +19,7 @@ export default function KanbanCard({
   onRequestReject,
   onAssign,
   currentAgentId,
+  currentRole = "manager",
 }: {
   lead: Lead;
   onClick: (lead: Lead) => void;
@@ -26,12 +27,15 @@ export default function KanbanCard({
   onRequestReject: (lead: Lead) => void;
   onAssign: (id: string) => void;
   currentAgentId: string | null;
+  currentRole?: string;
 }) {
   const color = STATUS_COLORS[lead.status] ?? "#1E2A3A";
-  const nextStatus = NEXT_STATUS[lead.status];
-  const nextLabel = NEXT_STATUS_LABELS[lead.status];
+  const roleNextMap = ROLE_NEXT_STATUS[currentRole] ?? {};
+  const roleLabelMap = ROLE_NEXT_LABELS[currentRole] ?? {};
+  const nextStatus = roleNextMap[lead.status];
+  const nextLabel = roleLabelMap[lead.status];
   const nextColor = nextStatus ? (STATUS_COLORS[nextStatus] ?? "#C8A44E") : null;
-  const showAssignBtn = lead.status === "new" && !lead.assigned_to;
+  const showAssignBtn = lead.status === "new" && !lead.assigned_to && (currentRole === "manager" || currentRole === "admin");
 
   return (
     <div
