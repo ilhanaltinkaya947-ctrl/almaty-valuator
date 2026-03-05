@@ -19,8 +19,10 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { emoji: "⚙️", label: "Настройки", href: "/settings" },
 ];
 
+const ANALYTICS_ITEM: NavItem = { emoji: "📊", label: "Аналитика", href: "/analytics" };
+
 const ROLE_NAV: Record<string, NavItem[]> = {
-  admin: ALL_NAV_ITEMS,
+  admin: [...ALL_NAV_ITEMS, ANALYTICS_ITEM],
   manager: [
     { emoji: "📊", label: "Лиды", href: "/leads" },
     { emoji: "📦", label: "Архив", href: "/archive" },
@@ -32,6 +34,7 @@ const ROLE_NAV: Record<string, NavItem[]> = {
   director: [
     { emoji: "📋", label: "На согласование", href: "/leads" },
     { emoji: "📦", label: "Архив", href: "/archive" },
+    ANALYTICS_ITEM,
   ],
   cashier: [
     { emoji: "💰", label: "Выплаты", href: "/leads" },
