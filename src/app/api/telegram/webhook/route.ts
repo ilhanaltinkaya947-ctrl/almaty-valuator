@@ -687,35 +687,130 @@ async function handleFileUpload(msg: TelegramMessage) {
   }
 }
 
-// ── Command Handlers ──
+// ── Role-Specific Instructions ──
 
-async function handleStart(chatId: string, agent: AgentRow) {
-  const adminCommands = isAdmin(agent)
-    ? [
+function buildRoleInstructions(role: string, name: string): string {
+  const emoji = ROLE_LABELS[role] ?? "👤";
+
+  switch (role) {
+    case "broker":
+      return [
+        `${emoji} Добро пожаловать, <b>${name}</b>!`,
         "",
-        "<b>Админ:</b>",
-        "/set_base [число] — Изменить базовую ставку",
-        "/edit_complex [ЖК] [коэфф] — Изменить коэффициент ЖК",
+        "📋 <b>Как работать с заявками:</b>",
+        "",
+        "1️⃣ <b>Новая заявка</b> → вы получите уведомление с кнопкой <b>[Взять в работу]</b>",
+        "2️⃣ <b>Нажмите [Взять в работу]</b> чтобы закрепить заявку за собой",
+        "3️⃣ <b>Установите цену</b> — отправьте текстовое сообщение:",
+        "   <code>Цена #105 24500000</code>",
+        "   (можно с точками: <code>Цена #105 24.500.000</code>)",
+        "4️⃣ <b>Загрузите документы</b> — отправьте фото/файлы с номером заявки в описании:",
+        "   Пример: отправьте фото с подписью <code>#105</code>",
+        "5️⃣ <b>Нажмите [Отправить юристу]</b> для передачи на проверку",
+        "",
+        "📌 <b>Команды:</b>",
+        "/start — Помощь и список команд",
+        "/leads — Последние 5 заявок",
+        "/pending — Заявки на ручной расчёт",
+        "/price [id] [сумма] — Назначить цену",
+        "/crm — Открыть CRM",
+        "",
+        "💡 <b>Подсказки:</b>",
+        "• <code>Цена #105 24500000</code> — обновить цену заявки",
+        "• Отправьте фото с подписью <code>#105</code> — прикрепить документ",
+        "• Можно отправлять несколько фото альбомом — все прикрепятся",
+      ].join("\n");
+
+    case "jurist":
+      return [
+        `${emoji} Добро пожаловать, <b>${name}</b>!`,
+        "",
+        "📋 <b>Как работать:</b>",
+        "",
+        "1️⃣ Когда брокер отправит заявку на проверку — вы получите уведомление",
+        "2️⃣ Нажмите <b>[Открыть документы]</b> чтобы просмотреть прикреплённые файлы",
+        "3️⃣ Откройте CRM для детального просмотра и смены статуса на «Проверено юристом»",
+        "",
+        "📌 <b>Команды:</b>",
+        "/start — Помощь и список команд",
+        "/crm — Открыть CRM",
+        "",
+        "💡 После проверки документов — измените статус заявки в CRM",
+      ].join("\n");
+
+    case "director":
+      return [
+        `${emoji} Добро пожаловать, <b>${name}</b>!`,
+        "",
+        "📋 <b>Как работать:</b>",
+        "",
+        "1️⃣ Когда юрист одобрит заявку — вы получите уведомление",
+        "2️⃣ Откройте CRM для просмотра и утверждения заявки",
+        "3️⃣ После утверждения — заявка перейдёт к кассиру на выплату",
+        "",
+        "📌 <b>Команды:</b>",
+        "/start — Помощь и список команд",
+        "/stats — Сводка за сегодня",
+        "/crm — Открыть CRM",
+      ].join("\n");
+
+    case "cashier":
+      return [
+        `${emoji} Добро пожаловать, <b>${name}</b>!`,
+        "",
+        "📋 <b>Как работать:</b>",
+        "",
+        "1️⃣ Когда директор утвердит заявку — вы получите уведомление",
+        "2️⃣ Откройте CRM для подтверждения выплаты",
+        "3️⃣ После выплаты — измените статус на «Сделка закрыта»",
+        "",
+        "📌 <b>Команды:</b>",
+        "/start — Помощь и список команд",
+        "/crm — Открыть CRM",
+      ].join("\n");
+
+    case "admin":
+      return [
+        `${emoji} Добро пожаловать, <b>${name}</b>!`,
+        "",
+        "Вы видите все заявки и получаете все уведомления.",
+        "",
+        "📌 <b>Работа с заявками:</b>",
+        "<code>Цена #ID сумма</code> — Установить цену заявки",
+        "Фото/файл с подписью <code>#ID</code> — Прикрепить документ",
+        "[Взять в работу] — Закрепить заявку за собой",
+        "[Отправить юристу] — Передать заявку на проверку",
+        "",
+        "📌 <b>Команды:</b>",
+        "/stats — Сводка за сегодня",
+        "/leads — Последние 5 заявок",
+        "/pending — Заявки на ручной расчёт",
+        "/search [ЖК] — Поиск жилого комплекса",
+        "/price [id] [сумма] — Назначить цену",
+        "/crm — Открыть CRM",
+        "",
+        "⚙️ <b>Управление:</b>",
         "/add_agent [telegram_id] [имя] [роль] — Добавить сотрудника",
         "/remove_agent [telegram_id] — Удалить сотрудника",
         "/agents — Список сотрудников",
-      ].join("\n")
-    : "";
+        "/set_base [число] — Изменить базовую ставку",
+        "/edit_complex [ЖК] [коэфф] — Изменить коэффициент ЖК",
+        "",
+        "🔑 <b>Роли:</b> admin, broker, jurist, director, cashier",
+      ].join("\n");
 
+    default:
+      return `👋 Добро пожаловать, <b>${name}</b>!\n\n/crm — Открыть CRM`;
+  }
+}
+
+// ── Command Handlers ──
+
+async function handleStart(chatId: string, agent: AgentRow) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://almavykup.kz";
+  const instructions = buildRoleInstructions(agent.role, agent.name);
 
-  await sendMessage(chatId, [
-    `👋 Привет, <b>${agent.name}</b>! (${agent.role})`,
-    "",
-    "<b>Команды:</b>",
-    "/stats — Сводка за сегодня",
-    "/leads — Последние 5 заявок",
-    "/pending — Заявки на ручной расчёт",
-    "/search [ЖК] — Поиск жилого комплекса",
-    "/price [id] [сумма] — Назначить цену",
-    `/crm — Открыть CRM`,
-    adminCommands,
-  ].join("\n"), {
+  await sendMessage(chatId, instructions, {
     replyMarkup: [[
       { text: "📊 Открыть CRM", web_app: { url: `${appUrl}/leads` } },
     ]],
@@ -1244,6 +1339,14 @@ async function handleAddAgent(chatId: string, agent: AgentRow, args: string[]) {
       `🆔 Telegram ID: <code>${telegramId}</code>`,
       `🔑 Роль: ${ROLE_LABELS[role] ?? role}`,
     ].join("\n"));
+
+    // Send role instructions to the agent
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://almavykup.kz";
+    sendMessage(String(telegramId), buildRoleInstructions(role, name), {
+      replyMarkup: [[
+        { text: "📊 Открыть CRM", web_app: { url: `${appUrl}/leads` } },
+      ]],
+    }).catch(() => {});
     return;
   }
 
@@ -1268,8 +1371,16 @@ async function handleAddAgent(chatId: string, agent: AgentRow, args: string[]) {
     `🆔 Telegram ID: <code>${telegramId}</code>`,
     `🔑 Роль: ${ROLE_LABELS[role] ?? role}`,
     "",
-    "Теперь этот человек может написать боту /start и получит доступ к CRM.",
+    "Инструкции отправлены сотруднику в личные сообщения.",
   ].join("\n"));
+
+  // Send role instructions to the new agent
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://almavykup.kz";
+  sendMessage(String(telegramId), buildRoleInstructions(role, name), {
+    replyMarkup: [[
+      { text: "📊 Открыть CRM", web_app: { url: `${appUrl}/leads` } },
+    ]],
+  }).catch(() => {});
 }
 
 async function handleRemoveAgent(chatId: string, agent: AgentRow, args: string[]) {
