@@ -257,42 +257,58 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
     return;
   }
 
-  let newStatus: string;
-  let notification: string;
+  // Map callback action → target status
+  const ACTION_STATUS: Record<string, string> = {
+    claim: "in_progress",
+    progress: "price_approved",
+    won: "paid",
+    lost: "rejected",
+  };
 
-  switch (action) {
-    case "claim": {
-      // Prevent double-claiming
-      if (lead.assigned_to && lead.assigned_to !== agent.id) {
-        const { data: assigneeProfile } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", lead.assigned_to)
-          .single();
-        const assigneeName = (assigneeProfile as { full_name: string } | null)?.full_name ?? "другим брокером";
-        await answerCallback(query.id, `❌ Уже взято: ${assigneeName}`);
-        return;
-      }
-      newStatus = "in_progress";
-      notification = `✅ ${agent.name} взял в работу`;
-      break;
-    }
-    case "progress":
-      newStatus = "price_approved";
-      notification = `💰 ${agent.name} утвердил оценку`;
-      break;
-    case "won":
-      newStatus = "paid";
-      notification = `🏆 ${agent.name} — выдано`;
-      break;
-    case "lost":
-      newStatus = "rejected";
-      notification = `📦 ${agent.name} — отказ`;
-      break;
-    default:
-      await answerCallback(query.id, "Неизвестное действие");
-      return;
+  const newStatus = ACTION_STATUS[action];
+  if (!newStatus) {
+    await answerCallback(query.id, "Неизвестное действие");
+    return;
   }
+
+  // ── Role-based permission guard (mirrors CRM PATCH) ──
+  const agentProfileRole = AGENT_TO_PROFILE_ROLE[agent.role] ?? "manager";
+  const ROLE_TRANSITIONS: Record<string, string[]> = {
+    admin: ["in_progress", "price_approved", "jurist_approved", "director_approved", "deal_progress", "awaiting_payout", "deal_closed", "paid", "rejected"],
+    manager: ["in_progress", "price_approved", "rejected"],
+    jurist: ["jurist_approved", "rejected"],
+    director: ["director_approved", "awaiting_payout", "rejected"],
+    cashier: ["deal_closed", "rejected"],
+  };
+  const allowed = ROLE_TRANSITIONS[agentProfileRole] ?? [];
+  if (!allowed.includes(newStatus)) {
+    await answerCallback(query.id, `⛔ У вас нет прав для этого действия`);
+    return;
+  }
+
+  // Claim-specific checks
+  if (action === "claim") {
+    if (lead.assigned_to && lead.assigned_to !== agent.id) {
+      const { data: assigneeProfile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", lead.assigned_to)
+        .single();
+      const assigneeName = (assigneeProfile as { full_name: string } | null)?.full_name ?? "другим брокером";
+      await answerCallback(query.id, `❌ Уже взято: ${assigneeName}`);
+      return;
+    }
+  }
+
+  // Broker ownership check: cannot change status of another broker's lead
+  if (agentProfileRole === "manager" && action !== "claim" && lead.assigned_to && lead.assigned_to !== agent.id) {
+    await answerCallback(query.id, `⛔ Вы не можете изменить статус чужой заявки`);
+    return;
+  }
+
+  const notification = action === "claim"
+    ? `✅ ${agent.name} взял в работу`
+    : `${STATUS_LABELS[newStatus] ?? newStatus} — ${agent.name}`;
 
   // Update lead in DB
   const updateData: Record<string, unknown> = {
@@ -340,20 +356,28 @@ async function handleCallbackQuery(query: TelegramCallbackQuery) {
       `🕐 ${new Date().toLocaleString("ru-RU", { timeZone: "Asia/Almaty" })}`,
     ].join("\n");
 
-    // Keep WhatsApp button, update status buttons
+    // Build role-appropriate action buttons
     const waPhone = lead.phone.replace(/\D/g, "");
     const waText = encodeURIComponent("Здравствуйте! Я ваш менеджер из Алмавыкуп.");
     const keyboard: InlineKeyboard = [
       [{ text: "💬 WhatsApp", url: `https://wa.me/${waPhone}?text=${waText}` }],
     ];
 
-    // If not archived/closed, keep action buttons
-    if (newStatus !== "paid" && newStatus !== "rejected") {
-      keyboard.push([
-        { text: "📋 Далее", callback_data: `lead:progress:${leadId}` },
-        { text: "🏆 Выдано", callback_data: `lead:won:${leadId}` },
-        { text: "📦 Архив", callback_data: `lead:lost:${leadId}` },
-      ]);
+    // Role-specific next actions (only show what this role can do)
+    if (newStatus !== "paid" && newStatus !== "deal_closed" && newStatus !== "rejected") {
+      const roleButtons: InlineKeyboard[0] = [];
+
+      if (agentProfileRole === "admin") {
+        // Admin sees all relevant actions
+        roleButtons.push({ text: "📋 Далее", callback_data: `lead:progress:${leadId}` });
+        roleButtons.push({ text: "📦 Отказ", callback_data: `lead:lost:${leadId}` });
+      } else if (agentProfileRole === "manager" && newStatus === "in_progress") {
+        // Broker after claiming: only reject (price + jurist handoff done via text/upload flow)
+        roleButtons.push({ text: "📦 Отказ", callback_data: `lead:lost:${leadId}` });
+      }
+      // jurist, director, cashier use CRM for their actions
+
+      if (roleButtons.length > 0) keyboard.push(roleButtons);
     }
 
     await editMessage(chatId, messageId, updatedText, keyboard).catch(() => {});
