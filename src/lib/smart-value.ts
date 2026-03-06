@@ -15,9 +15,9 @@ import { isAutoCalcType } from "@/types/evaluation";
 
 const DEFAULT_BASE_RATE = 805_000;
 
-const ROUGH_DEDUCTION = 175_000; // тг/м² deduction for rough finish
+const ROUGH_DEDUCTION = 0; // тг/м² deduction for rough finish (neutralized)
 
-const NEGOTIATION_LIMIT_COEFFICIENT = 0.80; // max we pay (-20% from market)
+const NEGOTIATION_LIMIT_COEFFICIENT = 1.0; // max we pay (neutralized — same as market)
 
 const MANUAL_REVIEW_MESSAGES: Record<string, string> = {
   house: "Дома и коттеджи требуют индивидуального анализа. Наш эксперт свяжется с вами с готовым предложением.",
@@ -27,18 +27,18 @@ const MANUAL_REVIEW_MESSAGES: Record<string, string> = {
 
 // ── Coefficient Functions ──
 
-/** Step-function year coefficient */
+/** Step-function year coefficient (neutralized — all values 1.0) */
 export function getYearCoefficient(yearBuilt: number): number {
   if (yearBuilt > 2020) return 1.0;
-  if (yearBuilt >= 2011) return 0.9;
-  if (yearBuilt >= 2000) return 0.8;
-  return 0.7;
+  if (yearBuilt >= 2011) return 1.0;
+  if (yearBuilt >= 2000) return 1.0;
+  return 1.0;
 }
 
 const MATERIAL_COEFFICIENTS: Record<WallMaterial, number> = {
   panel: 1.0,
-  brick: 1.10,
-  monolith: 1.05,
+  brick: 1.0,
+  monolith: 1.0,
 };
 
 export function getMaterialCoefficient(wall: WallMaterial): number {
@@ -50,36 +50,36 @@ export function getAdjustedBase(baseRate: number, condition: ConditionType): num
   return condition === "rough" ? baseRate - ROUGH_DEDUCTION : baseRate;
 }
 
-/** Floor position coefficient: first/last → 0.95, middle → 1.0 */
+/** Floor position coefficient (neutralized — all values 1.0) */
 export function getFloorCoefficient(position: FloorPosition): number {
-  return position === "middle" ? 1.0 : 0.95;
+  return position === "middle" ? 1.0 : 1.0;
 }
 
-/** Buyback multiplier — separate logic for ЖК vs Вторичка paths */
+/** Buyback multiplier (neutralized — all values 1.0, no discount) */
 export function getBuybackMultiplier(opts: {
   housingClass: string;
   wallMaterial: WallMaterial;
   isVtorichka: boolean;
   isGoldenSquare?: boolean;
 }): number {
-  // Вторичка path: always 0.70, exception: Золотой квадрат → 0.80
+  // Вторичка path (neutralized)
   if (opts.isVtorichka) {
-    return opts.isGoldenSquare ? 0.80 : 0.70;
+    return opts.isGoldenSquare ? 1.0 : 1.0;
   }
 
-  // ЖК path: strictly by housing class, wall material is irrelevant
+  // ЖК path: strictly by housing class (neutralized)
   switch (opts.housingClass) {
     case "elite":
     case "business_plus":
     case "business":
-      return 0.90;
+      return 1.0;
     case "comfort_plus":
-      return 0.85;
+      return 1.0;
     case "comfort":
-      return 0.80;
+      return 1.0;
     case "standard":
     default:
-      return 0.70;
+      return 1.0;
   }
 }
 

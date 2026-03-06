@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
 const updateComplexSchema = z.object({
   complex_id: z.string(),
   coefficient: z.number().min(0.5).max(3.0).optional(),
+  price_per_sqm: z.number().int().min(0).max(50_000_000).optional(),
   class: z.enum(["elite", "business_plus", "business", "comfort_plus", "comfort", "standard"]).optional(),
   is_golden_square: z.boolean().optional(),
 });
@@ -47,10 +48,11 @@ export async function PATCH(req: NextRequest) {
 
     const updatePayload: Record<string, unknown> = {};
     if (data.coefficient !== undefined) updatePayload.coefficient = data.coefficient;
+    if (data.price_per_sqm !== undefined) updatePayload.price_per_sqm = data.price_per_sqm;
     if (data.class !== undefined) updatePayload.class = data.class;
     if (data.is_golden_square !== undefined) updatePayload.is_golden_square = data.is_golden_square;
 
-    if (!updatePayload.coefficient && !updatePayload.class && updatePayload.is_golden_square === undefined) {
+    if (Object.keys(updatePayload).length === 0) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 });
     }
 

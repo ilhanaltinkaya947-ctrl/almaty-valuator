@@ -19,6 +19,7 @@ export interface Complex {
   mapLng: number;
   liquidityIndex: number;
   avgPriceSqm: number; // last known from krisha.kz
+  pricePerSqm?: number; // admin-set price per m² for calculator
   krishaUrl: string;
   wallMaterial: WallMaterial;
   zoneSlug: string;

@@ -20,6 +20,7 @@ interface DbComplex {
   year_built: number | null;
   total_floors: number | null;
   avg_price_sqm: number | null;
+  price_per_sqm: number | null;
   wall_material: string | null;
   zone_slug: string | null;
   liquidity_index: number | null;
@@ -38,6 +39,7 @@ function mapDbToComplex(row: DbComplex): Complex {
     mapLng: 0,
     liquidityIndex: row.liquidity_index ?? 0.8,
     avgPriceSqm: row.avg_price_sqm ?? 0,
+    pricePerSqm: row.price_per_sqm ?? undefined,
     krishaUrl: "",
     wallMaterial: (row.wall_material as WallMaterial) ?? "monolith",
     zoneSlug: row.zone_slug ?? "",

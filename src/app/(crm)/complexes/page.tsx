@@ -15,6 +15,7 @@ interface Complex {
   name: string;
   district: string;
   coefficient: number;
+  price_per_sqm: number | null;
   class: string | null;
   is_golden_square: boolean;
   year_built: number | null;
@@ -46,6 +47,7 @@ export default function ComplexesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [editingCoeff, setEditingCoeff] = useState<Record<string, string>>({});
+  const [editingPrice, setEditingPrice] = useState<Record<string, string>>({});
 
   const getTg = () => (window as unknown as { Telegram?: { WebApp: TelegramWebApp } }).Telegram?.WebApp;
   const getInitData = () => getTg()?.initData ?? "";
@@ -105,6 +107,20 @@ export default function ComplexesPage() {
     });
   };
 
+  const handlePriceBlur = (id: string) => {
+    const val = editingPrice[id];
+    if (val === undefined) return;
+    const num = parseInt(val);
+    if (!isNaN(num) && num >= 0) {
+      patchComplex(id, "price_per_sqm", num);
+    }
+    setEditingPrice((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  };
+
   const filtered = complexes.filter((c) =>
     !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.district.toLowerCase().includes(search.toLowerCase())
   );
@@ -156,7 +172,8 @@ export default function ComplexesPage() {
                 <th style={{ padding: "10px 8px", color: "#5A6478", fontWeight: 600 }}>Название</th>
                 <th style={{ padding: "10px 8px", color: "#5A6478", fontWeight: 600 }}>Район</th>
                 <th style={{ padding: "10px 8px", color: "#5A6478", fontWeight: 600 }}>Коэфф.</th>
-                <th style={{ padding: "10px 8px", color: "#5A6478", fontWeight: 600 }}>Цена/м²</th>
+                <th style={{ padding: "10px 8px", color: "#5A6478", fontWeight: 600 }}>Цена/м² (ручн.)</th>
+                <th style={{ padding: "10px 8px", color: "#5A6478", fontWeight: 600 }}>Avg (krisha)</th>
                 <th style={{ padding: "10px 8px", color: "#5A6478", fontWeight: 600 }}>Класс</th>
                 <th style={{ padding: "10px 8px", color: "#5A6478", fontWeight: 600, textAlign: "center" }}>Golden Sq</th>
               </tr>
@@ -183,7 +200,23 @@ export default function ComplexesPage() {
                         }}
                       />
                     </td>
-                    <td style={{ padding: "10px 8px", color: "#8B95A8" }}>{formatPrice(c.avg_price_sqm)}</td>
+                    <td style={{ padding: "10px 8px" }}>
+                      <input
+                        type="number"
+                        step="1000"
+                        value={editingPrice[c.id] ?? (c.price_per_sqm ?? "")}
+                        onChange={(e) => setEditingPrice((p) => ({ ...p, [c.id]: e.target.value }))}
+                        onBlur={() => handlePriceBlur(c.id)}
+                        onKeyDown={(e) => { if (e.key === "Enter") handlePriceBlur(c.id); }}
+                        placeholder="—"
+                        style={{
+                          width: 90, padding: "4px 6px", background: "#0A0D14",
+                          border: "1px solid #1E2A3A", borderRadius: 6, color: "#25D366",
+                          fontSize: 13, fontWeight: 700, outline: "none", textAlign: "right",
+                        }}
+                      />
+                    </td>
+                    <td style={{ padding: "10px 8px", color: "#8B95A8", fontSize: 12 }}>{formatPrice(c.avg_price_sqm)}</td>
                     <td style={{ padding: "10px 8px" }}>
                       <select
                         value={c.class ?? ""}

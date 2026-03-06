@@ -14,7 +14,7 @@ export async function GET() {
     const { data: complexes } = await supabase
       .from("complexes")
       .select(
-        "id, name, district, developer, class, coefficient, year_built, total_floors, avg_price_sqm, wall_material, zone_slug, liquidity_index",
+        "id, name, district, developer, class, coefficient, year_built, total_floors, avg_price_sqm, price_per_sqm, wall_material, zone_slug, liquidity_index",
       )
       .order("name");
 
