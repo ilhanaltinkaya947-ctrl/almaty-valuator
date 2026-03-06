@@ -205,8 +205,7 @@ export default function KanbanBoard({
           display: "flex",
           gap: 8,
           overflowX: "auto",
-          flex: 1,
-          minHeight: 0,
+          height: "calc(100vh - 160px)",
           paddingBottom: 8,
         }}
       >

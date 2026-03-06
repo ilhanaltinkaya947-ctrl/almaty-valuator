@@ -138,7 +138,7 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div style={{ color: "#8B95A8", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 16px" }}>
+      <div style={{ minHeight: "100vh", background: "#0A0D14", color: "#8B95A8", display: "flex", alignItems: "center", justifyContent: "center" }}>
         Загрузка...
       </div>
     );
@@ -146,7 +146,7 @@ export default function SettingsPage() {
 
   if (error) {
     return (
-      <div style={{ color: "#E74C3C", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12, padding: "40px 16px" }}>
+      <div style={{ minHeight: "100vh", background: "#0A0D14", color: "#E74C3C", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
         {error}
         <button onClick={fetchData} style={{
           padding: "8px 16px", background: "#C8A44E", color: "#0A0D14",
@@ -158,9 +158,9 @@ export default function SettingsPage() {
 
   return (
     <div style={{
-      color: "#F1F3F7",
+      minHeight: "100vh", background: "#0A0D14", color: "#F1F3F7",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      padding: "16px", maxWidth: 900, margin: "0 auto",
+      padding: "16px 16px 100px", maxWidth: 900, margin: "0 auto",
     }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: "#C8A44E", margin: "0 0 24px" }}>
         Настройки
