@@ -12,22 +12,34 @@ export const metadata: Metadata = {
 
 export default function CRMLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <div className="crm-shell">
       <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
       <TelegramInit />
       <CRMToaster />
       <Sidebar />
-      <main style={{ marginLeft: 220, height: "100vh", overflowY: "auto" }} className="crm-main">
+      <main className="crm-main">
         {children}
       </main>
       <style>{`
+        .crm-shell {
+          display: flex;
+          height: 100vh;
+          height: 100dvh;
+          overflow: hidden;
+        }
+        .crm-main {
+          flex: 1;
+          min-width: 0;
+          overflow-y: auto;
+          overflow-x: hidden;
+          background: #0A0D14;
+        }
         @media (max-width: 768px) {
           .crm-main {
-            margin-left: 0 !important;
-            height: 100dvh !important;
+            width: 100%;
           }
         }
       `}</style>
-    </>
+    </div>
   );
 }

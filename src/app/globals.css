@@ -456,18 +456,10 @@ input[type="range"]::-moz-range-thumb {
 
 /* ── Telegram Mini App — disable rubber-band / pull-to-close ── */
 .tma-root {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
   overscroll-behavior-y: none;
-  touch-action: pan-x pan-y;
-  -webkit-overflow-scrolling: auto;
 }
 
 .tma-root .crm-main {
-  height: 100dvh;
-  height: 100vh; /* fallback */
-  overflow-y: auto;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
 }

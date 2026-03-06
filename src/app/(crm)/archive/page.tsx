@@ -58,8 +58,6 @@ export default function ArchivePage() {
 
   return (
     <div style={{
-      minHeight: "100vh",
-      background: "#0A0D14",
       color: "#F1F3F7",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       padding: "16px",

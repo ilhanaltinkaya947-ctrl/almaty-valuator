@@ -144,15 +144,12 @@ export default function Sidebar() {
           display: none;
         }
         .crm-sidebar {
-          position: fixed;
-          top: 0;
-          left: 0;
           width: 220px;
-          height: 100vh;
+          height: 100%;
           background: #0D1118;
           border-right: 1px solid #1E2A3A;
-          z-index: 100;
           flex-shrink: 0;
+          overflow-y: auto;
         }
         .crm-backdrop {
           display: none;
@@ -170,6 +167,11 @@ export default function Sidebar() {
             z-index: 90;
           }
           .crm-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            height: 100dvh;
             transform: translateX(-100%);
             transition: transform 0.25s ease;
             z-index: 110;
