@@ -93,7 +93,8 @@ export function Calculator() {
     setLastIsPledged(params.isPledged);
     setLastFloorPosition(params.floorPosition);
 
-    // When price_per_sqm is set by admin, use it as the base rate with coefficient=1
+    // When price_per_sqm is set by admin, use it as the base rate
+    // The DB coefficient still applies as a multiplier (1.0 = no adjustment)
     const hasCustomPrice = selectedComplex.pricePerSqm && selectedComplex.pricePerSqm > 0;
     const evalResult = evaluateAuto({
       complexName: selectedComplex.name,
@@ -101,7 +102,7 @@ export function Calculator() {
       yearBuilt: selectedComplex.yearBuilt,
       wallMaterial: selectedComplex.wallMaterial,
       condition: params.condition,
-      complexCoefficient: hasCustomPrice ? 1.0 : selectedComplex.coefficient,
+      complexCoefficient: selectedComplex.coefficient,
       housingClass: selectedComplex.class,
       floorPosition: params.floorPosition,
     }, hasCustomPrice ? selectedComplex.pricePerSqm : undefined);
