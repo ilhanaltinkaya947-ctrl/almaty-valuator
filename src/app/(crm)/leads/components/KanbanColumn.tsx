@@ -30,12 +30,14 @@ export default function KanbanColumn({
       style={{
         minWidth: 240,
         maxWidth: 240,
+        height: "100%",
         background: "#0D1118",
         borderRadius: 8,
         borderTop: `3px solid ${color}`,
         display: "flex",
         flexDirection: "column",
         flexShrink: 0,
+        overflow: "hidden",
       }}
     >
       {/* Column header */}
@@ -79,7 +81,10 @@ export default function KanbanColumn({
       <div
         style={{
           flex: 1,
+          minHeight: 0,
           overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
+          touchAction: "pan-y",
           padding: "4px 8px 8px",
         }}
       >

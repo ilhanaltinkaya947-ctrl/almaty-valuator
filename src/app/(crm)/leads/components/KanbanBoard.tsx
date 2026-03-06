@@ -207,6 +207,7 @@ export default function KanbanBoard({
           overflowX: "auto",
           height: "calc(100dvh - 160px)",
           paddingBottom: 8,
+          touchAction: "pan-x",
         }}
       >
         {activePipeline.map((status) => (
