@@ -12,16 +12,27 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Map agent role → profile role
+  const AGENT_TO_PROFILE_ROLE: Record<string, string> = {
+    admin: "admin",
+    broker: "manager",
+    jurist: "jurist",
+    director: "director",
+    cashier: "cashier",
+  };
+
   // Check profile role — brokers and cashiers cannot access client database
   const supabase = createAdminClient();
-  let profileRole = "admin";
+  let profileRole = AGENT_TO_PROFILE_ROLE[agent.role] ?? "manager";
   if (agent.id !== "system") {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", agent.id)
       .single();
-    profileRole = (profile as { role: string } | null)?.role ?? "manager";
+    if (profile) {
+      profileRole = (profile as { role: string }).role;
+    }
   }
 
   if (!CLIENT_ACCESS_ROLES.has(profileRole)) {

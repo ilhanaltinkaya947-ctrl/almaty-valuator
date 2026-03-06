@@ -52,14 +52,23 @@ export async function GET(
   };
 
   // Check profile role
-  let profileRole = "admin";
+  const AGENT_TO_PROFILE_ROLE: Record<string, string> = {
+    admin: "admin",
+    broker: "manager",
+    jurist: "jurist",
+    director: "director",
+    cashier: "cashier",
+  };
+  let profileRole = AGENT_TO_PROFILE_ROLE[agent.role] ?? "manager";
   if (agent.id !== "system") {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", agent.id)
       .single();
-    profileRole = (profile as { role: string } | null)?.role ?? "manager";
+    if (profile) {
+      profileRole = (profile as { role: string }).role;
+    }
   }
 
   // Broker guard: can only contact own leads or new unclaimed leads
