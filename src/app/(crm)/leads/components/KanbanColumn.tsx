@@ -84,7 +84,6 @@ export default function KanbanColumn({
           minHeight: 0,
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
-          touchAction: "pan-y",
           padding: "4px 8px 8px",
         }}
       >
