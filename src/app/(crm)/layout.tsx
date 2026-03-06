@@ -17,13 +17,14 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       <TelegramInit />
       <CRMToaster />
       <Sidebar />
-      <main style={{ marginLeft: 220 }} className="crm-main">
+      <main style={{ marginLeft: 220, height: "100vh", overflowY: "auto" }} className="crm-main">
         {children}
       </main>
       <style>{`
         @media (max-width: 768px) {
           .crm-main {
             margin-left: 0 !important;
+            height: 100dvh !important;
           }
         }
       `}</style>
