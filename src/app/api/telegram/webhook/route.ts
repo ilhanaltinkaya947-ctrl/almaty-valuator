@@ -181,6 +181,9 @@ async function handleMessage(msg: TelegramMessage) {
     case "/remove_agent":
       await handleRemoveAgent(chatId, agent, args);
       break;
+    case "/change_role":
+      await handleChangeRole(chatId, agent, args);
+      break;
     case "/agents":
       await handleListAgents(chatId, agent);
       break;
@@ -816,6 +819,7 @@ function buildRoleInstructions(role: string, name: string): string {
         "⚙️ <b>Управление:</b>",
         "/add_agent [telegram_id] [имя] [роль] — Добавить сотрудника",
         "/remove_agent [telegram_id] — Удалить сотрудника",
+        "/change_role [telegram_id] [роль] — Изменить роль",
         "/agents — Список сотрудников",
         "/set_base [число] — Изменить базовую ставку",
         "/edit_complex [ЖК] [коэфф] — Изменить коэффициент ЖК",
@@ -828,9 +832,58 @@ function buildRoleInstructions(role: string, name: string): string {
   }
 }
 
+// ── Set Telegram command menu per user/role ──
+
+const ROLE_COMMANDS: Record<string, { command: string; description: string }[]> = {
+  broker: [
+    { command: "start", description: "Помощь и инструкции" },
+    { command: "leads", description: "Последние 5 заявок" },
+    { command: "pending", description: "Заявки на ручной расчёт" },
+    { command: "price", description: "Назначить цену" },
+    { command: "crm", description: "Открыть CRM" },
+  ],
+  jurist: [
+    { command: "start", description: "Помощь и инструкции" },
+    { command: "crm", description: "Открыть CRM" },
+  ],
+  director: [
+    { command: "start", description: "Помощь и инструкции" },
+    { command: "stats", description: "Сводка за сегодня" },
+    { command: "crm", description: "Открыть CRM" },
+  ],
+  cashier: [
+    { command: "start", description: "Помощь и инструкции" },
+    { command: "crm", description: "Открыть CRM" },
+  ],
+  admin: [
+    { command: "start", description: "Помощь и инструкции" },
+    { command: "stats", description: "Сводка за сегодня" },
+    { command: "leads", description: "Последние 5 заявок" },
+    { command: "pending", description: "Заявки на ручной расчёт" },
+    { command: "price", description: "Назначить цену" },
+    { command: "search", description: "Поиск ЖК" },
+    { command: "crm", description: "Открыть CRM" },
+    { command: "agents", description: "Список сотрудников" },
+    { command: "add_agent", description: "Добавить сотрудника" },
+    { command: "remove_agent", description: "Удалить сотрудника" },
+    { command: "change_role", description: "Изменить роль сотрудника" },
+    { command: "set_base", description: "Изменить базовую ставку" },
+  ],
+};
+
+async function setRoleCommands(chatId: string, role: string) {
+  const commands = ROLE_COMMANDS[role] ?? ROLE_COMMANDS.broker;
+  await callApi("setMyCommands", {
+    commands,
+    scope: { type: "chat", chat_id: Number(chatId) },
+  }).catch(() => {});
+}
+
 // ── Command Handlers ──
 
 async function handleStart(chatId: string, agent: AgentRow) {
+  // Register role-specific command menu for this user
+  setRoleCommands(chatId, agent.role).catch(() => {});
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://almavykup.kz";
   const instructions = buildRoleInstructions(agent.role, agent.name);
 
@@ -1364,7 +1417,8 @@ async function handleAddAgent(chatId: string, agent: AgentRow, args: string[]) {
       `🔑 Роль: ${ROLE_LABELS[role] ?? role}`,
     ].join("\n"));
 
-    // Send role instructions to the agent
+    // Register command menu + send role instructions to the agent
+    setRoleCommands(String(telegramId), role).catch(() => {});
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://almavykup.kz";
     sendMessage(String(telegramId), buildRoleInstructions(role, name), {
       replyMarkup: [[
@@ -1398,9 +1452,99 @@ async function handleAddAgent(chatId: string, agent: AgentRow, args: string[]) {
     "Инструкции отправлены сотруднику в личные сообщения.",
   ].join("\n"));
 
-  // Send role instructions to the new agent
+  // Register command menu + send role instructions to the new agent
+  setRoleCommands(String(telegramId), role).catch(() => {});
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://almavykup.kz";
   sendMessage(String(telegramId), buildRoleInstructions(role, name), {
+    replyMarkup: [[
+      { text: "📊 Открыть CRM", web_app: { url: `${appUrl}/leads` } },
+    ]],
+  }).catch(() => {});
+}
+
+async function handleChangeRole(chatId: string, agent: AgentRow, args: string[]) {
+  if (!isAdmin(agent)) {
+    await sendMessage(chatId, "⛔ Только администратор может менять роли.");
+    return;
+  }
+
+  const VALID_ROLES = ["admin", "broker", "jurist", "director", "cashier"];
+
+  if (args.length < 2) {
+    await sendMessage(chatId, [
+      "Использование: /change_role [telegram_id] [новая роль]",
+      "",
+      "Роли: <b>admin</b>, <b>broker</b>, <b>jurist</b>, <b>director</b>, <b>cashier</b>",
+      "",
+      "Пример: <code>/change_role 123456789 jurist</code>",
+      "",
+      "💡 Используйте /agents чтобы посмотреть список и ID сотрудников.",
+    ].join("\n"));
+    return;
+  }
+
+  const telegramId = parseInt(args[0]);
+  if (isNaN(telegramId)) {
+    await sendMessage(chatId, "❌ telegram_id должен быть числом.");
+    return;
+  }
+
+  const newRole = args[1].toLowerCase();
+  if (!VALID_ROLES.includes(newRole)) {
+    await sendMessage(chatId, `❌ Неизвестная роль: <b>${newRole}</b>\n\nДоступные: admin, broker, jurist, director, cashier`);
+    return;
+  }
+
+  const supabase = createAdminClient();
+
+  const { data: target } = await supabase
+    .from("authorized_agents")
+    .select("id, name, role")
+    .eq("telegram_id", telegramId)
+    .single();
+
+  if (!target) {
+    await sendMessage(chatId, "❌ Сотрудник с таким Telegram ID не найден. Используйте /agents для списка.");
+    return;
+  }
+
+  const targetAgent = target as { id: string; name: string; role: string };
+  const oldRole = targetAgent.role;
+
+  if (oldRole === newRole) {
+    await sendMessage(chatId, `ℹ️ <b>${targetAgent.name}</b> уже имеет роль ${ROLE_LABELS[newRole] ?? newRole}.`);
+    return;
+  }
+
+  // Update role in authorized_agents
+  await supabase
+    .from("authorized_agents")
+    .update({ role: newRole as AgentRole })
+    .eq("telegram_id", telegramId);
+
+  // Update profile role
+  await upsertProfile(supabase, targetAgent.id, targetAgent.name, newRole, telegramId);
+
+  // Notify admin
+  await sendMessage(chatId, [
+    "✅ <b>Роль изменена</b>",
+    "",
+    `👤 <b>${targetAgent.name}</b>`,
+    `🆔 Telegram ID: <code>${telegramId}</code>`,
+    `📉 Было: ${ROLE_LABELS[oldRole] ?? oldRole}`,
+    `📈 Стало: ${ROLE_LABELS[newRole] ?? newRole}`,
+  ].join("\n"));
+
+  // Register new command menu for the agent
+  setRoleCommands(String(telegramId), newRole).catch(() => {});
+
+  // Send updated instructions to the agent
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://almavykup.kz";
+  sendMessage(String(telegramId), [
+    `🔄 Ваша роль изменена на ${ROLE_LABELS[newRole] ?? newRole}`,
+    "",
+    buildRoleInstructions(newRole, targetAgent.name),
+  ].join("\n"), {
     replyMarkup: [[
       { text: "📊 Открыть CRM", web_app: { url: `${appUrl}/leads` } },
     ]],
