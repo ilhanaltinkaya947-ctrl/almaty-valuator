@@ -108,6 +108,7 @@ export async function POST(req: NextRequest) {
       liquidityIndex: complex.liquidityIndex,
       benchmarks,
       generatedAt: new Date().toLocaleDateString("ru-RU", {
+        timeZone: "Asia/Almaty",
         day: "2-digit",
         month: "2-digit",
         year: "numeric",

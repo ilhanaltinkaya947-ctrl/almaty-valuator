@@ -960,7 +960,8 @@ async function handleLeads(chatId: string) {
   }
 
   const lines = leads.map((l, i) => {
-    const date = new Date(l.created_at).toLocaleDateString("ru-RU", {
+    const date = new Date(l.created_at).toLocaleString("ru-RU", {
+      timeZone: "Asia/Almaty",
       day: "2-digit",
       month: "2-digit",
       hour: "2-digit",
@@ -1161,7 +1162,8 @@ async function handlePendingReview(chatId: string) {
     const offerStr = l.offer_price
       ? `✅ ${new Intl.NumberFormat("ru-RU").format(l.offer_price)} ₸`
       : "⏳ Не назначена";
-    const date = new Date(l.created_at).toLocaleDateString("ru-RU", {
+    const date = new Date(l.created_at).toLocaleString("ru-RU", {
+      timeZone: "Asia/Almaty",
       day: "2-digit",
       month: "2-digit",
       hour: "2-digit",

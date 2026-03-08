@@ -233,7 +233,8 @@ export function formatPrice(price: number | null): string {
 }
 
 export function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString("ru-RU", {
+  return new Date(date).toLocaleString("ru-RU", {
+    timeZone: "Asia/Almaty",
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",

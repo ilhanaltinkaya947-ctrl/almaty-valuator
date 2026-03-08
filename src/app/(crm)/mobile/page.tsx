@@ -161,7 +161,8 @@ export default function MobileCRM() {
     price ? new Intl.NumberFormat("ru-RU").format(price) + " ₸" : "—";
 
   const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString("ru-RU", {
+    new Date(date).toLocaleString("ru-RU", {
+      timeZone: "Asia/Almaty",
       day: "2-digit",
       month: "2-digit",
       hour: "2-digit",
