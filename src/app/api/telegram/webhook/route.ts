@@ -973,7 +973,7 @@ async function handleLeads(chatId: string) {
     return [
       `<b>${i + 1}. ${l.name ?? "—"}</b>`,
       `   📞 ${l.phone} | 💰 ${price}`,
-      `   📅 ${date} | ${statusLabel}`,
+      `   🗓 ${date} | ${statusLabel}`,
     ].join("\n");
   });
 
@@ -1171,7 +1171,7 @@ async function handlePendingReview(chatId: string) {
       `<b>${i + 1}. ${l.name ?? "—"}</b> — ${typeLabel}`,
       `   📞 ${l.phone}`,
       `   💰 Оферта: ${offerStr}`,
-      `   📅 ${date}`,
+      `   🗓 ${date}`,
       `   <code>/price ${l.id} [сумма]</code>`,
     ].join("\n");
   });
