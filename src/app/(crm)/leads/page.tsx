@@ -12,6 +12,7 @@ import {
 import ViewToggle from "./components/ViewToggle";
 import LeadCard from "./components/LeadCard";
 import KanbanBoard from "./components/KanbanBoard";
+import CreateLeadModal from "./components/CreateLeadModal";
 
 interface TelegramWebApp {
   initData: string;
@@ -34,6 +35,7 @@ export default function LeadsPage() {
   const [buybackDiscount, setBuybackDiscount] = useState(0.7);
   const [error, setError] = useState<string | null>(null);
   const [currentAgent, setCurrentAgent] = useState<AgentInfo | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "kanban">(() => {
     if (typeof window !== "undefined") {
       return (localStorage.getItem("crm-view-mode") as "list" | "kanban") ?? "list";
@@ -246,11 +248,39 @@ export default function LeadsPage() {
     }}>
       {/* Header with title + toggle */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: "#C8A44E", margin: 0 }}>
-          Лиды
-        </h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#C8A44E", margin: 0 }}>
+            Лиды
+          </h1>
+          {(currentAgent?.profileRole === "admin" || currentAgent?.profileRole === "manager") && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              style={{
+                padding: "6px 14px",
+                borderRadius: 6,
+                background: "#C8A44E",
+                color: "#0A0D14",
+                fontSize: 12,
+                fontWeight: 700,
+                border: "none",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              + Новая заявка
+            </button>
+          )}
+        </div>
         <ViewToggle view={viewMode} onChange={handleViewChange} />
       </div>
+
+      {/* Create Lead Modal */}
+      {showCreateModal && (
+        <CreateLeadModal
+          onClose={() => setShowCreateModal(false)}
+          onCreated={fetchData}
+        />
+      )}
 
       {/* Search */}
       <input

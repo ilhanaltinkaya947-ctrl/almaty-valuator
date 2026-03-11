@@ -10,10 +10,13 @@ import {
   PROPERTY_TYPE_LABELS,
   INTENT_LABELS,
   INTENT_COLORS,
+  SOURCE_LABELS,
   formatPrice,
   formatDate,
 } from "@/lib/crm-constants";
 import type { LeadAttachment } from "@/types/database";
+import FinancesTab from "./FinancesTab";
+import MediaTab from "./MediaTab";
 
 interface TelegramWebApp {
   initData: string;
@@ -43,7 +46,7 @@ export default function LeadDetailPanel({
 }) {
   const [priceInput, setPriceInput] = useState("");
   const [visible, setVisible] = useState(false);
-  const [tab, setTab] = useState<"info" | "docs" | "events">("info");
+  const [tab, setTab] = useState<"info" | "media" | "finances" | "events">("info");
   const [attachments, setAttachments] = useState<LeadAttachment[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -88,13 +91,10 @@ export default function LeadDetailPanel({
   }, [lead.id]);
 
   useEffect(() => {
-    if (tab === "docs") {
-      fetchAttachments();
-    }
     if (tab === "events") {
       fetchEvents();
     }
-  }, [tab, fetchAttachments, fetchEvents]);
+  }, [tab, fetchEvents]);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -253,12 +253,15 @@ export default function LeadDetailPanel({
         </div>
 
         {/* Tab bar */}
-        <div style={{ display: "flex", borderBottom: "1px solid #1E2A3A", padding: "0 16px" }}>
+        <div style={{ display: "flex", borderBottom: "1px solid #1E2A3A", padding: "0 16px", overflowX: "auto" }}>
           <button style={tabStyle(tab === "info")} onClick={() => setTab("info")}>
             Инфо
           </button>
-          <button style={tabStyle(tab === "docs")} onClick={() => setTab("docs")}>
-            Документы
+          <button style={tabStyle(tab === "media")} onClick={() => setTab("media")}>
+            Медиа
+          </button>
+          <button style={tabStyle(tab === "finances")} onClick={() => setTab("finances")}>
+            Финансы
           </button>
           <button style={tabStyle(tab === "events")} onClick={() => setTab("events")}>
             История
@@ -267,7 +270,14 @@ export default function LeadDetailPanel({
 
         {/* Body */}
         <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
-          {tab === "events" ? (
+          {tab === "media" ? (
+            <MediaTab leadId={lead.id} shortId={lead.short_id} />
+          ) : tab === "finances" ? (
+            <FinancesTab
+              leadId={lead.id}
+              buyoutPrice={lead.offer_price ?? lead.estimated_price}
+            />
+          ) : tab === "events" ? (
             /* Events tab */
             <div>
               {loadingEvents ? (
@@ -493,6 +503,10 @@ export default function LeadDetailPanel({
                 }}
               >
                 <DetailRow label="Дата" value={formatDate(lead.created_at)} />
+                {lead.source && SOURCE_LABELS[lead.source] && (
+                  <DetailRow label="Источник" value={SOURCE_LABELS[lead.source]} />
+                )}
+                {lead.address && <DetailRow label="Адрес" value={lead.address} />}
                 {lead.area_sqm && <DetailRow label="Площадь" value={`${lead.area_sqm} м²`} />}
                 {lead.floor && <DetailRow label="Этаж" value={String(lead.floor)} />}
                 {lead.year_built && <DetailRow label="Год постройки" value={String(lead.year_built)} />}
@@ -544,108 +558,7 @@ export default function LeadDetailPanel({
                 </div>
               )}
             </>
-          ) : (
-            /* Docs tab */
-            <div>
-              {loadingDocs ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} style={{
-                      height: 80, background: "#111827", borderRadius: 8,
-                      animation: "pulse 1.5s ease-in-out infinite",
-                    }} />
-                  ))}
-                  <style>{`@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.5 } }`}</style>
-                </div>
-              ) : attachments.length === 0 ? (
-                <div style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "60px 20px",
-                  color: "#5A6478",
-                  textAlign: "center",
-                }}>
-                  <div style={{ fontSize: 32, marginBottom: 12 }}>📄</div>
-                  <div style={{ fontSize: 13 }}>
-                    Здесь будут фото с объекта и договоры
-                  </div>
-                  <div style={{ fontSize: 11, marginTop: 4 }}>
-                    Отправьте файл боту с подписью <span style={{ color: "#C8A44E" }}>#{lead.short_id}</span>
-                  </div>
-                </div>
-              ) : (
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-                  gap: 8,
-                }}>
-                  {attachments.map((att) => {
-                    const isImage = att.file_type.startsWith("image/");
-                    return (
-                      <div
-                        key={att.id}
-                        style={{
-                          background: "#111827",
-                          border: "1px solid #1E2A3A",
-                          borderRadius: 8,
-                          overflow: "hidden",
-                        }}
-                      >
-                        {isImage ? (
-                          <div
-                            onClick={() => setLightboxUrl(att.file_url)}
-                            style={{
-                              width: "100%",
-                              height: 120,
-                              backgroundImage: `url(${att.file_url})`,
-                              backgroundSize: "cover",
-                              backgroundPosition: "center",
-                              cursor: "pointer",
-                            }}
-                          />
-                        ) : (
-                          <a
-                            href={att.file_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              width: "100%",
-                              height: 120,
-                              background: "#0A0D14",
-                              color: "#5A6478",
-                              fontSize: 32,
-                              textDecoration: "none",
-                            }}
-                          >
-                            {att.file_type.includes("pdf") ? "📕" : "📎"}
-                          </a>
-                        )}
-                        <div style={{ padding: "6px 8px" }}>
-                          <div style={{
-                            fontSize: 11,
-                            color: "#F1F3F7",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}>
-                            {att.file_name}
-                          </div>
-                          <div style={{ fontSize: 10, color: "#5A6478", marginTop: 2 }}>
-                            {formatDate(att.created_at)}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
+          ) : null}
           {/* Lightbox */}
           {lightboxUrl && (
             <div

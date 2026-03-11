@@ -23,6 +23,7 @@ export interface Lead {
   intent: string;
   building_series: string | null;
   is_pledged: boolean;
+  address: string | null;
   // ERP fields
   client_id: string | null;
   short_id: number | null;
@@ -231,6 +232,24 @@ export function filterLeadsByCategory(leads: Lead[], category: string): Lead[] {
 export function formatPrice(price: number | null): string {
   return price ? new Intl.NumberFormat("ru-RU").format(price) + " \u20B8" : "\u2014";
 }
+
+export const EXPENSE_CATEGORY_LABELS: Record<string, string> = {
+  notary: "Нотариус",
+  repair: "Ремонт",
+  utility_debt: "Долги ЖКХ",
+  cleaning: "Уборка",
+  other: "Прочее",
+};
+
+export const SOURCE_LABELS: Record<string, string> = {
+  landing: "Сайт",
+  telegram: "Telegram",
+  direct: "Прямой",
+  manual: "Вручную",
+  walk_in: "Визит в офис",
+  outdoor_ad: "Наружная реклама",
+  referral: "Рекомендация",
+};
 
 export function formatDate(date: string): string {
   return new Date(date).toLocaleString("ru-RU", {

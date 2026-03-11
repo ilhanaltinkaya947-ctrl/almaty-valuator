@@ -15,7 +15,7 @@ const createLeadSchema = z.object({
   area_sqm: z.number().positive().optional(),
   floor: z.number().int().positive().optional(),
   estimated_price: z.number().int().positive().optional(),
-  source: z.enum(["landing", "telegram", "direct", "manual"]).default("landing"),
+  source: z.enum(["landing", "telegram", "direct", "manual", "walk_in", "outdoor_ad", "referral"]).default("landing"),
   property_type: z.string().optional(),
   needs_manual_review: z.boolean().optional(),
   status: z.enum(["new", "in_progress"]).optional(),

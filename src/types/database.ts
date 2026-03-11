@@ -18,7 +18,9 @@ export type LeadStatus =
   | "paid"
   | "rejected";
 
-export type LeadSource = "landing" | "telegram" | "direct" | "manual";
+export type LeadSource = "landing" | "telegram" | "direct" | "manual" | "walk_in" | "outdoor_ad" | "referral";
+
+export type ExpenseCategory = "notary" | "repair" | "utility_debt" | "cleaning" | "other";
 
 export type AgentRole = "admin" | "broker" | "jurist" | "director" | "cashier";
 
@@ -40,6 +42,16 @@ export interface Client {
   full_name: string | null;
   iin: string | null;
   tags: string[];
+  created_at: string;
+}
+
+export interface DealExpense {
+  id: string;
+  lead_id: string;
+  category: ExpenseCategory;
+  amount: number;
+  description: string | null;
+  created_by: string | null;
   created_at: string;
 }
 
@@ -173,6 +185,7 @@ export type Database = {
           client_id: string | null;
           short_id: number;
           rejection_reason: string | null;
+          address: string | null;
           // Optional join expansions
           assignee?: { id: string; name: string } | null;
           client?: { id: string; phone: string; full_name: string | null } | null;
@@ -202,6 +215,7 @@ export type Database = {
           intent?: string;
           client_id?: string | null;
           rejection_reason?: string | null;
+          address?: string | null;
         };
         Update: {
           id?: string;
@@ -231,6 +245,7 @@ export type Database = {
           client_id?: string | null;
           short_id?: number;
           rejection_reason?: string | null;
+          address?: string | null;
         };
         Relationships: [
           {
@@ -245,6 +260,49 @@ export type Database = {
             columns: ["client_id"];
             isOneToOne: false;
             referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      deal_expenses: {
+        Row: {
+          id: string;
+          lead_id: string;
+          category: ExpenseCategory;
+          amount: number;
+          description: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          lead_id: string;
+          category: ExpenseCategory;
+          amount: number;
+          description?: string | null;
+          created_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          lead_id?: string;
+          category?: ExpenseCategory;
+          amount?: number;
+          description?: string | null;
+          created_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "deal_expenses_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "deal_expenses_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -628,6 +686,7 @@ export type Database = {
       lead_source: LeadSource;
       user_role: UserRole;
       building_series: BuildingSeriesEnum;
+      expense_category: ExpenseCategory;
     };
     CompositeTypes: Record<string, never>;
   };

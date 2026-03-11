@@ -175,6 +175,9 @@ async function handleMessage(msg: TelegramMessage) {
     case "/pending":
       await handlePendingReview(chatId);
       break;
+    case "/photo":
+      await handlePhotoHelp(chatId, args);
+      break;
     case "/add_agent":
       await handleAddAgent(chatId, agent, args);
       break;
@@ -840,6 +843,7 @@ const ROLE_COMMANDS: Record<string, { command: string; description: string }[]> 
     { command: "leads", description: "Последние 5 заявок" },
     { command: "pending", description: "Заявки на ручной расчёт" },
     { command: "price", description: "Назначить цену" },
+    { command: "photo", description: "Загрузить фото к заявке" },
     { command: "crm", description: "Открыть CRM" },
   ],
   jurist: [
@@ -861,6 +865,7 @@ const ROLE_COMMANDS: Record<string, { command: string; description: string }[]> 
     { command: "leads", description: "Последние 5 заявок" },
     { command: "pending", description: "Заявки на ручной расчёт" },
     { command: "price", description: "Назначить цену" },
+    { command: "photo", description: "Загрузить фото к заявке" },
     { command: "search", description: "Поиск ЖК" },
     { command: "crm", description: "Открыть CRM" },
     { command: "agents", description: "Список сотрудников" },
@@ -1314,6 +1319,51 @@ async function handleSetPrice(chatId: string, agent: AgentRow, args: string[]) {
       await sendMessage(chatId, "⚠️ Не удалось отправить WhatsApp. Свяжитесь с клиентом вручную.");
     }
   }
+}
+
+// ── Photo Help Command ──
+
+async function handlePhotoHelp(chatId: string, args: string[]) {
+  if (args.length > 0) {
+    const shortIdStr = args[0].replace("#", "");
+    const shortId = parseInt(shortIdStr);
+
+    if (!isNaN(shortId)) {
+      // Verify lead exists and give instructions
+      const supabase = createAdminClient();
+      const { data: lead } = await supabase
+        .from("leads")
+        .select("id, name, short_id")
+        .eq("short_id", shortId)
+        .single();
+
+      if (lead) {
+        await sendMessage(chatId, [
+          `📷 <b>Загрузка фото для заявки #${shortId}</b>`,
+          "",
+          `👤 ${(lead as { name: string | null }).name ?? "—"}`,
+          "",
+          `Отправьте фото или документ в этот чат с подписью:`,
+          `<code>#${shortId}</code>`,
+          "",
+          `Можно отправить несколько фото альбомом — все будут прикреплены.`,
+        ].join("\n"));
+        return;
+      }
+
+      await sendMessage(chatId, `❌ Заявка #${shortId} не найдена.`);
+      return;
+    }
+  }
+
+  await sendMessage(chatId, [
+    "📷 <b>Как загрузить фото к заявке:</b>",
+    "",
+    "1. Отправьте фото или документ в этот чат",
+    "2. В подписи (caption) укажите номер заявки: <code>#105</code>",
+    "",
+    "Или используйте: <code>/photo 105</code> — для инструкции по конкретной заявке",
+  ].join("\n"));
 }
 
 // ── Agent Management Commands ──
