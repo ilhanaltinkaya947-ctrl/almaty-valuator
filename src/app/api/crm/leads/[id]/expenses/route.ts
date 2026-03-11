@@ -65,6 +65,17 @@ export async function POST(
       return NextResponse.json({ error: "Лид не найден" }, { status: 404 });
     }
 
+    // Check if agent has a profile (FK constraint)
+    let createdBy: string | null = null;
+    if (agent.id !== "system") {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", agent.id)
+        .single();
+      if (profile) createdBy = agent.id;
+    }
+
     const { data: expense, error } = await supabase
       .from("deal_expenses")
       .insert({
@@ -72,7 +83,7 @@ export async function POST(
         category: data.category,
         amount: data.amount,
         description: data.description ?? null,
-        created_by: agent.id !== "system" ? agent.id : null,
+        created_by: createdBy,
       })
       .select()
       .single();
