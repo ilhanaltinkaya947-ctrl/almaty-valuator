@@ -174,11 +174,24 @@ export default function LeadCard({
               <div style={{ color: "#5A6478", fontSize: 10 }}>Лимит</div>
               <div style={{ color: "#E74C3C", fontWeight: 600 }}>{formatPrice(limitPrice)}</div>
             </div>
+            {lead.total_expenses ? (
+              <div>
+                <div style={{ color: "#5A6478", fontSize: 10 }}>Итого</div>
+                <div style={{ color: "#F1F3F7", fontWeight: 700 }}>{formatPrice(offerPrice + lead.total_expenses)}</div>
+              </div>
+            ) : null}
           </div>
         ) : (
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 13, color: "#8B95A8" }}>
             <span>{lead.phone}</span>
-            <span>{lead.offer_price ? formatPrice(lead.offer_price) : "Ожидает оценки"}</span>
+            <div style={{ textAlign: "right" }}>
+              <span>{lead.offer_price ? formatPrice(lead.offer_price) : "Ожидает оценки"}</span>
+              {lead.offer_price && lead.total_expenses ? (
+                <div style={{ fontSize: 10, color: "#5A6478" }}>
+                  + {formatPrice(lead.total_expenses)} = <span style={{ color: "#F1F3F7", fontWeight: 600 }}>{formatPrice(lead.offer_price + lead.total_expenses)}</span>
+                </div>
+              ) : null}
+            </div>
           </div>
         )}
 

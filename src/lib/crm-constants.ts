@@ -31,6 +31,7 @@ export interface Lead {
   assigned_to: string | null;
   assignee?: { id: string; name: string } | null;
   client?: Client | null;
+  total_expenses?: number | null;
 }
 
 export interface SettingRow {

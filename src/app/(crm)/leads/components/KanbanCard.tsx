@@ -105,6 +105,12 @@ export default function KanbanCard({
           ? formatPrice(lead.offer_price ?? lead.estimated_price)
           : <span style={{ color: "#5A6478", fontWeight: 400, fontSize: 11 }}>Ожидает оценки</span>}
       </div>
+      {/* Total with expenses */}
+      {(lead.offer_price || lead.estimated_price) && lead.total_expenses ? (
+        <div style={{ fontSize: 10, color: "#8B95A8", marginTop: 2 }}>
+          + расходы {formatPrice(lead.total_expenses)} = <span style={{ color: "#F1F3F7", fontWeight: 600 }}>{formatPrice((lead.offer_price ?? lead.estimated_price ?? 0) + lead.total_expenses)}</span>
+        </div>
+      ) : null}
 
       {/* Time + intent */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>

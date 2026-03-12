@@ -130,15 +130,29 @@ export async function GET(req: NextRequest) {
 
   let result = (leads ?? []) as LeadRow[];
 
-  // Mask phone numbers for brokers — protect client base
-  if (profileRole === "manager") {
-    result = result.map((lead) => ({
-      ...lead,
-      phone: maskPhone(lead.phone),
-    }));
+  // Fetch expense totals for all returned leads
+  const leadIds = result.map((l) => l.id);
+  let expenseTotals: Record<string, number> = {};
+  if (leadIds.length > 0) {
+    const { data: expenses } = await supabase
+      .from("deal_expenses")
+      .select("lead_id, amount")
+      .in("lead_id", leadIds);
+    if (expenses) {
+      for (const e of expenses as { lead_id: string; amount: number }[]) {
+        expenseTotals[e.lead_id] = (expenseTotals[e.lead_id] ?? 0) + e.amount;
+      }
+    }
   }
 
-  return NextResponse.json({ leads: result });
+  // Merge expense totals and mask phones for brokers
+  const enriched = result.map((lead) => ({
+    ...lead,
+    phone: profileRole === "manager" ? maskPhone(lead.phone) : lead.phone,
+    total_expenses: expenseTotals[lead.id] ?? null,
+  }));
+
+  return NextResponse.json({ leads: enriched });
 }
 
 /** PATCH /api/crm/leads — Update lead status and/or offer_price */
