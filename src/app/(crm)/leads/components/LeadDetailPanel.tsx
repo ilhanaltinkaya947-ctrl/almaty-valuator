@@ -96,6 +96,28 @@ export default function LeadDetailPanel({
     }
   }, [tab, fetchEvents]);
 
+  // Lock body scroll when panel is open
+  useEffect(() => {
+    const origOverflow = document.body.style.overflow;
+    const origPosition = document.body.style.position;
+    const origWidth = document.body.style.width;
+    const origTop = document.body.style.top;
+    const scrollY = window.scrollY;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.width = "100%";
+    document.body.style.top = `-${scrollY}px`;
+
+    return () => {
+      document.body.style.overflow = origOverflow;
+      document.body.style.position = origPosition;
+      document.body.style.width = origWidth;
+      document.body.style.top = origTop;
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
     const handleKey = (e: KeyboardEvent) => {
@@ -173,6 +195,7 @@ export default function LeadDetailPanel({
       {/* Backdrop */}
       <div
         onClick={handleClose}
+        onTouchMove={(e) => e.preventDefault()}
         style={{
           position: "fixed",
           inset: 0,
@@ -180,6 +203,7 @@ export default function LeadDetailPanel({
           zIndex: 999,
           opacity: visible ? 1 : 0,
           transition: "opacity 300ms",
+          touchAction: "none",
         }}
       />
       {/* Panel */}
@@ -189,7 +213,8 @@ export default function LeadDetailPanel({
           top: 0,
           right: 0,
           bottom: 0,
-          width: "min(400px, 100vw)",
+          width: "100vw",
+          maxWidth: 400,
           background: "#0A0D14",
           zIndex: 1000,
           display: "flex",
@@ -269,7 +294,7 @@ export default function LeadDetailPanel({
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: 16, overscrollBehavior: "contain", WebkitOverflowScrolling: "touch" }}>
           {tab === "media" ? (
             <MediaTab leadId={lead.id} shortId={lead.short_id} />
           ) : tab === "finances" ? (
