@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Lead,
   STATUS_COLORS,
@@ -116,41 +116,12 @@ export default function LeadDetailPanel({
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Robust scroll lock for iOS WKWebView
+  // Simple body overflow lock — no position:fixed, just hide overflow
   useEffect(() => {
-    const scrollY = window.scrollY;
-    const html = document.documentElement;
-    const body = document.body;
-
-    // Save originals
-    const orig = {
-      bodyOverflow: body.style.overflow,
-      bodyPosition: body.style.position,
-      bodyWidth: body.style.width,
-      bodyTop: body.style.top,
-      bodyOverscroll: body.style.overscrollBehavior,
-      htmlOverflow: html.style.overflow,
-      htmlOverscroll: html.style.overscrollBehavior,
-    };
-
-    // Lock both html and body for iOS
-    body.style.overflow = "hidden";
-    body.style.position = "fixed";
-    body.style.width = "100%";
-    body.style.top = `-${scrollY}px`;
-    body.style.overscrollBehavior = "none";
-    html.style.overflow = "hidden";
-    html.style.overscrollBehavior = "none";
-
+    const origOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     return () => {
-      body.style.overflow = orig.bodyOverflow;
-      body.style.position = orig.bodyPosition;
-      body.style.width = orig.bodyWidth;
-      body.style.top = orig.bodyTop;
-      body.style.overscrollBehavior = orig.bodyOverscroll;
-      html.style.overflow = orig.htmlOverflow;
-      html.style.overscrollBehavior = orig.htmlOverscroll;
-      window.scrollTo(0, scrollY);
+      document.body.style.overflow = origOverflow;
     };
   }, []);
 
@@ -231,7 +202,6 @@ export default function LeadDetailPanel({
       {/* Backdrop */}
       <div
         onClick={handleClose}
-        onTouchMove={(e) => e.preventDefault()}
         style={{
           position: "fixed",
           inset: 0,
@@ -239,10 +209,10 @@ export default function LeadDetailPanel({
           zIndex: 999,
           opacity: visible ? 1 : 0,
           transition: "opacity 300ms",
-          touchAction: "none",
         }}
       />
-      {/* Panel — full screen on mobile */}
+
+      {/* Panel — strict flex-col, Telegram viewport height with fallback */}
       <div
         style={{
           position: "fixed",
@@ -250,16 +220,16 @@ export default function LeadDetailPanel({
           left: 0,
           right: 0,
           bottom: 0,
+          height: "var(--tg-viewport-stable-height, 100vh)",
           background: "#0A0D14",
           zIndex: 1000,
           display: "flex",
           flexDirection: "column",
           transform: visible ? "translateX(0)" : "translateX(100%)",
           transition: "transform 300ms ease",
-          overscrollBehavior: "none",
         }}
       >
-        {/* Header with back button */}
+        {/* Header — shrink-0 */}
         <div
           style={{
             padding: "12px 16px",
@@ -319,8 +289,8 @@ export default function LeadDetailPanel({
           </div>
         </div>
 
-        {/* Tab bar */}
-        <div style={{ display: "flex", borderBottom: "1px solid #1E2A3A", padding: "0 16px", overflowX: "auto" }}>
+        {/* Tab bar — shrink-0 */}
+        <div style={{ display: "flex", borderBottom: "1px solid #1E2A3A", padding: "0 16px", overflowX: "auto", flexShrink: 0 }}>
           <button style={tabStyle(tab === "info")} onClick={() => setTab("info")}>
             Инфо
           </button>
@@ -335,24 +305,14 @@ export default function LeadDetailPanel({
           </button>
         </div>
 
-        {/* Body */}
+        {/* Scrollable body — flex-1, overflow-y-auto, overscroll-contain */}
         <div
           style={{
             flex: 1,
             overflowY: "auto",
-            padding: 16,
             overscrollBehavior: "contain",
-            WebkitOverflowScrolling: "touch",
-            touchAction: "pan-y",
-          }}
-          onTouchMove={(e) => {
-            // Prevent scroll bleed at boundaries on iOS
-            const el = e.currentTarget;
-            const atTop = el.scrollTop <= 0;
-            const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight;
-            if (atTop && atBottom) {
-              e.preventDefault();
-            }
+            padding: "16px 16px 40px",
+            minHeight: 0,
           }}
         >
           {tab === "media" ? (
@@ -673,11 +633,13 @@ export default function LeadDetailPanel({
           )}
         </div>
 
-        {/* Footer actions — grid layout */}
+        {/* Footer — shrink-0, hardcoded pb-10 (40px) */}
         <div
           style={{
-            padding: "12px 16px calc(32px + env(safe-area-inset-bottom, 0px))",
+            padding: "12px 16px 40px",
             borderTop: "1px solid #1E2A3A",
+            background: "#0A0D14",
+            flexShrink: 0,
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
             gap: 6,
