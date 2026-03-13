@@ -96,24 +96,40 @@ export default function LeadDetailPanel({
     }
   }, [tab, fetchEvents]);
 
-  // Lock body scroll when panel is open
+  // Robust scroll lock for iOS WKWebView
   useEffect(() => {
-    const origOverflow = document.body.style.overflow;
-    const origPosition = document.body.style.position;
-    const origWidth = document.body.style.width;
-    const origTop = document.body.style.top;
     const scrollY = window.scrollY;
+    const html = document.documentElement;
+    const body = document.body;
 
-    document.body.style.overflow = "hidden";
-    document.body.style.position = "fixed";
-    document.body.style.width = "100%";
-    document.body.style.top = `-${scrollY}px`;
+    // Save originals
+    const orig = {
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyWidth: body.style.width,
+      bodyTop: body.style.top,
+      bodyOverscroll: body.style.overscrollBehavior,
+      htmlOverflow: html.style.overflow,
+      htmlOverscroll: html.style.overscrollBehavior,
+    };
+
+    // Lock both html and body for iOS
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.width = "100%";
+    body.style.top = `-${scrollY}px`;
+    body.style.overscrollBehavior = "none";
+    html.style.overflow = "hidden";
+    html.style.overscrollBehavior = "none";
 
     return () => {
-      document.body.style.overflow = origOverflow;
-      document.body.style.position = origPosition;
-      document.body.style.width = origWidth;
-      document.body.style.top = origTop;
+      body.style.overflow = orig.bodyOverflow;
+      body.style.position = orig.bodyPosition;
+      body.style.width = orig.bodyWidth;
+      body.style.top = orig.bodyTop;
+      body.style.overscrollBehavior = orig.bodyOverscroll;
+      html.style.overflow = orig.htmlOverflow;
+      html.style.overscrollBehavior = orig.htmlOverscroll;
       window.scrollTo(0, scrollY);
     };
   }, []);
@@ -206,22 +222,21 @@ export default function LeadDetailPanel({
           touchAction: "none",
         }}
       />
-      {/* Panel */}
+      {/* Panel — full screen on mobile */}
       <div
         style={{
           position: "fixed",
           top: 0,
+          left: 0,
           right: 0,
           bottom: 0,
-          width: "100vw",
-          maxWidth: 400,
           background: "#0A0D14",
           zIndex: 1000,
           display: "flex",
           flexDirection: "column",
           transform: visible ? "translateX(0)" : "translateX(100%)",
           transition: "transform 300ms ease",
-          borderLeft: "1px solid #1E2A3A",
+          overscrollBehavior: "none",
         }}
       >
         {/* Header */}
@@ -294,7 +309,25 @@ export default function LeadDetailPanel({
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: "auto", padding: 16, overscrollBehavior: "contain", WebkitOverflowScrolling: "touch" }}>
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: 16,
+            overscrollBehavior: "contain",
+            WebkitOverflowScrolling: "touch",
+            touchAction: "pan-y",
+          }}
+          onTouchMove={(e) => {
+            // Prevent scroll bleed at boundaries on iOS
+            const el = e.currentTarget;
+            const atTop = el.scrollTop <= 0;
+            const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight;
+            if (atTop && atBottom) {
+              e.preventDefault();
+            }
+          }}
+        >
           {tab === "media" ? (
             <MediaTab leadId={lead.id} shortId={lead.short_id} />
           ) : tab === "finances" ? (
@@ -613,14 +646,14 @@ export default function LeadDetailPanel({
           )}
         </div>
 
-        {/* Footer actions */}
+        {/* Footer actions — grid layout */}
         <div
           style={{
-            padding: 16,
+            padding: "12px 16px max(12px, env(safe-area-inset-bottom))",
             borderTop: "1px solid #1E2A3A",
-            display: "flex",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr",
             gap: 6,
-            flexWrap: "wrap",
           }}
         >
           <a
@@ -628,13 +661,14 @@ export default function LeadDetailPanel({
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              padding: "8px 14px",
-              borderRadius: 6,
+              padding: "10px 0",
+              borderRadius: 8,
               background: "#25D366",
               color: "#fff",
               fontSize: 12,
               fontWeight: 600,
               textDecoration: "none",
+              textAlign: "center",
             }}
           >
             WhatsApp
@@ -642,23 +676,24 @@ export default function LeadDetailPanel({
           <a
             href={callLink}
             style={{
-              padding: "8px 14px",
-              borderRadius: 6,
+              padding: "10px 0",
+              borderRadius: 8,
               background: "#4A8FD4",
               color: "#fff",
               fontSize: 12,
               fontWeight: 600,
               textDecoration: "none",
+              textAlign: "center",
             }}
           >
             Позвонить
           </a>
-          {lead.status === "new" && !lead.assigned_to && (currentRole === "manager" || currentRole === "admin") && (
+          {lead.status === "new" && !lead.assigned_to && (currentRole === "manager" || currentRole === "admin") ? (
             <button
               onClick={() => onAssign(lead.id)}
               style={{
-                padding: "8px 14px",
-                borderRadius: 6,
+                padding: "10px 0",
+                borderRadius: 8,
                 background: "#C8A44E",
                 color: "#0A0D14",
                 fontSize: 12,
@@ -669,13 +704,12 @@ export default function LeadDetailPanel({
             >
               Взять в работу
             </button>
-          )}
-          {nextStatus && nextLabel && lead.status !== "new" && (
+          ) : nextStatus && nextLabel && lead.status !== "new" ? (
             <button
               onClick={() => onStatusChange(lead.id, nextStatus)}
               style={{
-                padding: "8px 14px",
-                borderRadius: 6,
+                padding: "10px 0",
+                borderRadius: 8,
                 background: nextColor ?? "#C8A44E",
                 color: nextColor === "#9B59B6" || nextColor === "#3498DB" || nextColor === "#25D366" ? "#fff" : "#0A0D14",
                 fontSize: 12,
@@ -686,18 +720,21 @@ export default function LeadDetailPanel({
             >
               {nextLabel}
             </button>
+          ) : (
+            <div />
           )}
           {lead.status !== "deal_closed" && lead.status !== "rejected" && (
             <button
               onClick={() => onRequestReject(lead)}
               style={{
-                padding: "8px 14px",
-                borderRadius: 6,
+                gridColumn: "1 / -1",
+                padding: "10px 0",
+                borderRadius: 8,
                 background: "#1A2332",
                 color: "#5A6478",
                 fontSize: 12,
                 fontWeight: 600,
-                border: "1px solid #5A6478",
+                border: "1px solid #1E2A3A",
                 cursor: "pointer",
               }}
             >
