@@ -20,6 +20,12 @@ import MediaTab from "./MediaTab";
 
 interface TelegramWebApp {
   initData: string;
+  BackButton?: {
+    show: () => void;
+    hide: () => void;
+    onClick: (cb: () => void) => void;
+    offClick: (cb: () => void) => void;
+  };
 }
 
 
@@ -95,6 +101,20 @@ export default function LeadDetailPanel({
       fetchEvents();
     }
   }, [tab, fetchEvents]);
+
+  // Telegram BackButton integration
+  useEffect(() => {
+    const tg = getTg();
+    const bb = tg?.BackButton;
+    if (bb) {
+      bb.show();
+      bb.onClick(handleClose);
+      return () => {
+        bb.offClick(handleClose);
+        bb.hide();
+      };
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Robust scroll lock for iOS WKWebView
   useEffect(() => {
@@ -239,17 +259,37 @@ export default function LeadDetailPanel({
           overscrollBehavior: "none",
         }}
       >
-        {/* Header */}
+        {/* Header with back button */}
         <div
           style={{
-            padding: "16px",
+            padding: "12px 16px",
             borderBottom: "1px solid #1E2A3A",
             display: "flex",
-            justifyContent: "space-between",
             alignItems: "center",
+            gap: 12,
+            flexShrink: 0,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
+            onClick={handleClose}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#C8A44E",
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: "pointer",
+              padding: "6px 0",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ fontSize: 18, lineHeight: 1 }}>{"\u2190"}</span>
+            Назад
+          </button>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
             <span
               style={{
                 fontSize: 11,
@@ -277,19 +317,6 @@ export default function LeadDetailPanel({
               </span>
             )}
           </div>
-          <button
-            onClick={handleClose}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#8B95A8",
-              fontSize: 20,
-              cursor: "pointer",
-              padding: "0 4px",
-            }}
-          >
-            {"\u2715"}
-          </button>
         </div>
 
         {/* Tab bar */}
@@ -649,7 +676,7 @@ export default function LeadDetailPanel({
         {/* Footer actions — grid layout */}
         <div
           style={{
-            padding: "12px 16px max(12px, env(safe-area-inset-bottom))",
+            padding: "12px 16px calc(32px + env(safe-area-inset-bottom, 0px))",
             borderTop: "1px solid #1E2A3A",
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
