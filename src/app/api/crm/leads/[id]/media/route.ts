@@ -63,12 +63,23 @@ export async function POST(
 
     const publicUrl = urlData.publicUrl;
 
+    // Check if agent has a profile (FK constraint)
+    let uploadedBy: string | null = null;
+    if (agent.id !== "system") {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", agent.id)
+        .single();
+      if (profile) uploadedBy = agent.id;
+    }
+
     // Save to lead_attachments
     const { data: attachment, error: insertError } = await supabase
       .from("lead_attachments")
       .insert({
         lead_id: leadId,
-        uploaded_by: agent.id !== "system" ? agent.id : null,
+        uploaded_by: uploadedBy,
         file_url: publicUrl,
         file_type: file.type,
         file_name: file.name,
