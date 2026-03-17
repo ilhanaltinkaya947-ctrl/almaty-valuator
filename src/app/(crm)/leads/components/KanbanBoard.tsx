@@ -115,9 +115,14 @@ export default function KanbanBoard({
 
   const handleStatusChange = (id: string, status: string) => {
     onStatusChange(id, status);
-    if (selectedLead && selectedLead.id === id) {
-      setSelectedLead({ ...selectedLead, status });
-    }
+    // Close panel so user sees the card move on the board
+    setSelectedLead(null);
+  };
+
+  const handleAssign = (id: string) => {
+    onAssign(id);
+    // Close panel so user sees the card move to in_progress
+    setSelectedLead(null);
   };
 
   const handleSetPrice = (id: string, price: number) => {
@@ -135,9 +140,7 @@ export default function KanbanBoard({
     if (rejectTarget) {
       onReject(rejectTarget.id, reason);
       setRejectTarget(null);
-      if (selectedLead && selectedLead.id === rejectTarget.id) {
-        setSelectedLead(null);
-      }
+      setSelectedLead(null);
     }
   };
 
@@ -217,7 +220,7 @@ export default function KanbanBoard({
             onCardClick={setSelectedLead}
             onStatusChange={handleStatusChange}
             onRequestReject={handleRequestReject}
-            onAssign={onAssign}
+            onAssign={handleAssign}
             currentAgentId={currentAgent?.id ?? null}
             currentRole={currentRole}
           />
@@ -242,7 +245,7 @@ export default function KanbanBoard({
           onStatusChange={handleStatusChange}
           onSetPrice={handleSetPrice}
           onRequestReject={handleRequestReject}
-          onAssign={onAssign}
+          onAssign={handleAssign}
           currentAgentId={currentAgent?.id ?? null}
           currentRole={currentRole}
         />
