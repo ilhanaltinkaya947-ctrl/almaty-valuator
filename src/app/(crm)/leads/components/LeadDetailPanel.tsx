@@ -37,6 +37,7 @@ export default function LeadDetailPanel({
   onSetPrice,
   onRequestReject,
   onAssign,
+  onRefresh,
   currentAgentId,
   currentRole = "manager",
 }: {
@@ -47,6 +48,7 @@ export default function LeadDetailPanel({
   onSetPrice: (id: string, price: number) => void;
   onRequestReject: (lead: Lead) => void;
   onAssign: (id: string) => void;
+  onRefresh?: () => void;
   currentAgentId: string | null;
   currentRole?: string;
 }) {
@@ -321,6 +323,7 @@ export default function LeadDetailPanel({
             <FinancesTab
               leadId={lead.id}
               buyoutPrice={lead.offer_price ?? lead.estimated_price}
+              onExpenseChange={onRefresh}
             />
           ) : tab === "events" ? (
             /* Events tab */

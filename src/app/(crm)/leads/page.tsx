@@ -97,6 +97,22 @@ export default function LeadsPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Background refresh — re-fetch leads from server to sync expense totals etc.
+  const refreshLeads = useCallback(async () => {
+    try {
+      const initData = getInitData();
+      const res = await fetch("/api/crm/leads?limit=100", {
+        headers: { "x-telegram-init-data": initData },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLeads(data.leads ?? []);
+      }
+    } catch {
+      // silent — optimistic state is still valid
+    }
+  }, []);
+
   const updateLeadStatus = async (leadId: string, newStatus: string) => {
     const previousLeads = leads;
     const label = STATUS_LABELS[newStatus] ?? newStatus;
@@ -118,6 +134,7 @@ export default function LeadsPage() {
         toast.error(errData.error ?? "Ошибка сохранения");
       } else {
         toast.success(`Статус → ${label}`);
+        refreshLeads();
       }
     } catch {
       setLeads(previousLeads);
@@ -147,6 +164,7 @@ export default function LeadsPage() {
         toast.error(errData.error ?? "Ошибка сохранения");
       } else {
         toast.success("Отказ оформлен");
+        refreshLeads();
       }
     } catch {
       setLeads(previousLeads);
@@ -188,6 +206,7 @@ export default function LeadsPage() {
         toast.error(errData.error ?? "Ошибка сохранения");
       } else {
         toast.success("Взято в работу");
+        refreshLeads();
       }
     } catch {
       setLeads(previousLeads);
@@ -315,6 +334,7 @@ export default function LeadsPage() {
           onSetPrice={setOfferPrice}
           onReject={rejectLead}
           onAssign={assignLead}
+          onRefresh={refreshLeads}
           currentAgent={currentAgent}
           currentRole={currentAgent?.profileRole ?? "manager"}
         />

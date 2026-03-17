@@ -24,9 +24,11 @@ const CATEGORY_OPTIONS = [
 export default function FinancesTab({
   leadId,
   buyoutPrice,
+  onExpenseChange,
 }: {
   leadId: string;
   buyoutPrice: number | null;
+  onExpenseChange?: () => void;
 }) {
   const [expenses, setExpenses] = useState<DealExpense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,6 +91,7 @@ export default function FinancesTab({
         setAmount("");
         setDescription("");
         toast.success("Расход добавлен");
+        onExpenseChange?.();
       } else {
         const errData = await res.json().catch(() => ({}));
         toast.error(errData.error ?? "Ошибка");
@@ -117,6 +120,7 @@ export default function FinancesTab({
         toast.error("Ошибка удаления");
       } else {
         toast.success("Удалено");
+        onExpenseChange?.();
       }
     } catch {
       setExpenses(prev);

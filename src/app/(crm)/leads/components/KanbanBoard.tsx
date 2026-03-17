@@ -33,6 +33,7 @@ export default function KanbanBoard({
   onSetPrice,
   onReject,
   onAssign,
+  onRefresh,
   currentAgent,
   currentRole = "manager",
 }: {
@@ -43,6 +44,7 @@ export default function KanbanBoard({
   onSetPrice: (id: string, price: number) => void;
   onReject: (id: string, reason: string) => void;
   onAssign: (id: string) => void;
+  onRefresh?: () => void;
   currentAgent: AgentInfo | null;
   currentRole?: string;
 }) {
@@ -112,6 +114,10 @@ export default function KanbanBoard({
     (sum, l) => sum + (l.offer_price ?? l.estimated_price ?? 0),
     0
   );
+  const totalExpenses = filtered.reduce(
+    (sum, l) => sum + (l.total_expenses ?? 0),
+    0
+  );
 
   const handleStatusChange = (id: string, status: string) => {
     onStatusChange(id, status);
@@ -163,8 +169,13 @@ export default function KanbanBoard({
           Активных: <span style={{ color: "#F1F3F7", fontWeight: 700 }}>{totalActive}</span>
         </span>
         <span style={{ color: "#8B95A8" }}>
-          Сумма оферт: <span style={{ color: "#C8A44E", fontWeight: 700 }}>{formatPrice(totalOfferSum || null)}</span>
+          Оферты: <span style={{ color: "#C8A44E", fontWeight: 700 }}>{formatPrice(totalOfferSum || null)}</span>
         </span>
+        {totalExpenses > 0 && (
+          <span style={{ color: "#8B95A8" }}>
+            Расходы: <span style={{ color: "#E74C3C", fontWeight: 700 }}>{formatPrice(totalExpenses)}</span>
+          </span>
+        )}
       </div>
 
       {/* Category filter pills */}
@@ -246,6 +257,7 @@ export default function KanbanBoard({
           onSetPrice={handleSetPrice}
           onRequestReject={handleRequestReject}
           onAssign={handleAssign}
+          onRefresh={onRefresh}
           currentAgentId={currentAgent?.id ?? null}
           currentRole={currentRole}
         />
