@@ -49,6 +49,11 @@ export const PIPELINE_STATUSES = [
   "deal_progress",
   "awaiting_payout",
   "deal_closed",
+  "ready_for_sale",
+  "on_viewing",
+  "deposit_received",
+  "sale_in_progress",
+  "sold",
   "rejected",
 ] as const;
 
@@ -62,7 +67,16 @@ export const ACTIVE_STATUSES = [
   "awaiting_payout",
 ] as const;
 
-export const TERMINAL_STATUSES = ["rejected", "deal_closed"] as const;
+/** Sales funnel statuses (post-buyout) */
+export const SALES_PIPELINE_STATUSES = [
+  "ready_for_sale",
+  "on_viewing",
+  "deposit_received",
+  "sale_in_progress",
+  "sold",
+] as const;
+
+export const TERMINAL_STATUSES = ["rejected", "sold"] as const;
 
 export const STATUS_OPTIONS: readonly { value: string; label: string; color?: string }[] = [
   { value: "all", label: "Все" },
@@ -74,6 +88,11 @@ export const STATUS_OPTIONS: readonly { value: string; label: string; color?: st
   { value: "deal_progress", label: "Сделка", color: "#F39C12" },
   { value: "awaiting_payout", label: "Ждёт выплаты", color: "#EAB308" },
   { value: "deal_closed", label: "Закрыта", color: "#22C55E" },
+  { value: "ready_for_sale", label: "На продаже", color: "#8B5CF6" },
+  { value: "on_viewing", label: "Показы", color: "#06B6D4" },
+  { value: "deposit_received", label: "Задаток", color: "#F97316" },
+  { value: "sale_in_progress", label: "На сделке (продажа)", color: "#EC4899" },
+  { value: "sold", label: "Продано", color: "#10B981" },
   { value: "paid", label: "Выдано (legacy)", color: "#25D366" },
   { value: "rejected", label: "Отказ", color: "#5A6478" },
 ];
@@ -87,6 +106,11 @@ export const STATUS_LABELS: Record<string, string> = {
   deal_progress: "На сделке",
   awaiting_payout: "Ждёт выплаты",
   deal_closed: "Закрыта \u2713",
+  ready_for_sale: "На продаже",
+  on_viewing: "Показы",
+  deposit_received: "Задаток",
+  sale_in_progress: "На сделке (продажа)",
+  sold: "Продано \u2713",
   paid: "Выдано \u2713",
   rejected: "Отказ",
 };
@@ -100,6 +124,11 @@ export const STATUS_COLORS: Record<string, string> = {
   deal_progress: "#F39C12",
   awaiting_payout: "#EAB308",
   deal_closed: "#22C55E",
+  ready_for_sale: "#8B5CF6",
+  on_viewing: "#06B6D4",
+  deposit_received: "#F97316",
+  sale_in_progress: "#EC4899",
+  sold: "#10B981",
   paid: "#25D366",
   rejected: "#5A6478",
 };
@@ -111,6 +140,11 @@ export const NEXT_STATUS: Record<string, string> = {
   jurist_approved: "director_approved",
   director_approved: "awaiting_payout",
   awaiting_payout: "deal_closed",
+  deal_closed: "ready_for_sale",
+  ready_for_sale: "on_viewing",
+  on_viewing: "deposit_received",
+  deposit_received: "sale_in_progress",
+  sale_in_progress: "sold",
 };
 
 export const NEXT_STATUS_LABELS: Record<string, string> = {
@@ -120,6 +154,11 @@ export const NEXT_STATUS_LABELS: Record<string, string> = {
   jurist_approved: "Директор \u2713",
   director_approved: "На выплату",
   awaiting_payout: "Закрыть сделку \u2713",
+  deal_closed: "На продажу",
+  ready_for_sale: "Начать показы",
+  on_viewing: "Задаток получен",
+  deposit_received: "На сделку",
+  sale_in_progress: "Продано \u2713",
 };
 
 /** Per-role: which next status this role can push a lead to */
@@ -139,6 +178,12 @@ export const ROLE_NEXT_STATUS: Record<string, Record<string, string>> = {
   cashier: {
     awaiting_payout: "deal_closed",
   },
+  sales: {
+    ready_for_sale: "on_viewing",
+    on_viewing: "deposit_received",
+    deposit_received: "sale_in_progress",
+    sale_in_progress: "sold",
+  },
 };
 
 /** Per-role: button labels for the next status action */
@@ -157,6 +202,12 @@ export const ROLE_NEXT_LABELS: Record<string, Record<string, string>> = {
   },
   cashier: {
     awaiting_payout: "Закрыть сделку ✓",
+  },
+  sales: {
+    ready_for_sale: "Начать показы",
+    on_viewing: "Задаток получен",
+    deposit_received: "На сделку",
+    sale_in_progress: "Продано ✓",
   },
 };
 
@@ -182,15 +233,23 @@ export const ROLE_STATUS_OPTIONS: Record<string, readonly { value: string; label
     { value: "all", label: "Все" },
     { value: "awaiting_payout", label: "Ждёт выплаты", color: "#EAB308" },
   ],
+  sales: [
+    { value: "all", label: "Все" },
+    { value: "ready_for_sale", label: "На продаже", color: "#8B5CF6" },
+    { value: "on_viewing", label: "Показы", color: "#06B6D4" },
+    { value: "deposit_received", label: "Задаток", color: "#F97316" },
+    { value: "sale_in_progress", label: "На сделке", color: "#EC4899" },
+  ],
 };
 
 /** Per-role: which kanban columns to show */
 export const ROLE_PIPELINE_STATUSES: Record<string, readonly string[]> = {
-  admin: ACTIVE_STATUSES,
+  admin: [...ACTIVE_STATUSES, "deal_closed", ...SALES_PIPELINE_STATUSES.filter(s => s !== "sold")],
   manager: ["new", "in_progress", "price_approved"],
   jurist: ["price_approved"],
   director: ["jurist_approved", "director_approved"],
   cashier: ["awaiting_payout"],
+  sales: ["ready_for_sale", "on_viewing", "deposit_received", "sale_in_progress"],
 };
 
 export const INTENT_LABELS: Record<string, string> = {

@@ -25,10 +25,12 @@ export default function FinancesTab({
   leadId,
   buyoutPrice,
   onExpenseChange,
+  readOnly = false,
 }: {
   leadId: string;
   buyoutPrice: number | null;
   onExpenseChange?: () => void;
+  readOnly?: boolean;
 }) {
   const [expenses, setExpenses] = useState<DealExpense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -186,108 +188,110 @@ export default function FinancesTab({
         </div>
       </div>
 
-      {/* Add expense form */}
-      <div
-        style={{
-          padding: 12,
-          background: "#111827",
-          borderRadius: 8,
-          border: "1px solid #1E2A3A",
-          marginBottom: 16,
-        }}
-      >
-        <div
-          style={{ fontSize: 12, fontWeight: 700, color: "#C8A44E", marginBottom: 10 }}
-        >
-          Добавить расход
-        </div>
-
-        {/* Category pills */}
+      {/* Add expense form (hidden in read-only mode) */}
+      {!readOnly && (
         <div
           style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 4,
-            marginBottom: 10,
+            padding: 12,
+            background: "#111827",
+            borderRadius: 8,
+            border: "1px solid #1E2A3A",
+            marginBottom: 16,
           }}
         >
-          {CATEGORY_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setCategory(opt.value)}
+          <div
+            style={{ fontSize: 12, fontWeight: 700, color: "#C8A44E", marginBottom: 10 }}
+          >
+            Добавить расход
+          </div>
+
+          {/* Category pills */}
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 4,
+              marginBottom: 10,
+            }}
+          >
+            {CATEGORY_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setCategory(opt.value)}
+                style={{
+                  padding: "4px 10px",
+                  borderRadius: 12,
+                  border: `1px solid ${category === opt.value ? "#C8A44E" : "#1E2A3A"}`,
+                  background:
+                    category === opt.value ? "#C8A44E20" : "transparent",
+                  color: category === opt.value ? "#C8A44E" : "#8B95A8",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {opt.icon} {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Amount + description */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+            <input
+              type="text"
+              placeholder="Сумма, ₸"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ""))}
               style={{
-                padding: "4px 10px",
-                borderRadius: 12,
-                border: `1px solid ${category === opt.value ? "#C8A44E" : "#1E2A3A"}`,
-                background:
-                  category === opt.value ? "#C8A44E20" : "transparent",
-                color: category === opt.value ? "#C8A44E" : "#8B95A8",
-                fontSize: 11,
-                fontWeight: 600,
-                cursor: "pointer",
+                flex: 1,
+                padding: "8px 10px",
+                borderRadius: 6,
+                background: "#0A0D14",
+                border: "1px solid #1E2A3A",
+                color: "#F1F3F7",
+                fontSize: 13,
+                outline: "none",
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <input
+              type="text"
+              placeholder="Описание (необязательно)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              style={{
+                flex: 1,
+                padding: "8px 10px",
+                borderRadius: 6,
+                background: "#0A0D14",
+                border: "1px solid #1E2A3A",
+                color: "#F1F3F7",
+                fontSize: 13,
+                outline: "none",
+              }}
+            />
+            <button
+              onClick={handleAdd}
+              disabled={submitting}
+              style={{
+                padding: "8px 14px",
+                borderRadius: 6,
+                background: submitting ? "#5A6478" : "#C8A44E",
+                color: "#0A0D14",
+                fontSize: 12,
+                fontWeight: 700,
+                border: "none",
+                cursor: submitting ? "not-allowed" : "pointer",
                 whiteSpace: "nowrap",
               }}
             >
-              {opt.icon} {opt.label}
+              {submitting ? "..." : "+"}
             </button>
-          ))}
+          </div>
         </div>
-
-        {/* Amount + description */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-          <input
-            type="text"
-            placeholder="Сумма, ₸"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ""))}
-            style={{
-              flex: 1,
-              padding: "8px 10px",
-              borderRadius: 6,
-              background: "#0A0D14",
-              border: "1px solid #1E2A3A",
-              color: "#F1F3F7",
-              fontSize: 13,
-              outline: "none",
-            }}
-          />
-        </div>
-        <div style={{ display: "flex", gap: 6 }}>
-          <input
-            type="text"
-            placeholder="Описание (необязательно)"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            style={{
-              flex: 1,
-              padding: "8px 10px",
-              borderRadius: 6,
-              background: "#0A0D14",
-              border: "1px solid #1E2A3A",
-              color: "#F1F3F7",
-              fontSize: 13,
-              outline: "none",
-            }}
-          />
-          <button
-            onClick={handleAdd}
-            disabled={submitting}
-            style={{
-              padding: "8px 14px",
-              borderRadius: 6,
-              background: submitting ? "#5A6478" : "#C8A44E",
-              color: "#0A0D14",
-              fontSize: 12,
-              fontWeight: 700,
-              border: "none",
-              cursor: submitting ? "not-allowed" : "pointer",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {submitting ? "..." : "+"}
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Expense list */}
       {loading ? (
@@ -375,21 +379,23 @@ export default function FinancesTab({
                 >
                   {formatPrice(Number(exp.amount))}
                 </div>
-                <button
-                  onClick={() => handleDelete(exp.id)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#5A6478",
-                    fontSize: 14,
-                    cursor: "pointer",
-                    padding: "0 4px",
-                    flexShrink: 0,
-                  }}
-                  title="Удалить"
-                >
-                  {"\u2715"}
-                </button>
+                {!readOnly && (
+                  <button
+                    onClick={() => handleDelete(exp.id)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#5A6478",
+                      fontSize: 14,
+                      cursor: "pointer",
+                      padding: "0 4px",
+                      flexShrink: 0,
+                    }}
+                    title="Удалить"
+                  >
+                    {"\u2715"}
+                  </button>
+                )}
               </div>
             );
           })}

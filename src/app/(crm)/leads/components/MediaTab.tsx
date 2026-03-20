@@ -12,9 +12,11 @@ interface TelegramWebApp {
 export default function MediaTab({
   leadId,
   shortId,
+  readOnly = false,
 }: {
   leadId: string;
   shortId: number | null;
+  readOnly?: boolean;
 }) {
   const [attachments, setAttachments] = useState<LeadAttachment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,48 +103,50 @@ export default function MediaTab({
 
   return (
     <div>
-      {/* Drop zone */}
-      <div
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onClick={() => fileInputRef.current?.click()}
-        style={{
-          padding: "24px 16px",
-          borderRadius: 8,
-          border: `2px dashed ${dragging ? "#C8A44E" : "#1E2A3A"}`,
-          background: dragging ? "#C8A44E10" : "#111827",
-          textAlign: "center",
-          cursor: "pointer",
-          marginBottom: 16,
-          transition: "all 200ms",
-        }}
-      >
-        <div style={{ fontSize: 28, marginBottom: 6 }}>
-          {uploading ? "⏳" : "📷"}
-        </div>
-        <div style={{ fontSize: 13, color: "#8B95A8" }}>
-          {uploading
-            ? "Загрузка..."
-            : dragging
-              ? "Отпустите для загрузки"
-              : "Перетащите фото сюда или нажмите"}
-        </div>
-        {shortId && (
-          <div style={{ fontSize: 11, color: "#5A6478", marginTop: 4 }}>
-            Или отправьте боту фото с подписью{" "}
-            <span style={{ color: "#C8A44E" }}>#{shortId}</span>
+      {/* Drop zone (hidden in read-only mode) */}
+      {!readOnly && (
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            padding: "24px 16px",
+            borderRadius: 8,
+            border: `2px dashed ${dragging ? "#C8A44E" : "#1E2A3A"}`,
+            background: dragging ? "#C8A44E10" : "#111827",
+            textAlign: "center",
+            cursor: "pointer",
+            marginBottom: 16,
+            transition: "all 200ms",
+          }}
+        >
+          <div style={{ fontSize: 28, marginBottom: 6 }}>
+            {uploading ? "⏳" : "📷"}
           </div>
-        )}
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/*,application/pdf,.doc,.docx"
-          onChange={(e) => handleFiles(e.target.files)}
-          style={{ display: "none" }}
-        />
-      </div>
+          <div style={{ fontSize: 13, color: "#8B95A8" }}>
+            {uploading
+              ? "Загрузка..."
+              : dragging
+                ? "Отпустите для загрузки"
+                : "Перетащите фото сюда или нажмите"}
+          </div>
+          {shortId && (
+            <div style={{ fontSize: 11, color: "#5A6478", marginTop: 4 }}>
+              Или отправьте боту фото с подписью{" "}
+              <span style={{ color: "#C8A44E" }}>#{shortId}</span>
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,application/pdf,.doc,.docx"
+            onChange={(e) => handleFiles(e.target.files)}
+            style={{ display: "none" }}
+          />
+        </div>
+      )}
 
       {/* Gallery */}
       {loading ? (

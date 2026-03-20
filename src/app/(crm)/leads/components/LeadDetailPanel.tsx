@@ -318,12 +318,13 @@ export default function LeadDetailPanel({
           }}
         >
           {tab === "media" ? (
-            <MediaTab leadId={lead.id} shortId={lead.short_id} />
+            <MediaTab leadId={lead.id} shortId={lead.short_id} readOnly={currentRole === "sales"} />
           ) : tab === "finances" ? (
             <FinancesTab
               leadId={lead.id}
               buyoutPrice={lead.offer_price ?? lead.estimated_price}
               onExpenseChange={onRefresh}
+              readOnly={currentRole === "sales"}
             />
           ) : tab === "events" ? (
             /* Events tab */
@@ -430,7 +431,9 @@ export default function LeadDetailPanel({
                 <span style={{ color: "#5A6478", fontWeight: 400, fontSize: 14 }}>#{lead.short_id} </span>
                 {lead.name ?? "Без имени"}
               </h2>
-              <div style={{ fontSize: 13, color: "#8B95A8", marginBottom: 8 }}>{lead.phone}</div>
+              {currentRole !== "sales" && (
+                <div style={{ fontSize: 13, color: "#8B95A8", marginBottom: 8 }}>{lead.phone}</div>
+              )}
 
               {/* Assignee info */}
               {lead.assignee && (
@@ -491,6 +494,40 @@ export default function LeadDetailPanel({
                   )}
                 </div>
               ) : null}
+
+              {/* Sales break-even info */}
+              {currentRole === "sales" && (lead.offer_price || lead.estimated_price) && (
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 12,
+                    marginBottom: 16,
+                    padding: 12,
+                    background: "#111827",
+                    borderRadius: 8,
+                    border: "1px solid #8B5CF640",
+                  }}
+                >
+                  <div>
+                    <div style={{ color: "#5A6478", fontSize: 10 }}>Себестоимость</div>
+                    <div style={{ color: "#E74C3C", fontWeight: 700, fontSize: 13 }}>
+                      {formatPrice((lead.offer_price ?? lead.estimated_price ?? 0) + (lead.total_expenses ?? 0))}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ color: "#5A6478", fontSize: 10 }}>Мин. цена продажи</div>
+                    <div style={{ color: "#F97316", fontWeight: 700, fontSize: 13 }}>
+                      {formatPrice(Math.round(((lead.offer_price ?? lead.estimated_price ?? 0) + (lead.total_expenses ?? 0)) * 1.1))}
+                    </div>
+                  </div>
+                  {marketPrice && (
+                    <div>
+                      <div style={{ color: "#5A6478", fontSize: 10 }}>Рыночная</div>
+                      <div style={{ color: "#8B95A8", fontWeight: 600, fontSize: 13 }}>{formatPrice(marketPrice)}</div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Manual price input */}
               {lead.needs_manual_review && !lead.offer_price && (
@@ -644,42 +681,46 @@ export default function LeadDetailPanel({
             background: "#0A0D14",
             flexShrink: 0,
             display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
+            gridTemplateColumns: currentRole === "sales" ? "1fr" : "1fr 1fr 1fr",
             gap: 6,
           }}
         >
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              padding: "10px 0",
-              borderRadius: 8,
-              background: "#25D366",
-              color: "#fff",
-              fontSize: 12,
-              fontWeight: 600,
-              textDecoration: "none",
-              textAlign: "center",
-            }}
-          >
-            WhatsApp
-          </a>
-          <a
-            href={callLink}
-            style={{
-              padding: "10px 0",
-              borderRadius: 8,
-              background: "#4A8FD4",
-              color: "#fff",
-              fontSize: 12,
-              fontWeight: 600,
-              textDecoration: "none",
-              textAlign: "center",
-            }}
-          >
-            Позвонить
-          </a>
+          {currentRole !== "sales" && (
+            <a
+              href={waLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                padding: "10px 0",
+                borderRadius: 8,
+                background: "#25D366",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 600,
+                textDecoration: "none",
+                textAlign: "center",
+              }}
+            >
+              WhatsApp
+            </a>
+          )}
+          {currentRole !== "sales" && (
+            <a
+              href={callLink}
+              style={{
+                padding: "10px 0",
+                borderRadius: 8,
+                background: "#4A8FD4",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 600,
+                textDecoration: "none",
+                textAlign: "center",
+              }}
+            >
+              Позвонить
+            </a>
+          )}
           {lead.status === "new" && !lead.assigned_to && (currentRole === "manager" || currentRole === "admin") ? (
             <button
               onClick={() => onAssign(lead.id)}

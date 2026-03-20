@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
     jurist: "jurist",
     director: "director",
     cashier: "cashier",
+    sales: "sales",
   };
 
   // Fetch profile role for role-based UI, fall back to agent role mapping

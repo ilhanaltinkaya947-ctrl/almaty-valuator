@@ -23,11 +23,16 @@ const STATUS_LABELS: Record<string, string> = {
   deal_progress: "📝 На сделке",
   awaiting_payout: "💸 Ждёт выплаты",
   deal_closed: "🏆 Сделка закрыта",
+  ready_for_sale: "🏷️ На продаже",
+  on_viewing: "👁️ Показы",
+  deposit_received: "💵 Задаток получен",
+  sale_in_progress: "📝 На сделке (продажа)",
+  sold: "🎉 Продано",
   paid: "🏆 Выдано",
   rejected: "📦 Отказ",
 };
 
-const validStatuses = ["new", "in_progress", "price_approved", "jurist_approved", "director_approved", "deal_progress", "awaiting_payout", "deal_closed", "paid", "rejected"];
+const validStatuses = ["new", "in_progress", "price_approved", "jurist_approved", "director_approved", "deal_progress", "awaiting_payout", "deal_closed", "ready_for_sale", "on_viewing", "deposit_received", "sale_in_progress", "sold", "paid", "rejected"];
 
 /** Role-based status transition permissions */
 const ROLE_TRANSITIONS: Record<string, string[]> = {
@@ -36,6 +41,7 @@ const ROLE_TRANSITIONS: Record<string, string[]> = {
   jurist: ["jurist_approved", "rejected"],
   director: ["director_approved", "awaiting_payout", "rejected"],
   cashier: ["deal_closed"],
+  sales: ["on_viewing", "deposit_received", "sale_in_progress", "sold"],
 };
 
 const AGENT_TO_PROFILE_ROLE: Record<string, string> = {
@@ -44,6 +50,7 @@ const AGENT_TO_PROFILE_ROLE: Record<string, string> = {
   jurist: "jurist",
   director: "director",
   cashier: "cashier",
+  sales: "sales",
 };
 
 /** GET /api/crm/leads — Fetch leads with role-based filtering */
@@ -85,7 +92,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (isTerminal) {
-    query = query.in("status", ["rejected", "deal_closed"]);
+    query = query.in("status", ["rejected", "deal_closed", "sold"]);
   }
 
   if (search) {
@@ -115,6 +122,9 @@ export async function GET(req: NextRequest) {
         break;
       case "cashier":
         query = query.eq("status", "awaiting_payout");
+        break;
+      case "sales":
+        query = query.in("status", ["ready_for_sale", "on_viewing", "deposit_received", "sale_in_progress"]);
         break;
       default:
         query = query.eq("assigned_to", agent.id);
@@ -360,6 +370,14 @@ async function notifyByRole(
     case "director_approved":
     case "awaiting_payout":
       targetRoles = ["cashier", "admin"];
+      break;
+    case "deal_closed":
+    case "ready_for_sale":
+      targetRoles = ["sales", "admin"];
+      break;
+    case "deposit_received":
+    case "sold":
+      targetRoles = ["director", "admin"];
       break;
     default:
       targetRoles = ["admin"];

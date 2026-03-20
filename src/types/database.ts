@@ -15,6 +15,11 @@ export type LeadStatus =
   | "deal_progress"
   | "awaiting_payout"
   | "deal_closed"
+  | "ready_for_sale"
+  | "on_viewing"
+  | "deposit_received"
+  | "sale_in_progress"
+  | "sold"
   | "paid"
   | "rejected";
 
@@ -22,9 +27,9 @@ export type LeadSource = "landing" | "telegram" | "direct" | "manual" | "walk_in
 
 export type ExpenseCategory = "notary" | "repair" | "utility_debt" | "cleaning" | "other";
 
-export type AgentRole = "admin" | "broker" | "jurist" | "director" | "cashier";
+export type AgentRole = "admin" | "broker" | "jurist" | "director" | "cashier" | "sales";
 
-export type UserRole = "admin" | "manager" | "jurist" | "director" | "cashier";
+export type UserRole = "admin" | "manager" | "jurist" | "director" | "cashier" | "sales";
 
 export type BuildingSeriesEnum =
   | "stalinka"

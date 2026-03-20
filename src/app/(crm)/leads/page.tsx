@@ -269,7 +269,7 @@ export default function LeadsPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: "#C8A44E", margin: 0 }}>
-            Лиды
+            {currentAgent?.profileRole === "sales" ? "Инвентарь" : "Лиды"}
           </h1>
           {(currentAgent?.profileRole === "admin" || currentAgent?.profileRole === "manager") && (
             <button
