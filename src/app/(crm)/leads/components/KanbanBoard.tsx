@@ -158,11 +158,12 @@ export default function KanbanBoard({
           display: "flex",
           gap: 16,
           marginBottom: 12,
-          padding: "8px 12px",
+          padding: "10px 12px",
           background: "#111827",
           borderRadius: 8,
           border: "1px solid #1E2A3A",
           fontSize: 12,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
         }}
       >
         <span style={{ color: "#8B95A8" }}>
@@ -195,7 +196,7 @@ export default function KanbanBoard({
               key={f.value}
               onClick={() => setCategory(f.value)}
               style={{
-                padding: "5px 12px",
+                padding: "8px 14px",
                 borderRadius: 16,
                 border: `1px solid ${isActive ? f.color : "#1E2A3A"}`,
                 background: isActive ? f.color + "22" : "transparent",
@@ -204,7 +205,7 @@ export default function KanbanBoard({
                 fontWeight: isActive ? 700 : 500,
                 cursor: "pointer",
                 whiteSpace: "nowrap",
-                transition: "all 0.15s ease",
+                transition: "transform 75ms, opacity 75ms",
               }}
             >
               {f.label} ({categoryCounts[f.value] ?? 0})

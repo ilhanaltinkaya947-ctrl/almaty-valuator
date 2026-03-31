@@ -71,7 +71,7 @@ export default function RejectModal({
           <button
             onClick={onCancel}
             style={{
-              padding: "8px 16px",
+              padding: "10px 20px",
               borderRadius: 6,
               background: "transparent",
               color: "#8B95A8",
@@ -79,6 +79,8 @@ export default function RejectModal({
               fontWeight: 600,
               border: "1px solid #5A6478",
               cursor: "pointer",
+              transition: "transform 75ms, opacity 75ms",
+              WebkitTapHighlightColor: "transparent",
             }}
           >
             Отмена
@@ -86,7 +88,7 @@ export default function RejectModal({
           <button
             onClick={() => onConfirm(reason)}
             style={{
-              padding: "8px 16px",
+              padding: "10px 20px",
               borderRadius: 6,
               background: "#E74C3C",
               color: "#fff",
@@ -94,6 +96,8 @@ export default function RejectModal({
               fontWeight: 600,
               border: "none",
               cursor: "pointer",
+              transition: "transform 75ms, opacity 75ms",
+              WebkitTapHighlightColor: "transparent",
             }}
           >
             Подтвердить отказ

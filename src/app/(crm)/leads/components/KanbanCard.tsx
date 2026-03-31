@@ -47,8 +47,13 @@ export default function KanbanCard({
         borderRadius: 8,
         padding: 10,
         cursor: "pointer",
-        marginBottom: 6,
+        marginBottom: 8,
+        transition: "border-color 75ms, transform 75ms",
+        WebkitTapHighlightColor: "transparent",
       }}
+      onPointerDown={(e) => { (e.currentTarget as HTMLElement).style.transform = "scale(0.98)"; (e.currentTarget as HTMLElement).style.borderColor = "#2A3A4E"; }}
+      onPointerUp={(e) => { (e.currentTarget as HTMLElement).style.transform = ""; (e.currentTarget as HTMLElement).style.borderColor = "#1E2A3A"; }}
+      onPointerLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = ""; (e.currentTarget as HTMLElement).style.borderColor = "#1E2A3A"; }}
     >
       {/* Name + property type badge */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 4 }}>
@@ -149,7 +154,7 @@ export default function KanbanCard({
           style={{
             marginTop: 6,
             width: "100%",
-            padding: "4px 0",
+            padding: "8px 0",
             borderRadius: 5,
             border: "none",
             background: "#C8A44E",
@@ -157,6 +162,7 @@ export default function KanbanCard({
             fontSize: 11,
             fontWeight: 600,
             cursor: "pointer",
+            transition: "transform 75ms, opacity 75ms",
           }}
         >
           {"\u0412\u0437\u044F\u0442\u044C \u0432 \u0440\u0430\u0431\u043E\u0442\u0443"}
@@ -170,7 +176,7 @@ export default function KanbanCard({
           style={{
             marginTop: 6,
             width: "100%",
-            padding: "4px 0",
+            padding: "8px 0",
             borderRadius: 5,
             border: "none",
             background: nextColor + "20",
@@ -178,6 +184,7 @@ export default function KanbanCard({
             fontSize: 11,
             fontWeight: 600,
             cursor: "pointer",
+            transition: "transform 75ms, opacity 75ms",
           }}
         >
           {nextLabel}

@@ -257,13 +257,15 @@ export default function LeadsPage() {
 
   return (
     <div style={{
-      minHeight: "100vh",
+      minHeight: "var(--tg-viewport-stable-height, 100vh)",
       background: "#0A0D14",
       color: "#F1F3F7",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       padding: "16px 16px 100px",
       maxWidth: viewMode === "kanban" ? "100%" : 900,
       margin: "0 auto",
+      WebkitTapHighlightColor: "transparent",
+      overscrollBehavior: "none",
     }}>
       {/* Header with title + toggle */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -275,7 +277,7 @@ export default function LeadsPage() {
             <button
               onClick={() => setShowCreateModal(true)}
               style={{
-                padding: "6px 14px",
+                padding: "8px 14px",
                 borderRadius: 6,
                 background: "#C8A44E",
                 color: "#0A0D14",
@@ -284,6 +286,7 @@ export default function LeadsPage() {
                 border: "none",
                 cursor: "pointer",
                 whiteSpace: "nowrap",
+                transition: "transform 75ms, opacity 75ms",
               }}
             >
               + Новая заявка
@@ -308,7 +311,7 @@ export default function LeadsPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         style={{
-          width: "100%", padding: "10px 14px", background: "#111827",
+          width: "100%", padding: "12px 14px", background: "#111827",
           border: "1px solid #1E2A3A", borderRadius: 8, color: "#F1F3F7",
           fontSize: 14, marginBottom: 12, outline: "none", boxSizing: "border-box",
         }}
@@ -321,8 +324,9 @@ export default function LeadsPage() {
           {error}
           <br />
           <button onClick={fetchData} style={{
-            marginTop: 12, padding: "8px 16px", background: "#C8A44E",
+            marginTop: 12, padding: "10px 20px", background: "#C8A44E",
             color: "#0A0D14", border: "none", borderRadius: 6, cursor: "pointer",
+            fontSize: 13, fontWeight: 600, transition: "transform 75ms, opacity 75ms",
           }}>Повторить</button>
         </div>
       ) : viewMode === "kanban" ? (
@@ -347,11 +351,12 @@ export default function LeadsPage() {
                 key={opt.value}
                 onClick={() => setFilter(opt.value)}
                 style={{
-                  padding: "6px 12px", borderRadius: 16,
+                  padding: "8px 14px", borderRadius: 16,
                   border: `1px solid ${filter === opt.value ? (opt.color ?? "#C8A44E") : "#1E2A3A"}`,
                   background: filter === opt.value ? (opt.color ?? "#C8A44E") + "20" : "transparent",
                   color: filter === opt.value ? (opt.color ?? "#C8A44E") : "#8B95A8",
                   fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap",
+                  transition: "transform 75ms, opacity 75ms",
                 }}
               >
                 {opt.label}

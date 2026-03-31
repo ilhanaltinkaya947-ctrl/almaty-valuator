@@ -182,14 +182,17 @@ export default function LeadDetailPanel({
   const nextColor = nextStatus ? (STATUS_COLORS[nextStatus] ?? "#C8A44E") : null;
 
   const DetailRow = ({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) => (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
-      <span style={{ color: "#5A6478", fontSize: 12 }}>{label}</span>
-      <span style={{ color: valueColor ?? "#8B95A8", fontSize: 12, fontWeight: 600 }}>{value}</span>
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", gap: 8 }}>
+      <span style={{ color: "#5A6478", fontSize: 12, flexShrink: 0 }}>{label}</span>
+      <span style={{
+        color: valueColor ?? "#8B95A8", fontSize: 12, fontWeight: 600,
+        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+      }} title={value}>{value}</span>
     </div>
   );
 
   const tabStyle = (active: boolean) => ({
-    padding: "8px 16px",
+    padding: "10px 16px",
     fontSize: 13,
     fontWeight: 600 as const,
     color: active ? "#C8A44E" : "#5A6478",
@@ -197,6 +200,8 @@ export default function LeadDetailPanel({
     border: "none" as const,
     borderBottom: active ? "2px solid #C8A44E" : "2px solid transparent",
     cursor: "pointer" as const,
+    transition: "color 75ms" as const,
+    WebkitTapHighlightColor: "transparent" as const,
   });
 
   return (
@@ -683,6 +688,7 @@ export default function LeadDetailPanel({
             display: "grid",
             gridTemplateColumns: currentRole === "sales" ? "1fr" : "1fr 1fr 1fr",
             gap: 6,
+            WebkitTapHighlightColor: "transparent",
           }}
         >
           {currentRole !== "sales" && (
@@ -699,6 +705,7 @@ export default function LeadDetailPanel({
                 fontWeight: 600,
                 textDecoration: "none",
                 textAlign: "center",
+                transition: "transform 75ms, opacity 75ms",
               }}
             >
               WhatsApp
@@ -716,6 +723,7 @@ export default function LeadDetailPanel({
                 fontWeight: 600,
                 textDecoration: "none",
                 textAlign: "center",
+                transition: "transform 75ms, opacity 75ms",
               }}
             >
               Позвонить

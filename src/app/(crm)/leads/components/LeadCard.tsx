@@ -80,11 +80,23 @@ export default function LeadCard({
         borderRadius: 10,
         padding: 14,
         borderLeft: `3px solid ${color}`,
+        transition: "border-color 75ms, transform 75ms",
+        WebkitTapHighlightColor: "transparent",
       }}
     >
-      <div onClick={() => setExpanded(!expanded)} style={{ cursor: "pointer" }}>
+      <div
+        onClick={() => setExpanded(!expanded)}
+        style={{ cursor: "pointer" }}
+        onPointerDown={(e) => { (e.currentTarget.parentElement as HTMLElement).style.transform = "scale(0.98)"; }}
+        onPointerUp={(e) => { (e.currentTarget.parentElement as HTMLElement).style.transform = ""; }}
+        onPointerLeave={(e) => { (e.currentTarget.parentElement as HTMLElement).style.transform = ""; }}
+      >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontWeight: 600, fontSize: 15 }}>
+          <span style={{
+            fontWeight: 600, fontSize: 15,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            flex: 1, minWidth: 0,
+          }}>
             <span style={{ color: "#5A6478", fontWeight: 400, fontSize: 12 }}>#{lead.short_id} </span>
             {lead.name ?? "Без имени"}
           </span>
@@ -387,13 +399,14 @@ export default function LeadCard({
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                padding: "6px 12px",
+                padding: "8px 14px",
                 borderRadius: 6,
                 background: "#25D366",
                 color: "#fff",
                 fontSize: 12,
                 fontWeight: 600,
                 textDecoration: "none",
+                transition: "transform 75ms, opacity 75ms",
               }}
             >
               WhatsApp
@@ -401,13 +414,14 @@ export default function LeadCard({
             <a
               href={callLink}
               style={{
-                padding: "6px 12px",
+                padding: "8px 14px",
                 borderRadius: 6,
                 background: "#4A8FD4",
                 color: "#fff",
                 fontSize: 12,
                 fontWeight: 600,
                 textDecoration: "none",
+                transition: "transform 75ms, opacity 75ms",
               }}
             >
               Позвонить
@@ -416,7 +430,7 @@ export default function LeadCard({
               <button
                 onClick={() => onAssign(lead.id)}
                 style={{
-                  padding: "6px 12px",
+                  padding: "8px 14px",
                   borderRadius: 6,
                   background: "#C8A44E",
                   color: "#0A0D14",
@@ -424,6 +438,7 @@ export default function LeadCard({
                   fontWeight: 600,
                   border: "none",
                   cursor: "pointer",
+                  transition: "transform 75ms, opacity 75ms",
                 }}
               >
                 Взять в работу
@@ -433,7 +448,7 @@ export default function LeadCard({
               <button
                 onClick={() => onStatusChange(lead.id, nextStatus)}
                 style={{
-                  padding: "6px 12px",
+                  padding: "8px 14px",
                   borderRadius: 6,
                   background: nextColor ?? "#C8A44E",
                   color: nextColor === "#9B59B6" || nextColor === "#3498DB" || nextColor === "#25D366" ? "#fff" : "#0A0D14",
@@ -441,6 +456,7 @@ export default function LeadCard({
                   fontWeight: 600,
                   border: "none",
                   cursor: "pointer",
+                  transition: "transform 75ms, opacity 75ms",
                 }}
               >
                 {nextLabel}
@@ -450,7 +466,7 @@ export default function LeadCard({
               <button
                 onClick={() => setShowRejectInput(true)}
                 style={{
-                  padding: "6px 12px",
+                  padding: "8px 14px",
                   borderRadius: 6,
                   background: "#1A2332",
                   color: "#5A6478",
@@ -458,6 +474,7 @@ export default function LeadCard({
                   fontWeight: 600,
                   border: "1px solid #5A6478",
                   cursor: "pointer",
+                  transition: "transform 75ms, opacity 75ms",
                 }}
               >
                 Отказ

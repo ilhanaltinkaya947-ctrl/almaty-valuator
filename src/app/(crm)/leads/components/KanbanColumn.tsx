@@ -100,7 +100,8 @@ export default function KanbanColumn({
           />
         ))}
         {leads.length === 0 && (
-          <div style={{ textAlign: "center", color: "#5A6478", fontSize: 11, padding: "20px 0" }}>
+          <div style={{ textAlign: "center", color: "#5A6478", fontSize: 12, padding: "30px 10px" }}>
+            <div style={{ fontSize: 22, marginBottom: 4, opacity: 0.5 }}>{"📭"}</div>
             Пусто
           </div>
         )}
