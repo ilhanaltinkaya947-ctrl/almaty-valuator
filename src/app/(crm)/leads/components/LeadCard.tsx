@@ -195,6 +195,13 @@ export default function LeadCard({
           </div>
         )}
 
+        {/* Standalone expenses badge — always visible when expenses exist */}
+        {lead.total_expenses && !((!lead.needs_manual_review && offerPrice) || lead.offer_price) ? (
+          <div style={{ fontSize: 11, color: "#E74C3C", fontWeight: 600, marginTop: 4 }}>
+            {"💸"} Расходы: {formatPrice(lead.total_expenses)}
+          </div>
+        ) : null}
+
         <div style={{ fontSize: 11, color: "#5A6478", marginTop: 4 }}>
           {formatDate(lead.created_at)} · {lead.phone}
           {lead.area_sqm ? ` · ${lead.area_sqm} м²` : ""}
